@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/gohugonet/hugoverse/internal/application"
+	"github.com/gohugonet/hugoverse/pkg/db"
 	"github.com/gohugonet/hugoverse/pkg/log"
 	"io"
 	"net/http"
@@ -26,6 +28,10 @@ func NewServer(options ...func(s *Server) error) (*Server, error) {
 		return nil, fmt.Errorf("must provide an option func that specifies a logger")
 	}
 	s.registerHandler()
+
+	csApp := application.NewContentServer()
+	db.Start(csApp.DataDir(), csApp.AllContentTypeNames())
+
 	return s, nil
 }
 
