@@ -25,6 +25,10 @@ func (s *ContentServer) DataDir() string {
 	return dataDir()
 }
 
+func (s *ContentServer) GetContent(name string) (func() interface{}, bool) {
+	return s.content.GetContent(name)
+}
+
 func dataDir() string {
 	dataDir := os.Getenv("HUGOVERSE_DATA_DIR")
 	if dataDir == "" {

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gohugonet/hugoverse/internal/application"
+	"github.com/gohugonet/hugoverse/internal/interfaces/api/analytics"
 	"github.com/gohugonet/hugoverse/pkg/db"
 	"github.com/gohugonet/hugoverse/pkg/log"
 	"io"
@@ -15,6 +16,7 @@ type Server struct {
 	mux   *http.ServeMux
 	cache responseCache
 	Log   log.Logger
+	csApp *application.ContentServer
 }
 
 func NewServer(options ...func(s *Server) error) (*Server, error) {
@@ -29,14 +31,19 @@ func NewServer(options ...func(s *Server) error) (*Server, error) {
 	}
 	s.registerHandler()
 
-	csApp := application.NewContentServer()
-	db.Start(csApp.DataDir(), csApp.AllContentTypeNames())
+	s.csApp = application.NewContentServer()
+	db.Start(s.csApp.DataDir(), s.csApp.AllContentTypeNames())
+	defer db.Close()
+
+	analytics.Setup(s.csApp.DataDir())
+	defer analytics.Close()
 
 	return s, nil
 }
 
 func (s *Server) registerHandler() {
-	s.mux.HandleFunc("/demo", s.handleDemo)
+	s.mux.HandleFunc("/api/demo", s.handleDemo)
+	s.mux.HandleFunc("/api/contents", Record(CORS(Gzip(s.contentHandler))))
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {

@@ -1,0 +1,83 @@
+package api
+
+import (
+	"encoding/json"
+	"github.com/gohugonet/hugoverse/internal/domain/content"
+	"github.com/gohugonet/hugoverse/pkg/db"
+	"log"
+	"net/http"
+)
+
+func (s *Server) contentHandler(res http.ResponseWriter, req *http.Request) {
+	q := req.URL.Query()
+	id := q.Get("id")
+	t := q.Get("type")
+
+	if t == "" || id == "" {
+		res.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	pt, ok := s.csApp.GetContent(t)
+	if !ok {
+		res.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	post, err := db.Content(t + ":" + id)
+	if err != nil {
+		res.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	p := pt()
+	err = json.Unmarshal(post, p)
+	if err != nil {
+		res.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if hide(res, req, p) {
+		return
+	}
+
+	push(res, req, p, post)
+
+	j, err := fmtJSON(json.RawMessage(post))
+	if err != nil {
+		res.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	j, err = omit(res, req, p, j)
+	if err != nil {
+		res.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	// assert hookable
+	get := p
+	hook, ok := get.(content.Hookable)
+	if !ok {
+		log.Println("[Response] error: Type", t, "does not implement item.Hookable or embed item.Item.")
+		res.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	// hook before response
+	j, err = hook.BeforeAPIResponse(res, req, j)
+	if err != nil {
+		log.Println("[Response] error calling BeforeAPIResponse:", err)
+		res.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	sendData(res, req, j)
+
+	// hook after response
+	err = hook.AfterAPIResponse(res, req, j)
+	if err != nil {
+		log.Println("[Response] error calling AfterAPIResponse:", err)
+		return
+	}
+}

@@ -61,3 +61,12 @@ func Start(dataDir string, contentTypes []string) {
 		log.Fatalln("Couldn't initialize db with buckets.", err)
 	}
 }
+
+// Close exports the abillity to close our db file. Should be called with defer
+// after call to Init() from the same place.
+func Close() {
+	err := store.Close()
+	if err != nil {
+		log.Println(err)
+	}
+}
