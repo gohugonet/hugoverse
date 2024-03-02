@@ -12,6 +12,7 @@ func New() error {
 	topLevel.Usage = func() {
 		fmt.Println("Usage:\n  hugov [command]")
 		fmt.Println("\nCommands:")
+		fmt.Println("    serve:  start the headless CMS server")
 		fmt.Println("  version:  show hugoverse command version")
 
 		fmt.Println("\nExample:")
@@ -39,6 +40,14 @@ func New() error {
 				return err
 			}
 			if err := versionCmd.Run(); err != nil {
+				return err
+			}
+		case "serve":
+			serveCmd, err := NewServeCmd(topLevel)
+			if err != nil {
+				return err
+			}
+			if err := serveCmd.Run(); err != nil {
 				return err
 			}
 
