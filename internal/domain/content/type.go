@@ -98,5 +98,5 @@ var (
 	// ErrAllowHiddenItem should be used as an error to tell a caller of Hideable#Hide
 	// that this type is hidden, but should be shown in a particular case, i.e.
 	// if requested by a valid admin or user
-	ErrAllowHiddenItem = errors.New(`Allow hidden item`)
+	ErrAllowHiddenItem = errors.New(`allow hidden item`)
 )

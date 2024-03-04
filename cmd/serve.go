@@ -5,13 +5,15 @@ import (
 	"fmt"
 	"github.com/gohugonet/hugoverse/internal/interfaces/api"
 	"github.com/gohugonet/hugoverse/pkg/log"
-	"net/http"
+	"strconv"
 )
 
 type serverCmd struct {
 	parent *flag.FlagSet
 	cmd    *flag.FlagSet
 	port   *string
+	env    *string
+	https  *bool
 }
 
 func NewServeCmd(parent *flag.FlagSet) (*serverCmd, error) {
@@ -20,8 +22,12 @@ func NewServeCmd(parent *flag.FlagSet) (*serverCmd, error) {
 	}
 
 	nCmd.cmd = flag.NewFlagSet("normal", flag.ExitOnError)
-	nCmd.port = nCmd.cmd.String("port", "",
-		fmt.Sprintln("[optional] server listening port"))
+	nCmd.port = nCmd.cmd.String("port", "1314",
+		fmt.Sprintln("[optional] server listening port, default is `1314`"))
+	nCmd.env = nCmd.cmd.String("env", "dev",
+		fmt.Sprintln("[optional, dev|prod] development environment, default is `dev`"))
+	nCmd.https = nCmd.cmd.Bool("https", false,
+		fmt.Sprintln("[optional] enable https, default is `false`"))
 
 	err := nCmd.cmd.Parse(parent.Args()[1:])
 	if err != nil {
@@ -37,22 +43,37 @@ func (c *serverCmd) Usage() {
 
 func (c *serverCmd) Run() error {
 	l := log.NewStdLogger()
-	s, err := api.NewServer(func(s *api.Server) error {
-		s.Log = l
 
-		return nil
-	})
+	env := api.DEV
+	if *c.env == "prod" {
+		env = api.PROD
+	}
+	s, err := api.NewServer(setupLogger(l), setupPort(*c.port))
 	if err != nil {
 		l.Fatalf("Error creating server: %v", err)
 	}
 
-	port := *c.port
-	if *c.port == "" {
-		port = "1314"
-	}
-
-	l.Printf("Listening on :%v ...", port)
-	l.Fatalf("Error listening on :%v: %v", port, http.ListenAndServe(":"+port, s))
+	l.Fatalf("Error listening on :%v: %v", *c.port, s.ListenAndServe(env, *c.https))
 
 	return nil
+}
+
+func setupLogger(l log.Logger) func(s *api.Server) error {
+	return func(s *api.Server) error {
+		s.Log = l
+
+		return nil
+	}
+}
+
+func setupPort(port string) func(s *api.Server) error {
+	return func(s *api.Server) error {
+		p, err := strconv.Atoi(port)
+		if err != nil {
+			return err
+		}
+		s.HttpPort = p
+
+		return nil
+	}
 }

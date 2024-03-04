@@ -55,7 +55,7 @@ func responseWithCORS(res http.ResponseWriter, req *http.Request) (http.Response
 	return res, true
 }
 
-// CORS wraps a HandlerFunc to respond to OPTIONS requests properly
+// CORS wraps a HandlerFunc to respond OPTIONS requests properly
 func CORS(next http.HandlerFunc) http.HandlerFunc {
 	return db.CacheControl(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		res, cors := responseWithCORS(res, req)

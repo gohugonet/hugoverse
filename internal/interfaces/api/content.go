@@ -8,6 +8,10 @@ import (
 	"net/http"
 )
 
+func (s *Server) registerContentHandler() {
+	s.mux.HandleFunc("/api/contents", Record(CORS(Gzip(s.contentHandler))))
+}
+
 func (s *Server) contentHandler(res http.ResponseWriter, req *http.Request) {
 	q := req.URL.Query()
 	id := q.Get("id")
@@ -18,7 +22,7 @@ func (s *Server) contentHandler(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	pt, ok := s.csApp.GetContent(t)
+	pt, ok := s.contentApp.GetContent(t)
 	if !ok {
 		res.WriteHeader(http.StatusNotFound)
 		return

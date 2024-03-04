@@ -6,21 +6,62 @@ import (
 	"fmt"
 	"github.com/gohugonet/hugoverse/internal/application"
 	"github.com/gohugonet/hugoverse/internal/interfaces/api/analytics"
-	"github.com/gohugonet/hugoverse/pkg/db"
 	"github.com/gohugonet/hugoverse/pkg/log"
 	"io"
 	"net/http"
 )
 
+type PORT string
+
+const (
+	HttpsPort PORT = "https_port"
+	HttpPort  PORT = "http_port"
+)
+
+const BindAddress = "bind_addr"
+
+type ENV int
+
+const (
+	DEV ENV = iota
+	PROD
+)
+
 type Server struct {
-	mux   *http.ServeMux
-	cache responseCache
-	Log   log.Logger
-	csApp *application.ContentServer
+	mux        *http.ServeMux
+	cache      responseCache
+	Log        log.Logger
+	Bind       string
+	HttpsPort  int
+	HttpPort   int
+	db         *database
+	contentApp *application.ContentServer
+	adminApp   *application.AdminServer
+}
+
+func (s *Server) ListenAndServe(env ENV, enableHttps bool) error {
+	if enableHttps {
+		if err := s.enableTLS(env); err != nil {
+			s.Log.Fatalf("System failed to enable TLS. Please try to run again.", err)
+			return err
+		}
+	}
+	if err := s.saveConfig(); err != nil {
+		s.Log.Fatalf("System failed to save config. Please try to run again.", err)
+		return err
+	}
+
+	return http.ListenAndServe(fmt.Sprintf("%s:%d", s.Bind, s.HttpPort), s)
 }
 
 func NewServer(options ...func(s *Server) error) (*Server, error) {
-	s := &Server{mux: http.NewServeMux()}
+	s := &Server{
+		mux:       http.NewServeMux(),
+		db:        &database{},
+		Bind:      "localhost",
+		HttpPort:  80,
+		HttpsPort: 443,
+	}
 	for _, o := range options {
 		if err := o(s); err != nil {
 			return nil, err
@@ -31,11 +72,13 @@ func NewServer(options ...func(s *Server) error) (*Server, error) {
 	}
 	s.registerHandler()
 
-	s.csApp = application.NewContentServer()
-	db.Start(s.csApp.DataDir(), s.csApp.AllContentTypeNames())
-	defer db.Close()
+	s.contentApp = application.NewContentServer()
+	s.adminApp = application.NewAdminServer(s.db)
 
-	analytics.Setup(s.csApp.DataDir())
+	s.db.start(s.contentApp.AllContentTypeNames())
+	defer s.db.close()
+
+	analytics.Setup(dataDir())
 	defer analytics.Close()
 
 	return s, nil
@@ -43,7 +86,9 @@ func NewServer(options ...func(s *Server) error) (*Server, error) {
 
 func (s *Server) registerHandler() {
 	s.mux.HandleFunc("/api/demo", s.handleDemo)
-	s.mux.HandleFunc("/api/contents", Record(CORS(Gzip(s.contentHandler))))
+	
+	s.registerContentHandler()
+	s.registerAdminHandler()
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -74,4 +119,35 @@ func (s *Server) writeJSONResponse(w http.ResponseWriter, resp interface{}, stat
 		s.Log.Errorf("io.Copy(w, &buf): %v", err)
 		return
 	}
+}
+
+func (s *Server) enableTLS(env ENV) error {
+	switch env {
+	case DEV:
+		// todo
+		return nil
+	case PROD:
+		// todo
+		return nil
+	}
+	return nil
+}
+
+func (s *Server) saveConfig() error {
+	err := s.adminApp.PutConfig(string(HttpsPort), s.HttpsPort)
+	if err != nil {
+		s.Log.Fatalf("System failed to save Https Port config. Please try to run again.", err)
+		return err
+	}
+	err = s.adminApp.PutConfig(string(HttpPort), s.HttpPort)
+	if err != nil {
+		s.Log.Fatalf("System failed to save Http Port config. Please try to run again.", err)
+		return err
+	}
+	err = s.adminApp.PutConfig(string(BindAddress), s.Bind)
+	if err != nil {
+		s.Log.Fatalf("System failed to save bind address config. Please try to run again.", err)
+		return err
+	}
+	return nil
 }
