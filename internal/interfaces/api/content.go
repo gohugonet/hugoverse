@@ -9,7 +9,7 @@ import (
 )
 
 func (s *Server) registerContentHandler() {
-	s.mux.HandleFunc("/api/contents", Record(CORS(Gzip(s.contentHandler))))
+	s.mux.HandleFunc("/api/contents", Record(s.CORS(s.Gzip(s.contentHandler))))
 }
 
 func (s *Server) contentHandler(res http.ResponseWriter, req *http.Request) {

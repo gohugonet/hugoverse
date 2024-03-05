@@ -8,8 +8,8 @@ type Config struct {
 	Name                    string   `json:"name"`
 	Domain                  string   `json:"domain"`
 	BindAddress             string   `json:"bind_addr"`
-	HTTPPort                string   `json:"http_port"`
-	HTTPSPort               string   `json:"https_port"`
+	HTTPPort                int      `json:"http_port"`
+	HTTPSPort               int      `json:"https_port"`
 	AdminEmail              string   `json:"admin_email"`
 	ClientSecret            string   `json:"client_secret"`
 	Etag                    string   `json:"etag"`
@@ -20,4 +20,8 @@ type Config struct {
 	CacheInvalidate         []string `json:"cache"`
 	BackupBasicAuthUser     string   `json:"backup_basic_auth_user"`
 	BackupBasicAuthPassword string   `json:"backup_basic_auth_password"`
+}
+
+func (c *Config) isCacheInvalidate() bool {
+	return len(c.CacheInvalidate) > 0 && c.CacheInvalidate[0] == "invalidate"
 }

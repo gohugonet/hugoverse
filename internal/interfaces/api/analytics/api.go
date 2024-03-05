@@ -36,7 +36,7 @@ var (
 	requestChan chan apiRequest
 )
 
-// RANGE determines the number of days ponzu request analytics and metrics are
+// RANGE determines the number of days hugoverse request analytics and metrics are
 // stored and displayed within the system
 const RANGE = 14
 

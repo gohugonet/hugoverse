@@ -2,15 +2,14 @@ package api
 
 import (
 	"compress/gzip"
-	"github.com/gohugonet/hugoverse/pkg/db"
 	"net/http"
 	"strings"
 )
 
 // Gzip wraps a HandlerFunc to compress responses when possible
-func Gzip(next http.HandlerFunc) http.HandlerFunc {
+func (s *Server) Gzip(next http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		if db.ConfigCache("gzip_disabled").(bool) == true {
+		if s.adminApp.GzipDisabled() {
 			next.ServeHTTP(res, req)
 			return
 		}

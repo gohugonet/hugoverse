@@ -1,7 +1,6 @@
 package api
 
 import (
-	"github.com/gohugonet/hugoverse/pkg/db"
 	"log"
 	"net/http"
 	"net/url"
@@ -15,10 +14,10 @@ func sendPreflight(res http.ResponseWriter) {
 	return
 }
 
-func responseWithCORS(res http.ResponseWriter, req *http.Request) (http.ResponseWriter, bool) {
-	if db.ConfigCache("cors_disabled").(bool) == true {
+func (s *Server) responseWithCORS(res http.ResponseWriter, req *http.Request) (http.ResponseWriter, bool) {
+	if s.adminApp.CorsDisabled() {
 		// check origin matches config domain
-		domain := db.ConfigCache("domain").(string)
+		domain := s.adminApp.Domain()
 		origin := req.Header.Get("Origin")
 		u, err := url.Parse(origin)
 		if err != nil {
@@ -56,9 +55,9 @@ func responseWithCORS(res http.ResponseWriter, req *http.Request) (http.Response
 }
 
 // CORS wraps a HandlerFunc to respond OPTIONS requests properly
-func CORS(next http.HandlerFunc) http.HandlerFunc {
-	return db.CacheControl(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		res, cors := responseWithCORS(res, req)
+func (s *Server) CORS(next http.HandlerFunc) http.HandlerFunc {
+	return s.CacheControl(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		res, cors := s.responseWithCORS(res, req)
 		if !cors {
 			return
 		}

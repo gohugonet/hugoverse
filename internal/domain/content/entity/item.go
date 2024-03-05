@@ -58,7 +58,7 @@ func (i *Item) UniqueID() uuid.UUID {
 // String formats an *Item into a printable value
 // partially implements the Identifiable interface
 func (i *Item) String() string {
-	return fmt.Sprintf("Item ID: %s", i.UniqueID())
+	return fmt.Sprintf("Item id: %s", i.UniqueID())
 }
 
 // BeforeAPIResponse is a no-op to ensure structs which embed *Item implement Hookable

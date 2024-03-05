@@ -6,19 +6,11 @@ import (
 )
 
 type ContentServer struct {
-	content content.Content
+	content.Content
 }
 
 func NewContentServer() *ContentServer {
 	return &ContentServer{
-		content: factory.NewContent(),
+		Content: factory.NewContent(),
 	}
-}
-
-func (s *ContentServer) AllContentTypeNames() []string {
-	return s.content.AllContentTypeNames()
-}
-
-func (s *ContentServer) GetContent(name string) (func() interface{}, bool) {
-	return s.content.GetContent(name)
 }

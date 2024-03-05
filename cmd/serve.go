@@ -52,6 +52,7 @@ func (c *serverCmd) Run() error {
 	if err != nil {
 		l.Fatalf("Error creating server: %v", err)
 	}
+	defer s.Close()
 
 	l.Fatalf("Error listening on :%v: %v", *c.port, s.ListenAndServe(env, *c.https))
 

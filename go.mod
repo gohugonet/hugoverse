@@ -22,6 +22,7 @@ require (
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/gorilla/schema v1.2.1 // indirect
 	github.com/mschoch/smat v0.2.0 // indirect
+	github.com/nilslice/jwt v1.0.0 // indirect
 	github.com/philhofer/fwd v1.0.0 // indirect
 	github.com/steveyen/gtreap v0.1.0 // indirect
 	github.com/tidwall/gjson v1.17.1 // indirect
@@ -31,5 +32,6 @@ require (
 	github.com/tinylib/msgp v1.1.0 // indirect
 	github.com/willf/bitset v1.1.10 // indirect
 	go.etcd.io/bbolt v1.3.9 // indirect
-	golang.org/x/sys v0.4.0 // indirect
+	golang.org/x/crypto v0.21.0 // indirect
+	golang.org/x/sys v0.18.0 // indirect
 )

@@ -10,13 +10,11 @@ import (
 	"strings"
 )
 
-const ItemBucketPrefix = "__"
-
 // ItemAll gets the configuration from the db
 func ItemAll(item Item) ([]byte, error) {
 	val := &bytes.Buffer{}
 	err := store.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(bucketNameWithPrefix(item.Bucket())))
+		b := tx.Bucket([]byte(item.Bucket()))
 		if b == nil {
 			return fmt.Errorf("error finding bucket: %s", item.Bucket())
 		}
@@ -34,10 +32,6 @@ func ItemAll(item Item) ([]byte, error) {
 	return val.Bytes(), nil
 }
 
-func bucketNameWithPrefix(name string) string {
-	return ItemBucketPrefix + name
-}
-
 func marshalItem(item Item) ([]byte, error) {
 	data, err := json.Marshal(item.Object())
 	if err != nil {
@@ -50,7 +44,7 @@ func marshalItem(item Item) ([]byte, error) {
 func SetItem(data url.Values, item Item) error {
 	var j []byte
 	err := store.Update(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(bucketNameWithPrefix(item.Bucket())))
+		b := tx.Bucket([]byte(item.Bucket()))
 
 		// check for any multi-value fields (ex. checkbox fields)
 		// and correctly format for db storage. Essentially, we need
@@ -109,12 +103,6 @@ func SetItem(data url.Values, item Item) error {
 			return err
 		}
 
-		// check for "invalidate" value to reset the Etag
-		if item.CacheInvalidate() {
-			//cfg.Etag = NewEtag()
-			//cfg.CacheInvalidate = []string{}
-		}
-
 		j, err = json.Marshal(cfg)
 		if err != nil {
 			return err
@@ -130,17 +118,6 @@ func SetItem(data url.Values, item Item) error {
 	if err != nil {
 		return err
 	}
-
-	// convert json => map[string]interface{}
-	var kv map[string]interface{}
-	err = json.Unmarshal(j, &kv)
-	if err != nil {
-		return err
-	}
-
-	mu.Lock()
-	configCache = kv
-	mu.Unlock()
 
 	return nil
 }

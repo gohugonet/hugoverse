@@ -3,6 +3,7 @@ package api
 import (
 	"log"
 	"os"
+	"path/filepath"
 )
 
 func dataDir() string {
@@ -11,6 +12,14 @@ func dataDir() string {
 		return getWd()
 	}
 	return dataDir
+}
+
+func adminStaticDir() string {
+	staticDir := os.Getenv("HUGOVERSE_ADMIN_STATIC_DIR")
+	if staticDir == "" {
+		staticDir = filepath.Join(getWd(), "internal", "interfaces", "api", "admin", "static")
+	}
+	return staticDir
 }
 
 func getWd() string {

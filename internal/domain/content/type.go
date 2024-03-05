@@ -7,6 +7,7 @@ import (
 
 type Content interface {
 	AllContentTypeNames() []string
+	AllContentTypes() map[string]func() interface{}
 	GetContent(string) (func() interface{}, bool)
 }
 

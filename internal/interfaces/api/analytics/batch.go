@@ -25,8 +25,8 @@ func batchInsert(requests chan apiRequest) error {
 		}
 
 		for _, apiReq := range reqs {
-			// get the next available ID and convert to string
-			// also set effectedID to int of ID
+			// get the next available id and convert to string
+			// also set effectedID to int of id
 			id, err := b.NextSequence()
 			if err != nil {
 				return err

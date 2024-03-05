@@ -1,4 +1,4 @@
-package db
+package api
 
 import (
 	"fmt"
@@ -12,15 +12,14 @@ const (
 )
 
 // CacheControl sets the default cache policy on static asset responses
-func CacheControl(next http.Handler) http.HandlerFunc {
+func (s *Server) CacheControl(next http.Handler) http.HandlerFunc {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		cacheDisabled := ConfigCache("cache_disabled").(bool)
-		if cacheDisabled {
+		if s.adminApp.CacheDisabled() {
 			res.Header().Add("Cache-Control", "no-cache")
 			next.ServeHTTP(res, req)
 		} else {
-			age := int64(ConfigCache("cache_max_age").(float64))
-			etag := ConfigCache("etag").(string)
+			age := int64(s.adminApp.CacheMaxAge())
+			etag := s.adminApp.ETage()
 			if age == 0 {
 				age = DefaultMaxAge
 			}

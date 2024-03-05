@@ -51,6 +51,7 @@ func (s *Server) ListenAndServe(env ENV, enableHttps bool) error {
 		return err
 	}
 
+	s.Log.Printf("Listening on %s:%d", s.Bind, s.HttpPort)
 	return http.ListenAndServe(fmt.Sprintf("%s:%d", s.Bind, s.HttpPort), s)
 }
 
@@ -73,20 +74,29 @@ func NewServer(options ...func(s *Server) error) (*Server, error) {
 	s.registerHandler()
 
 	s.contentApp = application.NewContentServer()
-	s.adminApp = application.NewAdminServer(s.db)
 
 	s.db.start(s.contentApp.AllContentTypeNames())
-	defer s.db.close()
+
+	server, err := application.NewAdminServer(s.db)
+	if err != nil {
+		return nil, err
+	}
+	s.adminApp = server
 
 	analytics.Setup(dataDir())
-	defer analytics.Close()
 
 	return s, nil
 }
 
+func (s *Server) Close() {
+	fmt.Println("???? closed server")
+	s.db.close()
+	analytics.Close()
+}
+
 func (s *Server) registerHandler() {
 	s.mux.HandleFunc("/api/demo", s.handleDemo)
-	
+
 	s.registerContentHandler()
 	s.registerAdminHandler()
 }

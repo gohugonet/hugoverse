@@ -70,3 +70,32 @@ func Close() {
 		log.Println(err)
 	}
 }
+
+// SystemInitComplete checks if there is at least 1 admin user in the db which
+// would indicate that the system has been configured to the minimum required.
+func SystemInitComplete() bool {
+	complete := false
+
+	err := store.View(func(tx *bolt.Tx) error {
+		users := tx.Bucket([]byte("__users"))
+		if users == nil {
+			return bolt.ErrBucketNotFound
+		}
+
+		err := users.ForEach(func(k, v []byte) error {
+			complete = true
+			return nil
+		})
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		complete = false
+		log.Fatalln(err)
+	}
+
+	return complete
+}
