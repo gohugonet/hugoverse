@@ -20,3 +20,7 @@ func (c *Content) GetContent(name string) (func() interface{}, bool) {
 func (c *Content) AllContentTypes() map[string]func() interface{} {
 	return c.Types
 }
+
+func (c *Content) NormalizeString(s string) (string, error) {
+	return stringToSlug(s)
+}

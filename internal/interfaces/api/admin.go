@@ -5,8 +5,8 @@ import (
 	"github.com/gohugonet/hugoverse/internal/interfaces/api/admin"
 	"github.com/gohugonet/hugoverse/pkg/db"
 	"github.com/nilslice/jwt"
+	"log"
 	"net/http"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -16,6 +16,12 @@ func (s *Server) registerAdminHandler() {
 
 	s.mux.HandleFunc("/admin/login", s.loginHandler)
 	s.mux.HandleFunc("/admin/logout", s.logoutHandler)
+
+	s.mux.HandleFunc("/admin/configure", Auth(s.configHandler))
+
+	s.mux.HandleFunc("/admin/contents", Auth(s.contentsHandler))
+
+	s.mux.HandleFunc("/admin/edit", Auth(s.editHandler))
 
 	s.mux.HandleFunc("/admin/init", s.initHandler)
 
@@ -83,7 +89,7 @@ func (s *Server) initHandler(res http.ResponseWriter, req *http.Request) {
 		}
 
 		// set HTTP port which should be previously added to config cache
-		req.Form.Set("http_port", strconv.Itoa(s.adminApp.HttpPort()))
+		req.Form.Set("http_port", s.adminApp.HttpPort())
 
 		// set initial user email as admin_email and make config
 		req.Form.Set("admin_email", email)
@@ -206,4 +212,47 @@ func (s *Server) logoutHandler(res http.ResponseWriter, req *http.Request) {
 	})
 
 	http.Redirect(res, req, req.URL.Scheme+req.URL.Host+"/admin/login", http.StatusFound)
+}
+
+func (s *Server) configHandler(res http.ResponseWriter, req *http.Request) {
+	switch req.Method {
+	case http.MethodGet:
+		cfg, err := s.adminApp.ConfigEditor()
+		if err != nil {
+			log.Println(err)
+			res.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		adminView, err := admin.Admin(cfg, s.adminApp.Name(), s.contentApp.AllContentTypes())
+		if err != nil {
+			log.Println(err)
+			res.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		res.Header().Set("Content-Type", "text/html")
+		res.Write(adminView)
+
+	case http.MethodPost:
+		err := req.ParseForm()
+		if err != nil {
+			log.Println(err)
+			res.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		err = s.adminApp.SetConfig(req.Form)
+		if err != nil {
+			s.Log.Errorf("Error setting config: %v", err)
+			res.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		http.Redirect(res, req, req.URL.String(), http.StatusFound)
+
+	default:
+		res.WriteHeader(http.StatusMethodNotAllowed)
+	}
+
 }

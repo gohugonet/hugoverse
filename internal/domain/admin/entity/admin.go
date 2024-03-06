@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"encoding/json"
 	"github.com/gohugonet/hugoverse/internal/domain/admin/repository"
 	"net/url"
 )
@@ -10,19 +11,50 @@ type Admin struct {
 	Conf *Config
 }
 
+func (a *Admin) ConfigEditor() ([]byte, error) {
+	return a.Conf.MarshalEditor()
+}
+
 func (a *Admin) SetConfig(data url.Values) error {
-	return a.Repo.SetConfig(data)
+	if err := a.Repo.SetConfig(data); err != nil {
+		return err
+	}
+	if err := a.LoadConfig(); err != nil {
+		return err
+	}
+	// check for "invalidate" value to reset the Etag
+	if a.Conf.isCacheInvalidate() {
+		a.RefreshETage()
+	}
+
+	return nil
+}
+
+func (a *Admin) LoadConfig() error {
+	var conf *Config
+
+	data, err := a.Repo.LoadConfig()
+	if err != nil {
+		return err
+	}
+
+	if data == nil {
+		conf = &Config{}
+	} else {
+		err = json.Unmarshal(data, &conf)
+		if err != nil {
+			return err
+		}
+	}
+
+	a.Conf = conf
+	return nil
 }
 
 func (a *Admin) PutConfig(key string, value any) error {
 	err := a.Repo.PutConfig(key, value)
 	if err != nil {
 		return err
-	}
-
-	// check for "invalidate" value to reset the Etag
-	if a.Conf.isCacheInvalidate() {
-		a.RefreshETage()
 	}
 
 	return nil
@@ -51,4 +83,4 @@ func (a *Admin) CacheDisabled() bool  { return a.Conf.DisableHTTPCache }
 func (a *Admin) CorsDisabled() bool   { return a.Conf.DisableCORS }
 func (a *Admin) GzipDisabled() bool   { return a.Conf.DisableGZIP }
 func (a *Admin) ClientSecret() string { return a.Conf.ClientSecret }
-func (a *Admin) HttpPort() int        { return a.Conf.HTTPPort }
+func (a *Admin) HttpPort() string     { return a.Conf.HTTPPort }

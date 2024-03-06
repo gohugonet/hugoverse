@@ -5,12 +5,17 @@ import "net/url"
 type Admin interface {
 	Name() string
 
+	Editor
 	UserService
 	Persistence
 	Cache
 	Config
 	Http
 	Client
+}
+
+type Editor interface {
+	ConfigEditor() ([]byte, error)
 }
 
 type User interface {
@@ -29,7 +34,7 @@ type Persistence interface {
 
 type Http interface {
 	Domain() string
-	HttpPort() int
+	HttpPort() string
 }
 
 type Cache interface {

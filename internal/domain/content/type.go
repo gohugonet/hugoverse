@@ -2,6 +2,7 @@ package content
 
 import (
 	"errors"
+	"github.com/gofrs/uuid"
 	"net/http"
 )
 
@@ -9,6 +10,7 @@ type Content interface {
 	AllContentTypeNames() []string
 	AllContentTypes() map[string]func() interface{}
 	GetContent(string) (func() interface{}, bool)
+	NormalizeString(s string) (string, error)
 }
 
 // Hideable lets a user keep items hidden
@@ -30,6 +32,45 @@ type Pushable interface {
 // json tag names of the struct fields to which they correspond.
 type Omittable interface {
 	Omit(http.ResponseWriter, *http.Request) ([]string, error)
+}
+
+// Createable accepts or rejects external POST requests to endpoints such as:
+// /api/content/create?type=Review
+type Createable interface {
+	// Create enables external clients to submit content of a specific type
+	Create(http.ResponseWriter, *http.Request) error
+}
+
+// Sortable ensures data is sortable by time
+type Sortable interface {
+	Time() int64
+	Touch() int64
+}
+
+// CSVFormattable is implemented with the method FormatCSV, which must return the ordered
+// slice of JSON struct tag names for the type implmenting it
+type CSVFormattable interface {
+	FormatCSV() []string
+}
+
+// Sluggable makes a struct locatable by URL with it's own path.
+// As an Item implementing Sluggable, slugs may overlap. If this is an issue,
+// make your content struct (or one which embeds Item) implement Sluggable
+// and it will override the slug created by Item's SetSlug with your own
+type Sluggable interface {
+	SetSlug(string)
+	ItemSlug() string
+}
+
+// Identifiable enables a struct to have its ID set/get. Typically this is done
+// to set an ID to -1 indicating it is new for DB inserts, since by default
+// a newly initialized struct would have an ID of 0, the int zero-value, and
+// bbolt's starting key per bucket is 0, thus overwriting the first record.
+type Identifiable interface {
+	ItemID() int
+	SetItemID(int)
+	UniqueID() uuid.UUID
+	String() string
 }
 
 // Hookable provides our user with an easy way to intercept or add functionality

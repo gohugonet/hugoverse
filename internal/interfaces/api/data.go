@@ -22,6 +22,14 @@ func adminStaticDir() string {
 	return staticDir
 }
 
+func uploadDir() string {
+	uploadDir := os.Getenv("HUGOVERSE_UPLOAD_DIR")
+	if uploadDir == "" {
+		uploadDir = filepath.Join(dataDir(), "uploads")
+	}
+	return uploadDir
+}
+
 func getWd() string {
 	wd, err := os.Getwd()
 	if err != nil {

@@ -47,3 +47,18 @@ func Admin(view []byte, name string, ts map[string]func() interface{}) (_ []byte
 
 	return buf.Bytes(), nil
 }
+
+// Error400 creates a subview for a 400 error page
+func Error400(name string, ts map[string]func() interface{}) ([]byte, error) {
+	return Admin(err400HTML, name, ts)
+}
+
+// Error404 creates a subview for a 404 error page
+func Error404(name string, ts map[string]func() interface{}) ([]byte, error) {
+	return Admin(err404HTML, name, ts)
+}
+
+// Error500 creates a subview for a 500 error page
+func Error500(name string, ts map[string]func() interface{}) ([]byte, error) {
+	return Admin(err500HTML, name, ts)
+}
