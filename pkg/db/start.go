@@ -9,6 +9,7 @@ import (
 var (
 	store *bolt.DB
 
+	// TODO: move it out of pkg/db
 	buckets = []string{
 		"__config", "__users",
 		"__addons", "__uploads",

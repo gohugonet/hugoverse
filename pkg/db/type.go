@@ -1,7 +1,11 @@
 package db
 
 type Item interface {
-	Bucket() string    // bucket name
+	BucketItem
 	Namespace() string // bucket field
 	Object() any       // Object instance
+}
+
+type BucketItem interface {
+	Bucket() string
 }

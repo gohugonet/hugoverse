@@ -2,7 +2,10 @@ package entity
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/admin/repository"
+	"github.com/gohugonet/hugoverse/internal/domain/content/factory"
+	"github.com/gorilla/schema"
 	"net/url"
 )
 
@@ -12,7 +15,42 @@ type Admin struct {
 }
 
 func (a *Admin) ConfigEditor() ([]byte, error) {
+	// TODO, remove it
 	return a.Conf.MarshalEditor()
+}
+
+func (a *Admin) NewUpload(data url.Values) error {
+	var upload FileUpload
+
+	decoder := schema.NewDecoder()
+	if err := decoder.Decode(&upload, data); err != nil {
+		return err
+	}
+
+	item, err := factory.NewItem()
+	if err != nil {
+		return err
+	}
+	upload.Item = *item
+
+	slug, err := a.Repo.CheckUploadDuplication(upload.Name)
+	if err != nil {
+		return err
+	}
+	upload.Slug = slug
+
+	nextId, err := a.Repo.NextUploadId()
+	if err != nil {
+		return err
+	}
+	upload.ID = int(nextId)
+
+	uploadData, err := json.Marshal(upload)
+	if err != nil {
+		return err
+	}
+
+	return a.Repo.NewUpload(fmt.Sprintf("%d", upload.ID), slug, uploadData)
 }
 
 func (a *Admin) SetConfig(data url.Values) error {

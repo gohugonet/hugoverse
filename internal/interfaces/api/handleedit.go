@@ -1,17 +1,18 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/content"
 	"github.com/gohugonet/hugoverse/internal/interfaces/api/admin"
 	"github.com/gohugonet/hugoverse/pkg/db"
 	"github.com/gohugonet/hugoverse/pkg/editor"
+	"github.com/gohugonet/hugoverse/pkg/timestamp"
 	"github.com/gorilla/schema"
 	"log"
 	"net/http"
 	"strings"
-	"time"
 )
 
 func (s *Server) editHandler(res http.ResponseWriter, req *http.Request) {
@@ -106,7 +107,7 @@ func (s *Server) editHandler(res http.ResponseWriter, req *http.Request) {
 	case http.MethodPost:
 		err := req.ParseMultipartForm(1024 * 1024 * 4) // maxMemory 4MB
 		if err != nil {
-			log.Println(err)
+			s.Log.Errorf("Error parsing multipart form: %v", err)
 			res.WriteHeader(http.StatusInternalServerError)
 			errView, err := admin.Error500(s.adminApp.Name(), s.contentApp.AllContentTypes())
 			if err != nil {
@@ -124,7 +125,7 @@ func (s *Server) editHandler(res http.ResponseWriter, req *http.Request) {
 
 		// create a timestamp if one was not set
 		if ts == "" {
-			ts = fmt.Sprintf("%d", int64(time.Nanosecond)*time.Now().UTC().UnixNano()/int64(time.Millisecond))
+			ts = timestamp.Now()
 			req.PostForm.Set("timestamp", ts)
 		}
 
@@ -134,7 +135,7 @@ func (s *Server) editHandler(res http.ResponseWriter, req *http.Request) {
 
 		urlPaths, err := s.StoreFiles(req)
 		if err != nil {
-			log.Println(err)
+			s.Log.Errorf("Error storing files: %v", err)
 			res.WriteHeader(http.StatusInternalServerError)
 			errView, err := admin.Error500(s.adminApp.Name(), s.contentApp.AllContentTypes())
 			if err != nil {

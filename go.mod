@@ -3,8 +3,13 @@ module github.com/gohugonet/hugoverse
 go 1.21.1
 
 require (
+	github.com/blevesearch/bleve v1.0.14
+	github.com/gofrs/uuid v4.4.0+incompatible
+	golang.org/x/text v0.14.0
+)
+
+require (
 	github.com/RoaringBitmap/roaring v0.4.23 // indirect
-	github.com/blevesearch/bleve v1.0.14 // indirect
 	github.com/blevesearch/go-porterstemmer v1.0.3 // indirect
 	github.com/blevesearch/mmap-go v1.0.2 // indirect
 	github.com/blevesearch/segment v0.9.0 // indirect
@@ -17,7 +22,6 @@ require (
 	github.com/bradfitz/gomemcache v0.0.0-20230905024940-24af94b03874 // indirect
 	github.com/couchbase/vellum v1.0.2 // indirect
 	github.com/glycerine/go-unsnap-stream v0.0.0-20181221182339-f9677308dec2 // indirect
-	github.com/gofrs/uuid v4.4.0+incompatible // indirect
 	github.com/golang/protobuf v1.3.2 // indirect
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/gorilla/schema v1.2.1 // indirect

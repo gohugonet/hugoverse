@@ -89,7 +89,6 @@ func NewServer(options ...func(s *Server) error) (*Server, error) {
 }
 
 func (s *Server) Close() {
-	fmt.Println("???? closed server")
 	s.db.close()
 	analytics.Close()
 }

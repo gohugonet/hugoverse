@@ -30,6 +30,7 @@ type UserService interface {
 type Persistence interface {
 	PutConfig(key string, value any) error
 	SetConfig(data url.Values) error
+	NewUpload(data url.Values) error
 }
 
 type Http interface {

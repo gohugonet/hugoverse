@@ -34,8 +34,24 @@ func (d *database) NextUserId(email string) (uint64, error) {
 	return db.NextSequence(newUserItem(email, nil))
 }
 
+func (d *database) NextUploadId() (uint64, error) {
+	return db.NextSequence(newUploadBucketItem())
+}
+
 func (d *database) SetConfig(data url.Values) error {
 	return db.SetItem(data, newConfigItem(&entity.Config{}))
+}
+
+func (d *database) NewUpload(id, slug string, data []byte) error {
+	if err := db.SetUpload(data, newUploadItem(id)); err != nil {
+		return err
+	}
+
+	if err := db.SetIndex(id, newUploadItem(slug)); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (d *database) PutConfig(key string, value interface{}) error {
@@ -49,6 +65,10 @@ func (d *database) LoadConfig() ([]byte, error) {
 	}
 
 	return data, nil
+}
+
+func (d *database) CheckUploadDuplication(slug string) (string, error) {
+	return db.CheckSlugForDuplicate(slug)
 }
 
 func emptyConfig() ([]byte, error) {
@@ -66,6 +86,20 @@ const ItemBucketPrefix = "__"
 
 func bucketNameWithPrefix(name string) string {
 	return ItemBucketPrefix + name
+}
+
+func newUploadItem(id string) *item {
+	return &item{
+		bucket: bucketNameWithPrefix("uploads"),
+		ns:     id,
+		object: &entity.FileUpload{},
+	}
+}
+
+func newUploadBucketItem() *item {
+	return &item{
+		bucket: bucketNameWithPrefix("uploads"),
+	}
 }
 
 func newConfigItem(object *entity.Config) *item {

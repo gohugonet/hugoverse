@@ -2,15 +2,13 @@ package api
 
 import (
 	"fmt"
-	"github.com/gohugonet/hugoverse/pkg/db"
+	"github.com/gohugonet/hugoverse/pkg/timestamp"
 	"io"
-	"log"
 	"mime/multipart"
 	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
-	"strconv"
 	"time"
 )
 
@@ -24,7 +22,7 @@ func (s *Server) StoreFiles(req *http.Request) (map[string]string, error) {
 	ts := req.FormValue("timestamp") // timestamp in milliseconds since unix epoch
 
 	if ts == "" {
-		ts = fmt.Sprintf("%d", int64(time.Nanosecond)*time.Now().UnixNano()/int64(time.Millisecond)) // Unix() returns seconds since unix epoch
+		ts = timestamp.Now()
 	}
 
 	// To use for FormValue name:urlPath
@@ -36,13 +34,10 @@ func (s *Server) StoreFiles(req *http.Request) (map[string]string, error) {
 
 	req.Form.Set("timestamp", ts)
 
-	// get or create upload directory to save files from request
-	i, err := strconv.ParseInt(ts, 10, 64)
+	tm, err := timestamp.ConvertToTime(ts)
 	if err != nil {
 		return nil, err
 	}
-
-	tm := time.Unix(int64(i/1000), int64(i%1000))
 
 	urlPathPrefix := "api"
 	uploadDirName := "uploads"
@@ -94,13 +89,13 @@ func (s *Server) StoreFiles(req *http.Request) (map[string]string, error) {
 		urlPaths[name] = urlPath
 
 		// add upload information to db
-		go storeFileInfo(size, filename, urlPath, fds)
+		go s.storeFileInfo(size, filename, urlPath, fds)
 	}
 
 	return urlPaths, nil
 }
 
-func storeFileInfo(size int64, filename, urlPath string, fds []*multipart.FileHeader) {
+func (s *Server) storeFileInfo(size int64, filename, urlPath string, fds []*multipart.FileHeader) {
 	data := url.Values{
 		"name":           []string{filename},
 		"path":           []string{urlPath},
@@ -108,8 +103,7 @@ func storeFileInfo(size int64, filename, urlPath string, fds []*multipart.FileHe
 		"content_length": []string{fmt.Sprintf("%d", size)},
 	}
 
-	_, err := db.SetUpload("__uploads:-1", data)
-	if err != nil {
-		log.Println("Error saving file upload record to database:", err)
+	if err := s.adminApp.NewUpload(data); err != nil {
+		s.Log.Errorf("Error saving file upload record to database: %s", err)
 	}
 }

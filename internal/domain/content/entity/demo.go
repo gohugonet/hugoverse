@@ -14,7 +14,7 @@ type Demo struct {
 	Artist     string `json:"artist"`
 	Rating     int    `json:"rating"`
 	Opinion    string `json:"opinion"`
-	SpotifyUrl string `json:"spotify_url"`
+	SpotifyURL string `json:"spotify_url"`
 }
 
 // MarshalEditor writes a buffer of html to edit a Demo within the CMS

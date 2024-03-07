@@ -70,26 +70,3 @@ func Set(item Item) error {
 
 	return nil
 }
-
-func NextSequence(item Item) (uint64, error) {
-	var id uint64
-	err := store.Update(func(tx *bolt.Tx) error {
-		items := tx.Bucket([]byte(item.Bucket()))
-		if items == nil {
-			return bolt.ErrBucketNotFound
-		}
-
-		var err error
-		id, err = items.NextSequence()
-		if err != nil {
-			return err
-		}
-
-		return nil
-	})
-	if err != nil {
-		return 0, err
-	}
-
-	return id, nil
-}
