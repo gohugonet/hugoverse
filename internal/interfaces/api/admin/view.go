@@ -31,6 +31,7 @@ type admin struct {
 
 // Admin ...
 func Admin(view []byte, name string, ts map[string]func() interface{}) (_ []byte, err error) {
+	//TODO， clean Admin view
 	a := admin{
 		Logo:    name,
 		Types:   ts,

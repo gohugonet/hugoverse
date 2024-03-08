@@ -70,7 +70,8 @@ func (s *Server) StoreFiles(req *http.Request) (map[string]string, error) {
 			absPath = filepath.Join(uploadDir, filename)
 		}
 
-		// save to disk (TODO: or check if S3 credentials exist, & save to cloud)
+		// save to disk
+		// (TODO: or check if S3 credentials exist, & save to cloud)
 		dst, err := os.Create(absPath)
 		if err != nil {
 			err := fmt.Errorf("Failed to create destination file for upload: %s", err)

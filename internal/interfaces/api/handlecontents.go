@@ -19,13 +19,9 @@ func (s *Server) contentsHandler(res http.ResponseWriter, req *http.Request) {
 	q := req.URL.Query()
 	t := q.Get("type")
 	if t == "" {
-		res.WriteHeader(http.StatusBadRequest)
-		errView, err := admin.Error400(s.adminApp.Name(), s.contentApp.AllContentTypes())
-		if err != nil {
-			return
+		if err := s.responseErr400(res); err != nil {
+			s.Log.Errorf("Error response err 400: %s", err)
 		}
-
-		res.Write(errView)
 		return
 	}
 
@@ -34,16 +30,10 @@ func (s *Server) contentsHandler(res http.ResponseWriter, req *http.Request) {
 		order = "desc"
 	}
 
-	status := q.Get("status")
-
 	if _, ok := s.contentApp.AllContentTypes()[t]; !ok {
-		res.WriteHeader(http.StatusBadRequest)
-		errView, err := admin.Error400(s.adminApp.Name(), s.contentApp.AllContentTypes())
-		if err != nil {
-			return
+		if err := s.responseErr400(res); err != nil {
+			s.Log.Errorf("Error response err 400: %s", err)
 		}
-
-		res.Write(errView)
 		return
 	}
 
@@ -51,13 +41,9 @@ func (s *Server) contentsHandler(res http.ResponseWriter, req *http.Request) {
 
 	p, ok := pt.(editor.Editable)
 	if !ok {
-		res.WriteHeader(http.StatusInternalServerError)
-		errView, err := admin.Error500(s.adminApp.Name(), s.contentApp.AllContentTypes())
-		if err != nil {
-			return
+		if err := s.responseErr500(res); err != nil {
+			s.Log.Errorf("Error response err 500: %s", err)
 		}
-
-		res.Write(errView)
 		return
 	}
 
@@ -72,13 +58,9 @@ func (s *Server) contentsHandler(res http.ResponseWriter, req *http.Request) {
 		if q.Get("count") == "" {
 			count = 10
 		} else {
-			res.WriteHeader(http.StatusInternalServerError)
-			errView, err := admin.Error500(s.adminApp.Name(), s.contentApp.AllContentTypes())
-			if err != nil {
-				return
+			if err := s.responseErr500(res); err != nil {
+				s.Log.Errorf("Error response err 500: %s", err)
 			}
-
-			res.Write(errView)
 			return
 		}
 	}
@@ -88,13 +70,9 @@ func (s *Server) contentsHandler(res http.ResponseWriter, req *http.Request) {
 		if q.Get("offset") == "" {
 			offset = 0
 		} else {
-			res.WriteHeader(http.StatusInternalServerError)
-			errView, err := admin.Error500(s.adminApp.Name(), s.contentApp.AllContentTypes())
-			if err != nil {
-				return
+			if err := s.responseErr500(res); err != nil {
+				s.Log.Errorf("Error response err 500: %s", err)
 			}
-
-			res.Write(errView)
 			return
 		}
 	}
@@ -105,6 +83,7 @@ func (s *Server) contentsHandler(res http.ResponseWriter, req *http.Request) {
 		Order:  order,
 	}
 
+	status := q.Get("status")
 	var specifier string
 	if status == "public" || status == "" {
 		specifier = "__sorted"
@@ -180,10 +159,16 @@ func (s *Server) contentsHandler(res http.ResponseWriter, req *http.Request) {
 		q.Set("status", "pending")
 		pendingURL := req.URL.Path + "?" + q.Encode()
 
+		s.Log.Printf("public: %s, pending: %s", publicURL, pendingURL)
+		s.Log.Printf("specifier: %s, status: %s", specifier, status)
+
 		switch status {
 		case "public", "":
 			// get __sorted posts of type t from the db
 			total, posts = db.Query(t+specifier, opts)
+
+			s.Log.Printf("ns: %s, opts: %+v", t+specifier, opts)
+			s.Log.Printf("total: %d, posts: %d", total, len(posts))
 
 			html += `<div class="row externalable">
 					<span class="description">Status:</span> 

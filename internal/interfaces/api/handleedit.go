@@ -37,14 +37,9 @@ func (s *Server) editHandler(res http.ResponseWriter, req *http.Request) {
 
 			data, err := db.Content(t + ":" + i)
 			if err != nil {
-				log.Println(err)
-				res.WriteHeader(http.StatusInternalServerError)
-				errView, err := admin.Error500(s.adminApp.Name(), s.contentApp.AllContentTypes())
-				if err != nil {
-					return
+				if err := s.responseErr500(res); err != nil {
+					s.Log.Errorf("Error response err 500: %s", err)
 				}
-
-				res.Write(errView)
 				return
 			}
 
@@ -61,14 +56,9 @@ func (s *Server) editHandler(res http.ResponseWriter, req *http.Request) {
 
 			err = json.Unmarshal(data, post)
 			if err != nil {
-				log.Println(err)
-				res.WriteHeader(http.StatusInternalServerError)
-				errView, err := admin.Error500(s.adminApp.Name(), s.contentApp.AllContentTypes())
-				if err != nil {
-					return
+				if err := s.responseErr500(res); err != nil {
+					s.Log.Errorf("Error response err 500: %s", err)
 				}
-
-				res.Write(errView)
 				return
 			}
 		} else {
@@ -83,14 +73,9 @@ func (s *Server) editHandler(res http.ResponseWriter, req *http.Request) {
 
 		m, err := admin.Manage(post.(editor.Editable), t)
 		if err != nil {
-			log.Println(err)
-			res.WriteHeader(http.StatusInternalServerError)
-			errView, err := admin.Error500(s.adminApp.Name(), s.contentApp.AllContentTypes())
-			if err != nil {
-				return
+			if err := s.responseErr500(res); err != nil {
+				s.Log.Errorf("Error response err 500: %s", err)
 			}
-
-			res.Write(errView)
 			return
 		}
 
@@ -108,13 +93,9 @@ func (s *Server) editHandler(res http.ResponseWriter, req *http.Request) {
 		err := req.ParseMultipartForm(1024 * 1024 * 4) // maxMemory 4MB
 		if err != nil {
 			s.Log.Errorf("Error parsing multipart form: %v", err)
-			res.WriteHeader(http.StatusInternalServerError)
-			errView, err := admin.Error500(s.adminApp.Name(), s.contentApp.AllContentTypes())
-			if err != nil {
-				return
+			if err := s.responseErr500(res); err != nil {
+				s.Log.Errorf("Error response err 500: %s", err)
 			}
-
-			res.Write(errView)
 			return
 		}
 
@@ -135,14 +116,9 @@ func (s *Server) editHandler(res http.ResponseWriter, req *http.Request) {
 
 		urlPaths, err := s.StoreFiles(req)
 		if err != nil {
-			s.Log.Errorf("Error storing files: %v", err)
-			res.WriteHeader(http.StatusInternalServerError)
-			errView, err := admin.Error500(s.adminApp.Name(), s.contentApp.AllContentTypes())
-			if err != nil {
-				return
+			if err := s.responseErr500(res); err != nil {
+				s.Log.Errorf("Error response err 500: %s", err)
 			}
-
-			res.Write(errView)
 			return
 		}
 
@@ -205,28 +181,18 @@ func (s *Server) editHandler(res http.ResponseWriter, req *http.Request) {
 
 		p, ok := s.contentApp.AllContentTypes()[pt]
 		if !ok {
-			log.Println("Type", t, "is not a content type. Cannot edit or save.")
-			res.WriteHeader(http.StatusBadRequest)
-			errView, err := admin.Error400(s.adminApp.Name(), s.contentApp.AllContentTypes())
-			if err != nil {
-				return
+			if err := s.responseErr400(res); err != nil {
+				s.Log.Errorf("Error response err 400: %s", err)
 			}
-
-			res.Write(errView)
 			return
 		}
 
 		post := p()
 		hook, ok := post.(content.Hookable)
 		if !ok {
-			log.Println("Type", pt, "does not implement item.Hookable or embed item.Item.")
-			res.WriteHeader(http.StatusBadRequest)
-			errView, err := admin.Error400(s.adminApp.Name(), s.contentApp.AllContentTypes())
-			if err != nil {
-				return
+			if err := s.responseErr400(res); err != nil {
+				s.Log.Errorf("Error response err 400: %s", err)
 			}
-
-			res.Write(errView)
 			return
 		}
 
@@ -236,14 +202,9 @@ func (s *Server) editHandler(res http.ResponseWriter, req *http.Request) {
 		dec.SetAliasTag("json")
 		err = dec.Decode(post, req.PostForm)
 		if err != nil {
-			log.Println("Error decoding post form for edit handler:", t, err)
-			res.WriteHeader(http.StatusBadRequest)
-			errView, err := admin.Error400(s.adminApp.Name(), s.contentApp.AllContentTypes())
-			if err != nil {
-				return
+			if err := s.responseErr400(res); err != nil {
+				s.Log.Errorf("Error response err 400: %s", err)
 			}
-
-			res.Write(errView)
 			return
 		}
 
@@ -269,14 +230,10 @@ func (s *Server) editHandler(res http.ResponseWriter, req *http.Request) {
 
 		id, err := db.SetContent(t+":"+cid, req.PostForm)
 		if err != nil {
-			log.Println(err)
-			res.WriteHeader(http.StatusInternalServerError)
-			errView, err := admin.Error500(s.adminApp.Name(), s.contentApp.AllContentTypes())
-			if err != nil {
-				return
+			s.Log.Printf("Error setting content: %v", err)
+			if err := s.responseErr500(res); err != nil {
+				s.Log.Errorf("Error response err 500: %s", err)
 			}
-
-			res.Write(errView)
 			return
 		}
 
