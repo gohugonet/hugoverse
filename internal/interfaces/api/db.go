@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"github.com/gohugonet/hugoverse/internal/domain/admin/entity"
 	"github.com/gohugonet/hugoverse/pkg/db"
-	"net/url"
 )
 
 type database struct {
@@ -23,11 +22,7 @@ func (d *database) User(email string) ([]byte, error) {
 }
 
 func (d *database) PutUser(email string, data []byte) error {
-	var user *entity.User
-	if err := json.Unmarshal(data, &user); err != nil {
-		return err
-	}
-	return db.Set(newUserItem(email, user))
+	return db.Set(newUserItem(email, data))
 }
 
 func (d *database) NextUserId(email string) (uint64, error) {
@@ -36,10 +31,6 @@ func (d *database) NextUserId(email string) (uint64, error) {
 
 func (d *database) NextUploadId() (uint64, error) {
 	return db.NextSequence(newUploadBucketItem())
-}
-
-func (d *database) SetConfig(data url.Values) error {
-	return db.SetItem(data, newConfigItem(&entity.Config{}))
 }
 
 func (d *database) NewUpload(id, slug string, data []byte) error {
@@ -54,12 +45,12 @@ func (d *database) NewUpload(id, slug string, data []byte) error {
 	return nil
 }
 
-func (d *database) PutConfig(key string, value interface{}) error {
-	return db.PutItem(key, value, newConfigItem(&entity.Config{}))
+func (d *database) PutConfig(data []byte) error {
+	return db.Set(newConfigItem(data))
 }
 
 func (d *database) LoadConfig() ([]byte, error) {
-	data, err := db.ItemAll(newConfigItem(&entity.Config{}))
+	data, err := db.Get(newConfigItem(nil))
 	if err != nil {
 		return nil, err
 	}
@@ -91,8 +82,8 @@ func bucketNameWithPrefix(name string) string {
 func newUploadItem(id string) *item {
 	return &item{
 		bucket: bucketNameWithPrefix("uploads"),
-		ns:     id,
-		object: &entity.FileUpload{},
+		key:    id,
+		value:  nil,
 	}
 }
 
@@ -102,28 +93,28 @@ func newUploadBucketItem() *item {
 	}
 }
 
-func newConfigItem(object *entity.Config) *item {
+func newConfigItem(val []byte) *item {
 	return &item{
 		bucket: bucketNameWithPrefix("config"),
-		ns:     "settings",
-		object: object,
+		key:    "settings",
+		value:  val,
 	}
 }
 
-func newUserItem(email string, user *entity.User) *item {
+func newUserItem(email string, user []byte) *item {
 	return &item{
 		bucket: bucketNameWithPrefix("users"),
-		ns:     email,
-		object: user,
+		key:    email,
+		value:  user,
 	}
 }
 
 type item struct {
 	bucket string
-	ns     string
-	object any
+	key    string
+	value  []byte
 }
 
-func (it *item) Bucket() string    { return it.bucket }
-func (it *item) Namespace() string { return it.ns }
-func (it *item) Object() any       { return it.object }
+func (it *item) Bucket() string { return it.bucket }
+func (it *item) Key() string    { return it.key }
+func (it *item) Value() []byte  { return it.value }

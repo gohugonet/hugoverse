@@ -2,8 +2,12 @@ package db
 
 type Item interface {
 	BucketItem
-	Namespace() string // bucket field
-	Object() any       // Object instance
+	KeyValue
+}
+
+type KeyValue interface {
+	Key() string
+	Value() []byte
 }
 
 type BucketItem interface {

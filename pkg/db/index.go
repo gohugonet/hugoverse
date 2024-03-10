@@ -43,7 +43,7 @@ func SetIndex(id string, item Item) error {
 			return err
 		}
 
-		k := []byte(item.Namespace())
+		k := []byte(item.Key())
 		v := []byte(fmt.Sprintf("%s:%s", item.Bucket(), id))
 
 		err = b.Put(k, v)

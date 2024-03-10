@@ -2,12 +2,8 @@ package db
 
 import (
 	"bytes"
-	"encoding/json"
-	"errors"
 	bolt "go.etcd.io/bbolt"
 )
-
-var ErrExists = errors.New("exists")
 
 func Get(item Item) ([]byte, error) {
 	val := &bytes.Buffer{}
@@ -17,7 +13,7 @@ func Get(item Item) ([]byte, error) {
 			return bolt.ErrBucketNotFound
 		}
 
-		obj := b.Get([]byte(item.Namespace()))
+		obj := b.Get([]byte(item.Key()))
 
 		_, err := val.Write(obj)
 		if err != nil {
@@ -39,25 +35,12 @@ func Get(item Item) ([]byte, error) {
 
 func Set(item Item) error {
 	err := store.Update(func(tx *bolt.Tx) error {
-		email := []byte(item.Namespace())
-		users := tx.Bucket([]byte(item.Bucket()))
-		if users == nil {
+		bucket := tx.Bucket([]byte(item.Bucket()))
+		if bucket == nil {
 			return bolt.ErrBucketNotFound
 		}
 
-		// check if user is found by email, fail if nil
-		exists := users.Get(email)
-		if exists != nil {
-			return ErrExists
-		}
-
-		// marshal User to json and put into bucket
-		j, err := json.Marshal(item.Object())
-		if err != nil {
-			return err
-		}
-
-		err = users.Put(email, j)
+		err := bucket.Put([]byte(item.Key()), item.Value())
 		if err != nil {
 			return err
 		}

@@ -54,7 +54,17 @@ func (a *Admin) NewUpload(data url.Values) error {
 }
 
 func (a *Admin) SetConfig(data url.Values) error {
-	if err := a.Repo.SetConfig(data); err != nil {
+	c, err := a.Conf.Convert(data)
+	if err != nil {
+		return err
+	}
+
+	m, err := c.Marshal()
+	if err != nil {
+		return err
+	}
+
+	if err := a.Repo.PutConfig(m); err != nil {
 		return err
 	}
 	if err := a.LoadConfig(); err != nil {
@@ -90,10 +100,22 @@ func (a *Admin) LoadConfig() error {
 }
 
 func (a *Admin) PutConfig(key string, value any) error {
-	err := a.Repo.PutConfig(key, value)
+	c, err := a.Conf.Update(key, value)
 	if err != nil {
 		return err
 	}
+
+	j, err := c.Marshal()
+	if err != nil {
+		return err
+	}
+
+	err = a.Repo.PutConfig(j)
+	if err != nil {
+		return err
+	}
+
+	a.Conf = c
 
 	return nil
 }

@@ -1,10 +1,7 @@
 package repository
 
-import "net/url"
-
 type Repository interface {
-	PutConfig(key string, value any) error
-	SetConfig(data url.Values) error
+	PutConfig(data []byte) error
 	LoadConfig() ([]byte, error)
 
 	User(email string) ([]byte, error)

@@ -15,7 +15,7 @@ func SetUpload(data []byte, item Item) error {
 			return err
 		}
 
-		uploadKey, err := key(item.Namespace())
+		uploadKey, err := key(item.Key())
 		if err != nil {
 			return err
 		}
