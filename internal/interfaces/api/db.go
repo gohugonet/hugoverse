@@ -1,9 +1,11 @@
 package api
 
 import (
+	"encoding/binary"
 	"encoding/json"
 	"github.com/gohugonet/hugoverse/internal/domain/admin/entity"
 	"github.com/gohugonet/hugoverse/pkg/db"
+	"strconv"
 )
 
 type database struct {
@@ -34,15 +36,30 @@ func (d *database) NextUploadId() (uint64, error) {
 }
 
 func (d *database) NewUpload(id, slug string, data []byte) error {
-	if err := db.SetUpload(data, newUploadItem(id)); err != nil {
+	key, err := keyBit8Uint64(id)
+	if err != nil {
+		return err
+	}
+	if err := db.Set(newUploadItem(key, data)); err != nil {
 		return err
 	}
 
-	if err := db.SetIndex(id, newUploadItem(slug)); err != nil {
+	if err := db.SetIndex(id, newUploadItem(slug, data)); err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func keyBit8Uint64(sid string) (string, error) {
+	id, err := strconv.Atoi(sid)
+	if err != nil {
+		return "", err
+	}
+
+	b := make([]byte, 8)
+	binary.BigEndian.PutUint64(b, uint64(id))
+	return string(b), err
 }
 
 func (d *database) PutConfig(data []byte) error {
@@ -79,11 +96,11 @@ func bucketNameWithPrefix(name string) string {
 	return ItemBucketPrefix + name
 }
 
-func newUploadItem(id string) *item {
+func newUploadItem(id string, data []byte) *item {
 	return &item{
 		bucket: bucketNameWithPrefix("uploads"),
 		key:    id,
-		value:  nil,
+		value:  data,
 	}
 }
 
