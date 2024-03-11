@@ -35,7 +35,7 @@ func CheckSlugForDuplicate(slug string) (string, error) {
 	return slug, nil
 }
 
-func SetIndex(id string, item Item) error {
+func SetIndex(item KeyValue) error {
 	var err error
 	err = store.Update(func(tx *bolt.Tx) error {
 		b, err := tx.CreateBucketIfNotExists([]byte("__contentIndex"))
@@ -44,7 +44,7 @@ func SetIndex(id string, item Item) error {
 		}
 
 		k := []byte(item.Key())
-		v := []byte(fmt.Sprintf("%s:%s", item.Bucket(), id))
+		v := item.Value()
 
 		err = b.Put(k, v)
 		if err != nil {

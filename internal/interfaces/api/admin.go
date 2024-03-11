@@ -33,7 +33,7 @@ func (s *Server) registerAdminHandler() {
 }
 
 func (s *Server) adminHandler(res http.ResponseWriter, req *http.Request) {
-	view, err := admin.Dashboard(s.adminApp.Name(), s.contentApp.AllContentTypes())
+	view, err := s.adminView.Dashboard()
 	if err != nil {
 		s.Log.Errorf("Error rendering admin view: %v", err)
 		res.WriteHeader(http.StatusInternalServerError)
@@ -224,7 +224,7 @@ func (s *Server) configHandler(res http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		adminView, err := admin.Admin(cfg, s.adminApp.Name(), s.contentApp.AllContentTypes())
+		adminView, err := s.adminView.SubView(cfg)
 		if err != nil {
 			log.Println(err)
 			res.WriteHeader(http.StatusInternalServerError)

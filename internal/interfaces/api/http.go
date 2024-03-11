@@ -1,13 +1,12 @@
 package api
 
 import (
-	"github.com/gohugonet/hugoverse/internal/interfaces/api/admin"
 	"net/http"
 )
 
 func (s *Server) responseErr400(res http.ResponseWriter) error {
 	res.WriteHeader(http.StatusBadRequest)
-	errView, err := admin.Error400(s.adminApp.Name(), s.contentApp.AllContentTypes())
+	errView, err := s.adminView.Error400()
 	if err != nil {
 		return err
 	}
@@ -21,7 +20,7 @@ func (s *Server) responseErr400(res http.ResponseWriter) error {
 
 func (s *Server) responseErr500(res http.ResponseWriter) error {
 	res.WriteHeader(http.StatusInternalServerError)
-	errView, err := admin.Error500(s.adminApp.Name(), s.contentApp.AllContentTypes())
+	errView, err := s.adminView.Error500()
 	if err != nil {
 		return err
 	}

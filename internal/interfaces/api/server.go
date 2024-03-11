@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gohugonet/hugoverse/internal/application"
+	"github.com/gohugonet/hugoverse/internal/interfaces/api/admin"
 	"github.com/gohugonet/hugoverse/internal/interfaces/api/analytics"
 	"github.com/gohugonet/hugoverse/pkg/log"
 	"io"
@@ -37,6 +38,7 @@ type Server struct {
 	db         *database
 	contentApp *application.ContentServer
 	adminApp   *application.AdminServer
+	adminView  *admin.View
 }
 
 func (s *Server) ListenAndServe(env ENV, enableHttps bool) error {
@@ -73,7 +75,7 @@ func NewServer(options ...func(s *Server) error) (*Server, error) {
 	}
 	s.registerHandler()
 
-	s.contentApp = application.NewContentServer()
+	s.contentApp = application.NewContentServer(s.db)
 
 	s.db.start(s.contentApp.AllContentTypeNames())
 
@@ -82,6 +84,7 @@ func NewServer(options ...func(s *Server) error) (*Server, error) {
 		return nil, err
 	}
 	s.adminApp = server
+	s.adminView = admin.NewView(s.adminApp.Name(), s.contentApp.AllContentTypes())
 
 	analytics.Setup(dataDir())
 

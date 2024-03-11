@@ -45,7 +45,7 @@ func (s *Server) editHandler(res http.ResponseWriter, req *http.Request) {
 
 			if len(data) < 1 || data == nil {
 				res.WriteHeader(http.StatusNotFound)
-				errView, err := admin.Error404(s.adminApp.Name(), s.contentApp.AllContentTypes())
+				errView, err := s.adminView.Error404()
 				if err != nil {
 					return
 				}
@@ -64,7 +64,7 @@ func (s *Server) editHandler(res http.ResponseWriter, req *http.Request) {
 		} else {
 			item, ok := post.(content.Identifiable)
 			if !ok {
-				log.Println("Content type", t, "doesn't implement item.Identifiable")
+				s.Log.Printf("Content type %s doesn't implement item.Identifiable", t)
 				return
 			}
 
@@ -79,10 +79,11 @@ func (s *Server) editHandler(res http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		adminView, err := admin.Admin(m, s.adminApp.Name(), s.contentApp.AllContentTypes())
+		adminView, err := s.adminView.SubView(m)
 		if err != nil {
-			log.Println(err)
-			res.WriteHeader(http.StatusInternalServerError)
+			if err := s.responseErr500(res); err != nil {
+				s.Log.Errorf("Error response err 500: %s", err)
+			}
 			return
 		}
 
@@ -228,9 +229,8 @@ func (s *Server) editHandler(res http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		id, err := db.SetContent(t+":"+cid, req.PostForm)
+		id, err := s.contentApp.NewContent(pt, req.PostForm)
 		if err != nil {
-			s.Log.Printf("Error setting content: %v", err)
 			if err := s.responseErr500(res); err != nil {
 				s.Log.Errorf("Error response err 500: %s", err)
 			}
@@ -238,7 +238,7 @@ func (s *Server) editHandler(res http.ResponseWriter, req *http.Request) {
 		}
 
 		// set the target in the context so user can get saved value from db in hook
-		ctx := context.WithValue(req.Context(), "target", fmt.Sprintf("%s:%d", t, id))
+		ctx := context.WithValue(req.Context(), "target", fmt.Sprintf("%s:%s", t, id))
 		req = req.WithContext(ctx)
 
 		err = hook.AfterSave(res, req)

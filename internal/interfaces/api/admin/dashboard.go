@@ -6,8 +6,8 @@ import (
 	"html/template"
 )
 
-// Dashboard returns the admin view with analytics dashboard
-func Dashboard(name string, ts map[string]func() interface{}) ([]byte, error) {
+// Dashboard returns the AdminView view with analytics dashboard
+func (v *View) Dashboard() ([]byte, error) {
 	buf := &bytes.Buffer{}
 	data, err := analytics.ChartData()
 	if err != nil {
@@ -19,5 +19,5 @@ func Dashboard(name string, ts map[string]func() interface{}) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return Admin(buf.Bytes(), name, ts)
+	return v.SubView(buf.Bytes())
 }

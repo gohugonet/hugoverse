@@ -33,7 +33,7 @@ func (a *Admin) NewUpload(data url.Values) error {
 	}
 	upload.Item = *item
 
-	slug, err := a.Repo.CheckUploadDuplication(upload.Name)
+	slug, err := a.Repo.CheckSlugForDuplicate(upload.Name)
 	if err != nil {
 		return err
 	}

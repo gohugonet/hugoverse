@@ -9,7 +9,7 @@ import (
 func Login(name string) ([]byte, error) {
 	html := startAdminHTML + loginAdminHTML + endAdminHTML
 
-	a := admin{
+	a := View{
 		Logo: name,
 	}
 

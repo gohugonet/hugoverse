@@ -13,6 +13,7 @@ type Item struct {
 	UUID      uuid.UUID `json:"uuid"`
 	ID        int       `json:"id"`
 	Slug      string    `json:"slug"`
+	Status    string    `json:"status"`
 	Timestamp int64     `json:"timestamp"`
 	Updated   int64     `json:"updated"`
 }
@@ -53,6 +54,10 @@ func (i *Item) SetItemID(id int) {
 // partially implements the Identifiable interface
 func (i *Item) UniqueID() uuid.UUID {
 	return i.UUID
+}
+
+func (i *Item) SetUniqueID(uuid uuid.UUID) {
+	i.UUID = uuid
 }
 
 // String formats an *Item into a printable value

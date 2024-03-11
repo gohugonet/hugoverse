@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/gofrs/uuid"
 	"net/http"
+	"net/url"
 )
 
 type Content interface {
@@ -11,6 +12,8 @@ type Content interface {
 	AllContentTypes() map[string]func() interface{}
 	GetContent(string) (func() interface{}, bool)
 	NormalizeString(s string) (string, error)
+
+	NewContent(contentType string, data url.Values) (string, error)
 }
 
 // Hideable lets a user keep items hidden
@@ -69,8 +72,15 @@ type Sluggable interface {
 type Identifiable interface {
 	ItemID() int
 	SetItemID(int)
+
 	UniqueID() uuid.UUID
+	SetUniqueID(uuid.UUID)
+
 	String() string
+}
+
+type Statusable interface {
+	ItemStatus() string
 }
 
 // Hookable provides our user with an easy way to intercept or add functionality

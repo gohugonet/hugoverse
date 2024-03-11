@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/content"
-	"github.com/gohugonet/hugoverse/internal/interfaces/api/admin"
 	"github.com/gohugonet/hugoverse/pkg/db"
 	"github.com/gohugonet/hugoverse/pkg/editor"
 	"log"
@@ -30,14 +29,16 @@ func (s *Server) contentsHandler(res http.ResponseWriter, req *http.Request) {
 		order = "desc"
 	}
 
-	if _, ok := s.contentApp.AllContentTypes()[t]; !ok {
+	contentType, ok := s.contentApp.AllContentTypes()[t]
+
+	if !ok {
 		if err := s.responseErr400(res); err != nil {
 			s.Log.Errorf("Error response err 400: %s", err)
 		}
 		return
 	}
 
-	pt := s.contentApp.AllContentTypes()[t]()
+	pt := contentType()
 
 	p, ok := pt.(editor.Editable)
 	if !ok {
@@ -144,6 +145,7 @@ func (s *Server) contentsHandler(res http.ResponseWriter, req *http.Request) {
 						</div>
                     </form>	
 					</div>`
+
 	if hasExt {
 		if status == "" {
 			q.Set("status", "public")
@@ -185,15 +187,11 @@ func (s *Server) contentsHandler(res http.ResponseWriter, req *http.Request) {
 					post := `<li class="col s12">Error decoding data. Possible file corruption.</li>`
 					_, err := b.Write([]byte(post))
 					if err != nil {
-						log.Println(err)
+						s.Log.Errorf("Error writing post: %s", err)
 
-						res.WriteHeader(http.StatusInternalServerError)
-						errView, err := admin.Error500(s.adminApp.Name(), s.contentApp.AllContentTypes())
-						if err != nil {
-							log.Println(err)
+						if err := s.responseErr500(res); err != nil {
+							s.Log.Errorf("Error response err 500: %s", err)
 						}
-
-						res.Write(errView)
 						return
 					}
 
@@ -203,15 +201,11 @@ func (s *Server) contentsHandler(res http.ResponseWriter, req *http.Request) {
 				post := adminPostListItem(p, t, status)
 				_, err = b.Write(post)
 				if err != nil {
-					log.Println(err)
+					s.Log.Errorf("Error writing post: %s", err)
 
-					res.WriteHeader(http.StatusInternalServerError)
-					errView, err := admin.Error500(s.adminApp.Name(), s.contentApp.AllContentTypes())
-					if err != nil {
-						log.Println(err)
+					if err := s.responseErr500(res); err != nil {
+						s.Log.Errorf("Error response err 500: %s", err)
 					}
-
-					res.Write(errView)
 					return
 				}
 			}
@@ -238,7 +232,7 @@ func (s *Server) contentsHandler(res http.ResponseWriter, req *http.Request) {
 						log.Println(err)
 
 						res.WriteHeader(http.StatusInternalServerError)
-						errView, err := admin.Error500(s.adminApp.Name(), s.contentApp.AllContentTypes())
+						errView, err := s.adminView.Error500()
 						if err != nil {
 							log.Println(err)
 						}
@@ -255,7 +249,7 @@ func (s *Server) contentsHandler(res http.ResponseWriter, req *http.Request) {
 					log.Println(err)
 
 					res.WriteHeader(http.StatusInternalServerError)
-					errView, err := admin.Error500(s.adminApp.Name(), s.contentApp.AllContentTypes())
+					errView, err := s.adminView.Error500()
 					if err != nil {
 						log.Println(err)
 					}
@@ -280,7 +274,7 @@ func (s *Server) contentsHandler(res http.ResponseWriter, req *http.Request) {
 					log.Println(err)
 
 					res.WriteHeader(http.StatusInternalServerError)
-					errView, err := admin.Error500(s.adminApp.Name(), s.contentApp.AllContentTypes())
+					errView, err := s.adminView.Error500()
 					if err != nil {
 						log.Println(err)
 					}
@@ -297,7 +291,7 @@ func (s *Server) contentsHandler(res http.ResponseWriter, req *http.Request) {
 				log.Println(err)
 
 				res.WriteHeader(http.StatusInternalServerError)
-				errView, err := admin.Error500(s.adminApp.Name(), s.contentApp.AllContentTypes())
+				errView, err := s.adminView.Error500()
 				if err != nil {
 					log.Println(err)
 				}
@@ -315,7 +309,7 @@ func (s *Server) contentsHandler(res http.ResponseWriter, req *http.Request) {
 		log.Println(err)
 
 		res.WriteHeader(http.StatusInternalServerError)
-		errView, err := admin.Error500(s.adminApp.Name(), s.contentApp.AllContentTypes())
+		errView, err := s.adminView.Error500()
 		if err != nil {
 			log.Println(err)
 		}
@@ -376,7 +370,7 @@ func (s *Server) contentsHandler(res http.ResponseWriter, req *http.Request) {
 		log.Println(err)
 
 		res.WriteHeader(http.StatusInternalServerError)
-		errView, err := admin.Error500(s.adminApp.Name(), s.contentApp.AllContentTypes())
+		errView, err := s.adminView.Error500()
 		if err != nil {
 			log.Println(err)
 		}
@@ -420,7 +414,7 @@ func (s *Server) contentsHandler(res http.ResponseWriter, req *http.Request) {
 
 	html += b.String() + script + btn + `</div></div>`
 
-	adminView, err := admin.Admin([]byte(html), s.adminApp.Name(), s.contentApp.AllContentTypes())
+	adminView, err := s.adminView.SubView([]byte(html))
 	if err != nil {
 		log.Println(err)
 		res.WriteHeader(http.StatusInternalServerError)

@@ -2,14 +2,12 @@ package api
 
 import (
 	"encoding/binary"
-	"encoding/json"
-	"github.com/gohugonet/hugoverse/internal/domain/admin/entity"
+	"fmt"
 	"github.com/gohugonet/hugoverse/pkg/db"
 	"strconv"
 )
 
-type database struct {
-}
+type database struct{}
 
 func (d *database) start(contentTypeNames []string) {
 	db.Start(dataDir(), contentTypeNames)
@@ -27,12 +25,33 @@ func (d *database) PutUser(email string, data []byte) error {
 	return db.Set(newUserItem(email, data))
 }
 
+func (d *database) PutContent(id, slug, ns, status string, data []byte) error {
+	if err := db.Set(newContentItem(id, ns, status, data)); err != nil {
+		return err
+	}
+
+	if err := db.SetIndex(newKeyValueItem(
+		slug, fmt.Sprintf("%s:%s", ns, id))); err != nil {
+		return err
+	}
+
+	if status == "" {
+		go db.SortContent(ns)
+	}
+
+	return nil
+}
+
+func (d *database) NextContentId(ns string) (uint64, error) {
+	return db.NextSequence(newBucketItem(ns))
+}
+
 func (d *database) NextUserId(email string) (uint64, error) {
-	return db.NextSequence(newUserItem(email, nil))
+	return db.NextSequence(newBucketItem("users"))
 }
 
 func (d *database) NextUploadId() (uint64, error) {
-	return db.NextSequence(newUploadBucketItem())
+	return db.NextSequence(newBucketItem("uploads"))
 }
 
 func (d *database) NewUpload(id, slug string, data []byte) error {
@@ -44,7 +63,9 @@ func (d *database) NewUpload(id, slug string, data []byte) error {
 		return err
 	}
 
-	if err := db.SetIndex(id, newUploadItem(slug, data)); err != nil {
+	if err := db.SetIndex(newKeyValueItem(
+		slug,
+		fmt.Sprintf("%s:%s", bucketNameWithPrefix("upload"), id))); err != nil {
 		return err
 	}
 
@@ -75,19 +96,8 @@ func (d *database) LoadConfig() ([]byte, error) {
 	return data, nil
 }
 
-func (d *database) CheckUploadDuplication(slug string) (string, error) {
+func (d *database) CheckSlugForDuplicate(slug string) (string, error) {
 	return db.CheckSlugForDuplicate(slug)
-}
-
-func emptyConfig() ([]byte, error) {
-	cfg := &entity.Config{}
-
-	data, err := json.Marshal(cfg)
-	if err != nil {
-		return nil, err
-	}
-
-	return data, nil
 }
 
 const ItemBucketPrefix = "__"
@@ -104,12 +114,6 @@ func newUploadItem(id string, data []byte) *item {
 	}
 }
 
-func newUploadBucketItem() *item {
-	return &item{
-		bucket: bucketNameWithPrefix("uploads"),
-	}
-}
-
 func newConfigItem(val []byte) *item {
 	return &item{
 		bucket: bucketNameWithPrefix("config"),
@@ -123,6 +127,27 @@ func newUserItem(email string, user []byte) *item {
 		bucket: bucketNameWithPrefix("users"),
 		key:    email,
 		value:  user,
+	}
+}
+
+func newContentItem(id, ns, status string, data []byte) *item {
+	return &item{
+		bucket: fmt.Sprintf("%s%s", ns, bucketNameWithPrefix(status)),
+		key:    id,
+		value:  data,
+	}
+}
+
+func newKeyValueItem(key, value string) *item {
+	return &item{
+		key:   key,
+		value: []byte(value),
+	}
+}
+
+func newBucketItem(name string) *item {
+	return &item{
+		bucket: bucketNameWithPrefix(name),
 	}
 }
 
