@@ -9,6 +9,7 @@ import (
 	"github.com/gohugonet/hugoverse/pkg/form"
 	"github.com/gorilla/schema"
 	"net/url"
+	"strconv"
 )
 
 type Content struct {
@@ -58,6 +59,9 @@ func (c *Content) NewContent(contentType string, data url.Values) (string, error
 		cii.SetUniqueID(uid)
 
 		id, err := c.Repo.NextContentId(contentType)
+		if err != nil {
+			return "", err
+		}
 		cii.SetItemID(int(id))
 	} else {
 		return "", errors.New("content type does not implement Identifiable")
@@ -81,7 +85,11 @@ func (c *Content) NewContent(contentType string, data url.Values) (string, error
 	}
 
 	cis, ok := ci.(content.Statusable)
-	if !ok {
+	if ok {
+		if cis.ItemStatus() == "" {
+			cis.SetItemStatus(content.Public)
+		}
+	} else {
 		return "", errors.New("content type does not implement Statusable")
 	}
 
@@ -90,12 +98,11 @@ func (c *Content) NewContent(contentType string, data url.Values) (string, error
 		return "", err
 	}
 
-	if err := c.Repo.PutContent(
-		cii.String(), ciSlug.ItemSlug(), contentType, cis.ItemStatus(), b); err != nil {
+	if err := c.Repo.PutContent(ci, b); err != nil {
 		return "", err
 	}
 
-	return cii.String(), nil
+	return strconv.FormatInt(int64(cii.ItemID()), 10), nil
 }
 
 func (c *Content) Marshal(content any) ([]byte, error) {

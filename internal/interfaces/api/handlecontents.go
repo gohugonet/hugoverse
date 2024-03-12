@@ -30,7 +30,6 @@ func (s *Server) contentsHandler(res http.ResponseWriter, req *http.Request) {
 	}
 
 	contentType, ok := s.contentApp.AllContentTypes()[t]
-
 	if !ok {
 		if err := s.responseErr400(res); err != nil {
 			s.Log.Errorf("Error response err 400: %s", err)
@@ -46,12 +45,6 @@ func (s *Server) contentsHandler(res http.ResponseWriter, req *http.Request) {
 			s.Log.Errorf("Error response err 500: %s", err)
 		}
 		return
-	}
-
-	var hasExt bool
-	_, ok = pt.(content.Createable)
-	if ok {
-		hasExt = true
 	}
 
 	count, err := strconv.Atoi(q.Get("count")) // int: determines number of posts to return (10 default, -1 is all)
@@ -86,7 +79,7 @@ func (s *Server) contentsHandler(res http.ResponseWriter, req *http.Request) {
 
 	status := q.Get("status")
 	var specifier string
-	if status == "public" || status == "" {
+	if status == string(content.Public) || status == "" {
 		specifier = "__sorted"
 	} else if status == "pending" {
 		specifier = "__pending"
@@ -96,55 +89,13 @@ func (s *Server) contentsHandler(res http.ResponseWriter, req *http.Request) {
 	var total int
 	var posts [][]byte
 
-	html := `<div class="col s9 card">		
-					<div class="card-content">
-					<div class="row">
-					<div class="col s8">
-						<div class="row">
-							<div class="card-title col s7">` + t + ` Items</div>
-							<div class="col s5 input-field inline">
-								<select class="browser-default __ponzu sort-order">
-									<option value="DESC">New to Old</option>
-									<option value="ASC">Old to New</option>
-								</select>
-								<label class="active">Sort:</label>
-							</div>	
-							<script>
-								$(function() {
-									var sort = $('select.__ponzu.sort-order');
+	html := s.adminView.Contents(t, status)
 
-									sort.on('change', function() {
-										var path = window.location.pathname;
-										var s = sort.val();
-										var t = getParam('type');
-										var status = getParam('status');
-
-										if (status == "") {
-											status = "public";
-										}
-
-										window.location.replace(path + '?type=' + t + '&order=' + s + '&status=' + status);
-									});
-
-									var order = getParam('order');
-									if (order !== '') {
-										sort.val(order);
-									}
-									
-								});
-							</script>
-						</div>
-					</div>
-					<form class="col s4" action="/admin/contents/search" method="get">
-						<div class="input-field post-search inline">
-							<label class="active">Search:</label>
-							<i class="right material-icons search-icon">search</i>
-							<input class="search" name="q" type="text" placeholder="Within all ` + t + ` fields" class="search"/>
-							<input type="hidden" name="type" value="` + t + `" />
-							<input type="hidden" name="status" value="` + status + `" />
-						</div>
-                    </form>	
-					</div>`
+	var hasExt bool
+	_, ok = pt.(content.Createable)
+	if ok {
+		hasExt = true
+	}
 
 	if hasExt {
 		if status == "" {
@@ -161,16 +112,10 @@ func (s *Server) contentsHandler(res http.ResponseWriter, req *http.Request) {
 		q.Set("status", "pending")
 		pendingURL := req.URL.Path + "?" + q.Encode()
 
-		s.Log.Printf("public: %s, pending: %s", publicURL, pendingURL)
-		s.Log.Printf("specifier: %s, status: %s", specifier, status)
-
 		switch status {
 		case "public", "":
 			// get __sorted posts of type t from the db
 			total, posts = db.Query(t+specifier, opts)
-
-			s.Log.Printf("ns: %s, opts: %+v", t+specifier, opts)
-			s.Log.Printf("total: %d, posts: %d", total, len(posts))
 
 			html += `<div class="row externalable">
 					<span class="description">Status:</span> 
@@ -229,12 +174,12 @@ func (s *Server) contentsHandler(res http.ResponseWriter, req *http.Request) {
 					post := `<li class="col s12">Error decoding data. Possible file corruption.</li>`
 					_, err := b.Write([]byte(post))
 					if err != nil {
-						log.Println(err)
+						s.Log.Errorf("Error writing post: %s", err)
 
 						res.WriteHeader(http.StatusInternalServerError)
 						errView, err := s.adminView.Error500()
 						if err != nil {
-							log.Println(err)
+							s.Log.Errorf("Error response err 500: %s", err)
 						}
 
 						res.Write(errView)
@@ -251,7 +196,7 @@ func (s *Server) contentsHandler(res http.ResponseWriter, req *http.Request) {
 					res.WriteHeader(http.StatusInternalServerError)
 					errView, err := s.adminView.Error500()
 					if err != nil {
-						log.Println(err)
+						s.Log.Errorf("Error response err 500: %s", err)
 					}
 
 					res.Write(errView)

@@ -5,17 +5,19 @@ import (
 	"github.com/blevesearch/bleve"
 	"github.com/blevesearch/bleve/mapping"
 	"github.com/gofrs/uuid"
+	"github.com/gohugonet/hugoverse/internal/domain/content"
 	"net/http"
 )
 
 // Item should only be embedded into content type structs.
 type Item struct {
-	UUID      uuid.UUID `json:"uuid"`
-	ID        int       `json:"id"`
-	Slug      string    `json:"slug"`
-	Status    string    `json:"status"`
-	Timestamp int64     `json:"timestamp"`
-	Updated   int64     `json:"updated"`
+	UUID      uuid.UUID      `json:"uuid"`
+	Status    content.Status `json:"status"`
+	Name      string         `json:"name"`
+	ID        int            `json:"id"`
+	Slug      string         `json:"slug"`
+	Timestamp int64          `json:"timestamp"`
+	Updated   int64          `json:"updated"`
 }
 
 // Time partially implements the Sortable interface
@@ -44,6 +46,12 @@ func (i *Item) ItemID() int {
 	return i.ID
 }
 
+// ItemName gets the *Item's Name field
+// partially implements the Identifiable interface
+func (i *Item) ItemName() string {
+	return i.Name
+}
+
 // SetItemID sets the *Item's ID field
 // partially implements the Identifiable interface
 func (i *Item) SetItemID(id int) {
@@ -58,6 +66,18 @@ func (i *Item) UniqueID() uuid.UUID {
 
 func (i *Item) SetUniqueID(uuid uuid.UUID) {
 	i.UUID = uuid
+}
+
+// SetItemStatus sets the *Item's Status field
+// partially implements the Identifiable interface
+func (i *Item) SetItemStatus(status content.Status) {
+	i.Status = status
+}
+
+// ItemStatus gets the *Item's Status field
+// partially implements the Identifiable interface
+func (i *Item) ItemStatus() content.Status {
+	return i.Status
 }
 
 // String formats an *Item into a printable value

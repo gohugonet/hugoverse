@@ -48,7 +48,7 @@ func (v *View) SubView(view []byte) (_ []byte, err error) {
 
 	buf := &bytes.Buffer{}
 	html := startAdminHTML + mainAdminHTML + endAdminHTML
-	tmpl := template.Must(template.New("AdminView").Parse(html))
+	tmpl := template.Must(template.New("admin").Parse(html))
 	err = tmpl.Execute(buf, a)
 	if err != nil {
 		return

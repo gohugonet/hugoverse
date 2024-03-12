@@ -9,10 +9,7 @@ import (
 	"github.com/gohugonet/hugoverse/pkg/db"
 	"github.com/gohugonet/hugoverse/pkg/editor"
 	"github.com/gohugonet/hugoverse/pkg/timestamp"
-	"github.com/gorilla/schema"
-	"log"
 	"net/http"
-	"strings"
 )
 
 func (s *Server) editHandler(res http.ResponseWriter, req *http.Request) {
@@ -73,6 +70,7 @@ func (s *Server) editHandler(res http.ResponseWriter, req *http.Request) {
 
 		m, err := admin.Manage(post.(editor.Editable), t)
 		if err != nil {
+			s.Log.Errorf("Error rendering admin view: %v", err)
 			if err := s.responseErr500(res); err != nil {
 				s.Log.Errorf("Error response err 500: %s", err)
 			}
@@ -81,6 +79,7 @@ func (s *Server) editHandler(res http.ResponseWriter, req *http.Request) {
 
 		adminView, err := s.adminView.SubView(m)
 		if err != nil {
+			s.Log.Errorf("Error rendering admin view: %v", err)
 			if err := s.responseErr500(res); err != nil {
 				s.Log.Errorf("Error response err 500: %s", err)
 			}
@@ -101,7 +100,7 @@ func (s *Server) editHandler(res http.ResponseWriter, req *http.Request) {
 		}
 
 		cid := req.FormValue("id")
-		t := req.FormValue("type")
+		pt := req.FormValue("type")
 		ts := req.FormValue("timestamp")
 		up := req.FormValue("updated")
 
@@ -127,59 +126,6 @@ func (s *Server) editHandler(res http.ResponseWriter, req *http.Request) {
 			req.PostForm.Set(name, urlPath)
 		}
 
-		// check for any multi-value fields (ex. checkbox fields)
-		// and correctly format for db storage. Essentially, we need
-		// fieldX.0: value1, fieldX.1: value2 => fieldX: []string{value1, value2}
-		fieldOrderValue := make(map[string]map[string][]string)
-		for k, v := range req.PostForm {
-			if strings.Contains(k, ".") {
-				fo := strings.Split(k, ".")
-
-				// put the order and the field value into map
-				field := string(fo[0])
-				order := string(fo[1])
-				if len(fieldOrderValue[field]) == 0 {
-					fieldOrderValue[field] = make(map[string][]string)
-				}
-
-				// orderValue is 0:[?type=Thing&id=1]
-				orderValue := fieldOrderValue[field]
-				orderValue[order] = v
-				fieldOrderValue[field] = orderValue
-
-				// discard the post form value with name.N
-				req.PostForm.Del(k)
-			}
-
-		}
-
-		// add/set the key & value to the post form in order
-		for f, ov := range fieldOrderValue {
-			for i := 0; i < len(ov); i++ {
-				position := fmt.Sprintf("%d", i)
-				fieldValue := ov[position]
-
-				if req.PostForm.Get(f) == "" {
-					for i, fv := range fieldValue {
-						if i == 0 {
-							req.PostForm.Set(f, fv)
-						} else {
-							req.PostForm.Add(f, fv)
-						}
-					}
-				} else {
-					for _, fv := range fieldValue {
-						req.PostForm.Add(f, fv)
-					}
-				}
-			}
-		}
-
-		pt := t
-		if strings.Contains(t, "__") {
-			pt = strings.Split(t, "__")[0]
-		}
-
 		p, ok := s.contentApp.AllContentTypes()[pt]
 		if !ok {
 			if err := s.responseErr400(res); err != nil {
@@ -197,66 +143,73 @@ func (s *Server) editHandler(res http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		// Let's be nice and make a proper item for the Hookable methods
-		dec := schema.NewDecoder()
-		dec.IgnoreUnknownKeys(true)
-		dec.SetAliasTag("json")
-		err = dec.Decode(post, req.PostForm)
+		ext, ok := post.(content.Createable)
+		if !ok {
+			s.Log.Errorf("[Create] type does not implement Createable:", pt, "from:", req.RemoteAddr)
+			res.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		err = ext.Create(res, req)
 		if err != nil {
-			if err := s.responseErr400(res); err != nil {
-				s.Log.Errorf("Error response err 400: %s", err)
-			}
+			s.Log.Errorf("[Create] error calling Create:", err)
 			return
 		}
 
 		if cid == "-1" {
 			err = hook.BeforeAdminCreate(res, req)
 			if err != nil {
-				log.Println("Error running BeforeAdminCreate method in editHandler for:", t, err)
+				s.Log.Errorf("Error running BeforeAdminCreate method in editHandler for:", pt, err)
 				return
 			}
 		} else {
 			err = hook.BeforeAdminUpdate(res, req)
 			if err != nil {
-				log.Println("Error running BeforeAdminUpdate method in editHandler for:", t, err)
+				s.Log.Errorf("Error running BeforeAdminUpdate method in editHandler for:", pt, err)
 				return
 			}
 		}
 
 		err = hook.BeforeSave(res, req)
 		if err != nil {
-			log.Println("Error running BeforeSave method in editHandler for:", t, err)
+			s.Log.Errorf("Error running BeforeSave method in editHandler for:", pt, err)
 			return
 		}
 
+		req.PostForm.Set("Name", pt)
+		s.Log.Printf("PostForm: %+v", req.PostForm)
 		id, err := s.contentApp.NewContent(pt, req.PostForm)
 		if err != nil {
+			s.Log.Errorf("Error creating new content: %s", err)
 			if err := s.responseErr500(res); err != nil {
 				s.Log.Errorf("Error response err 500: %s", err)
 			}
 			return
 		}
 
+		if err := s.adminApp.InvalidateCache(); err != nil {
+			s.Log.Errorf("Error invalidating cache: %s", err)
+		}
+
 		// set the target in the context so user can get saved value from db in hook
-		ctx := context.WithValue(req.Context(), "target", fmt.Sprintf("%s:%s", t, id))
+		ctx := context.WithValue(req.Context(), "target", fmt.Sprintf("%s:%s", pt, id))
 		req = req.WithContext(ctx)
 
 		err = hook.AfterSave(res, req)
 		if err != nil {
-			log.Println("Error running AfterSave method in editHandler for:", t, err)
+			s.Log.Errorf("Error running AfterSave method in editHandler for:", pt, err)
 			return
 		}
 
 		if cid == "-1" {
 			err = hook.AfterAdminCreate(res, req)
 			if err != nil {
-				log.Println("Error running AfterAdminUpdate method in editHandler for:", t, err)
+				s.Log.Errorf("Error running AfterAdminCreate method in editHandler for:", pt, err)
 				return
 			}
 		} else {
 			err = hook.AfterAdminUpdate(res, req)
 			if err != nil {
-				log.Println("Error running AfterAdminUpdate method in editHandler for:", t, err)
+				s.Log.Errorf("Error running AfterAdminUpdate method in editHandler for:", pt, err)
 				return
 			}
 		}
@@ -264,10 +217,9 @@ func (s *Server) editHandler(res http.ResponseWriter, req *http.Request) {
 		scheme := req.URL.Scheme
 		host := req.URL.Host
 		path := req.URL.Path
-		sid := fmt.Sprintf("%d", id)
-		redir := scheme + host + path + "?type=" + pt + "&id=" + sid
+		redir := scheme + host + path + "?type=" + pt + "&id=" + id
 
-		if req.URL.Query().Get("status") == "pending" {
+		if req.URL.Query().Get("status") == string(content.Pending) {
 			redir += "&status=pending"
 		}
 

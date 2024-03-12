@@ -10,11 +10,18 @@ import (
 type Content interface {
 	AllContentTypeNames() []string
 	AllContentTypes() map[string]func() interface{}
-	GetContent(string) (func() interface{}, bool)
 	NormalizeString(s string) (string, error)
 
+	GetContent(string) (func() interface{}, bool)
 	NewContent(contentType string, data url.Values) (string, error)
 }
+
+type Status string
+
+const (
+	Public  Status = "public"
+	Pending Status = "pending"
+)
 
 // Hideable lets a user keep items hidden
 type Hideable interface {
@@ -77,10 +84,12 @@ type Identifiable interface {
 	SetUniqueID(uuid.UUID)
 
 	String() string
+	ItemName() string
 }
 
 type Statusable interface {
-	ItemStatus() string
+	ItemStatus() Status
+	SetItemStatus(Status)
 }
 
 // Hookable provides our user with an easy way to intercept or add functionality

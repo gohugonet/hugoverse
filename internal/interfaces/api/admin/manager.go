@@ -12,7 +12,7 @@ import (
 
 const managerHTML = `
 <div class="card editor">
-    <form method="post" action="/AdminView/edit" enctype="multipart/form-data">
+    <form method="post" action="/admin/edit" enctype="multipart/form-data">
 		<input type="hidden" name="uuid" value="{{.UUID}}"/>
 		<input type="hidden" name="id" value="{{.ID}}"/>
 		<input type="hidden" name="type" value="{{.Kind}}"/>

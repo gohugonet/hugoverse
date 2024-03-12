@@ -4,17 +4,17 @@ var startAdminHTML = `<!doctype html>
 <html lang="en">
     <head>
         <title>{{ .Logo }}</title>
-        <script type="text/javascript" src="/AdminView/static/common/js/jquery-2.1.4.min.js"></script>
-        <script type="text/javascript" src="/AdminView/static/common/js/util.js"></script>
-        <script type="text/javascript" src="/AdminView/static/dashboard/js/materialize.min.js"></script>
-        <script type="text/javascript" src="/AdminView/static/dashboard/js/chart.bundle.min.js"></script>
-        <script type="text/javascript" src="/AdminView/static/editor/js/materialNote.js"></script> 
-        <script type="text/javascript" src="/AdminView/static/editor/js/ckMaterializeOverrides.js"></script>
+        <script type="text/javascript" src="/admin/static/common/js/jquery-2.1.4.min.js"></script>
+        <script type="text/javascript" src="/admin/static/common/js/util.js"></script>
+        <script type="text/javascript" src="/admin/static/dashboard/js/materialize.min.js"></script>
+        <script type="text/javascript" src="/admin/static/dashboard/js/chart.bundle.min.js"></script>
+        <script type="text/javascript" src="/admin/static/editor/js/materialNote.js"></script> 
+        <script type="text/javascript" src="/admin/static/editor/js/ckMaterializeOverrides.js"></script>
                   
-        <link rel="stylesheet" href="/AdminView/static/dashboard/css/material-icons.css" />     
-        <link rel="stylesheet" href="/AdminView/static/dashboard/css/materialize.min.css" />
-        <link rel="stylesheet" href="/AdminView/static/editor/css/materialNote.css" />
-        <link rel="stylesheet" href="/AdminView/static/dashboard/css/AdminView.css" />    
+        <link rel="stylesheet" href="/admin/static/dashboard/css/material-icons.css" />     
+        <link rel="stylesheet" href="/admin/static/dashboard/css/materialize.min.css" />
+        <link rel="stylesheet" href="/admin/static/editor/css/materialNote.css" />
+        <link rel="stylesheet" href="/admin/static/dashboard/css/admin.css" />    
 
         <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
         <meta charset="utf-8">
@@ -24,16 +24,16 @@ var startAdminHTML = `<!doctype html>
        <div class="navbar-fixed">
             <nav class="grey darken-2">
             <div class="nav-wrapper">
-                <a class="brand-logo" href="/AdminView">{{ .Logo }}</a>
+                <a class="brand-logo" href="/admin">{{ .Logo }}</a>
 
                 <ul class="right">
-                    <li><a href="/AdminView/logout">Logout</a></li>
+                    <li><a href="/admin/logout">Logout</a></li>
                 </ul>
             </div>
             </nav>
         </div>
 
-        <div class="AdminView-ui row">`
+        <div class="admin-ui row">`
 
 var mainAdminHTML = `
             <div class="left-nav col s3">
@@ -43,16 +43,16 @@ var mainAdminHTML = `
                                     
                     {{ range $t, $f := .Types }}
                     <div class="row collection-item">
-                        <li><a class="col s12" href="/AdminView/contents?type={{ $t }}"><i class="tiny left material-icons">playlist_add</i>{{ $t }}</a></li>
+                        <li><a class="col s12" href="/admin/contents?type={{ $t }}"><i class="tiny left material-icons">playlist_add</i>{{ $t }}</a></li>
                     </div>
                     {{ end }}
 
                     <div class="card-title">System</div>                                
                     <div class="row collection-item">
-                        <li><a class="col s12" href="/AdminView/configure"><i class="tiny left material-icons">settings</i>Configuration</a></li>
-                        <li><a class="col s12" href="/AdminView/configure/users"><i class="tiny left material-icons">supervisor_account</i>SubView Users</a></li>
-                        <li><a class="col s12" href="/AdminView/uploads"><i class="tiny left material-icons">swap_vert</i>Uploads</a></li>
-                        <li><a class="col s12" href="/AdminView/addons"><i class="tiny left material-icons">settings_input_svideo</i>Addons</a></li>
+                        <li><a class="col s12" href="/admin/configure"><i class="tiny left material-icons">settings</i>Configuration</a></li>
+                        <li><a class="col s12" href="/admin/configure/users"><i class="tiny left material-icons">supervisor_account</i>Admin Users</a></li>
+                        <li><a class="col s12" href="/admin/uploads"><i class="tiny left material-icons">swap_vert</i>Uploads</a></li>
+                        <li><a class="col s12" href="/admin/addons"><i class="tiny left material-icons">settings_input_svideo</i>Addons</a></li>
                     </div>
                 </ul>
                 </div>
@@ -67,13 +67,7 @@ var endAdminHTML = `
         </div>
         <footer class="row">
             <div class="col s12">
-                <p class="center-align">
-					Powered by &copy;<a target="_blank" href="https://gohugo.net">Hugoverse</a>
-					&nbsp;&vert;&nbsp; 
-					open-sourced by <a target="_blank" href="https://sunwei.xyz">sunwei</a>
-					&nbsp;&vert;&nbsp; 
-					<a target="_blank" href="https://github.com/gohugonet/hugoverse">GitHub</a>
-				</p>
+                <p class="center-align">Powered by &copy; <a target="_blank" href="https://ponzu-cms.org">Ponzu</a> &nbsp;&vert;&nbsp; open-sourced by <a target="_blank" href="https://www.bosssauce.it">Boss Sauce Creative</a></p>
             </div>     
         </footer>
     </body>
@@ -87,7 +81,7 @@ var initAdminHTML = `
     <blockquote>You need to initialize your system by filling out the form below. All of 
     this information can be updated later on, but you will not be able to start 
     without first completing this step.</blockquote>
-    <form method="post" action="/AdminView/init" class="row">
+    <form method="post" action="/admin/init" class="row">
         <div>Configuration</div>
         <div class="input-field col s12">        
             <input placeholder="Enter the name of your site (interal use only)" class="validate required" type="text" id="name" name="name"/>
@@ -97,10 +91,10 @@ var initAdminHTML = `
             <input placeholder="Used for acquiring SSL certificate (e.g. www.example.com or  example.com)" class="validate" type="text" id="domain" name="domain"/>
             <label for="domain" class="active">Domain</label>
         </div>
-        <div>SubView Details</div>
+        <div>Admin Details</div>
         <div class="input-field col s12">
             <input placeholder="Your email address e.g. you@example.com" class="validate required" type="email" id="email" name="email"/>
-            <label for="email" class="active">email</label>
+            <label for="email" class="active">Email</label>
         </div>
         <div class="input-field col s12">
             <input placeholder="Enter a strong password" class="validate required" type="password" id="password" name="password"/>
@@ -193,14 +187,14 @@ var loginAdminHTML = `
 <div class="card-content">
     <div class="card-title">Welcome!</div>
     <blockquote>Please log in to the system using your email address and password.</blockquote>
-    <form method="post" action="/AdminView/login" class="row">
+    <form method="post" action="/admin/login" class="row">
         <div class="input-field col s12">
             <input placeholder="Enter your email address e.g. you@example.com" class="validate required" type="email" id="email" name="email"/>
-            <label for="email" class="active">email</label>
+            <label for="email" class="active">Email</label>
         </div>
         <div class="input-field col s12">
             <input placeholder="Enter your password" class="validate required" type="password" id="password" name="password"/>
-            <a href="/AdminView/recover">Forgot password?</a>            
+            <a href="/admin/recover">Forgot password?</a>            
             <label for="password" class="active">Password</label>  
         </div>
         <button class="btn waves-effect waves-light right">Log in</button>

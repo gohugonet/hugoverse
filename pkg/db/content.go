@@ -306,11 +306,6 @@ func SortContent(namespace string) {
 		return
 	}
 
-	// only sort main content types i.e. Post
-	if strings.Contains(namespace, "__") {
-		return
-	}
-
 	all := ContentAll(namespace)
 
 	var posts sortableContent

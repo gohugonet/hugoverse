@@ -2,7 +2,9 @@ package api
 
 import (
 	"encoding/binary"
+	"errors"
 	"fmt"
+	"github.com/gohugonet/hugoverse/internal/domain/content"
 	"github.com/gohugonet/hugoverse/pkg/db"
 	"strconv"
 )
@@ -25,17 +27,43 @@ func (d *database) PutUser(email string, data []byte) error {
 	return db.Set(newUserItem(email, data))
 }
 
-func (d *database) PutContent(id, slug, ns, status string, data []byte) error {
-	if err := db.Set(newContentItem(id, ns, status, data)); err != nil {
+func (d *database) PutContent(ci any, data []byte) error {
+	cii, ok := ci.(content.Identifiable)
+	if !ok {
+		return errors.New("invalid content type")
+	}
+	id := cii.ItemID()
+	ns := cii.ItemName()
+
+	cis, ok := ci.(content.Statusable)
+	if !ok {
+		return errors.New("invalid content type")
+	}
+	status := cis.ItemStatus()
+
+	bucket := ns
+	if status != content.Public {
+		bucket = fmt.Sprintf("%s:%s", ns, bucketNameWithPrefix(string(status)))
+	}
+
+	if err := db.Set(
+		&item{
+			bucket: bucket,
+			key:    strconv.FormatInt(int64(id), 10),
+			value:  data,
+		}); err != nil {
 		return err
 	}
 
-	if err := db.SetIndex(newKeyValueItem(
-		slug, fmt.Sprintf("%s:%s", ns, id))); err != nil {
+	ciSlug, ok := ci.(content.Sluggable)
+	if !ok {
+		return errors.New("invalid content type")
+	}
+	if err := db.SetIndex(newKeyValueItem(ciSlug.ItemSlug(), fmt.Sprintf("%s:%d", ns, id))); err != nil {
 		return err
 	}
 
-	if status == "" {
+	if status == content.Public {
 		go db.SortContent(ns)
 	}
 
@@ -43,7 +71,7 @@ func (d *database) PutContent(id, slug, ns, status string, data []byte) error {
 }
 
 func (d *database) NextContentId(ns string) (uint64, error) {
-	return db.NextSequence(newBucketItem(ns))
+	return db.NextSequence(&item{bucket: ns})
 }
 
 func (d *database) NextUserId(email string) (uint64, error) {
@@ -127,14 +155,6 @@ func newUserItem(email string, user []byte) *item {
 		bucket: bucketNameWithPrefix("users"),
 		key:    email,
 		value:  user,
-	}
-}
-
-func newContentItem(id, ns, status string, data []byte) *item {
-	return &item{
-		bucket: fmt.Sprintf("%s%s", ns, bucketNameWithPrefix(status)),
-		key:    id,
-		value:  data,
 	}
 }
 
