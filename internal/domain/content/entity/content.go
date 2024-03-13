@@ -13,7 +13,7 @@ import (
 )
 
 type Content struct {
-	Types map[string]func() interface{}
+	Types map[string]content.Creator
 	Repo  repository.Repository
 }
 
@@ -25,13 +25,66 @@ func (c *Content) AllContentTypeNames() []string {
 	return keys
 }
 
-func (c *Content) GetContent(name string) (func() interface{}, bool) {
+func (c *Content) GetContentCreator(name string) (content.Creator, bool) {
 	t, ok := c.Types[name]
 	return t, ok
 }
 
+func (c *Content) GetContent(contentType, id, status string) ([]byte, error) {
+	return c.Repo.GetContent(GetNamespace(contentType, status), id)
+}
+
+func (c *Content) DeleteContent(contentType, id, status string) error {
+	data, err := c.GetContent(contentType, id, status)
+	if err != nil {
+		return err
+	}
+	ct, ok := c.GetContentCreator(contentType)
+	if !ok {
+		return errors.New("invalid content type")
+	}
+	cti := ct()
+	if err = json.Unmarshal(data, cti); err != nil {
+		return err
+	}
+
+	return c.Repo.DeleteContent(GetNamespace(contentType, status), id, cti.(content.Sluggable).ItemSlug())
+}
+
+func (c *Content) UpdateContent(contentType string, data url.Values) error {
+	t, ok := c.GetContentCreator(contentType)
+	if !ok {
+		return errors.New("invalid content type")
+	}
+	ci := t()
+
+	d, err := form.Convert(data)
+	if err != nil {
+		return err
+	}
+	// Decode Content
+	dec := schema.NewDecoder()
+	dec.SetAliasTag("json")     // allows simpler struct tagging when creating a content type
+	dec.IgnoreUnknownKeys(true) // will skip over form values submitted, but not in struct
+	err = dec.Decode(ci, d)
+	if err != nil {
+		return err
+	}
+
+	b, err := c.Marshal(ci)
+	if err != nil {
+		return err
+	}
+
+	if err := c.Repo.PutContent(ci, b); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (c *Content) NewContent(contentType string, data url.Values) (string, error) {
-	t, ok := c.GetContent(contentType)
+	t, ok := c.GetContentCreator(contentType)
 	if !ok {
 		return "", errors.New("invalid content type")
 	}
@@ -93,12 +146,12 @@ func (c *Content) NewContent(contentType string, data url.Values) (string, error
 		return "", errors.New("content type does not implement Statusable")
 	}
 
-	b, err := c.Marshal(cii)
+	b, err := c.Marshal(ci)
 	if err != nil {
 		return "", err
 	}
 
-	if err := c.Repo.PutContent(ci, b); err != nil {
+	if err := c.Repo.NewContent(ci, b); err != nil {
 		return "", err
 	}
 
@@ -113,7 +166,11 @@ func (c *Content) Marshal(content any) ([]byte, error) {
 	return j, nil
 }
 
-func (c *Content) AllContentTypes() map[string]func() interface{} {
+func (c *Content) Unmarshal(data []byte, content any) error {
+	return json.Unmarshal(data, content)
+}
+
+func (c *Content) AllContentTypes() map[string]content.Creator {
 	return c.Types
 }
 

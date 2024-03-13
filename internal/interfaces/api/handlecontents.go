@@ -127,7 +127,7 @@ func (s *Server) contentsHandler(res http.ResponseWriter, req *http.Request) {
 			for i := range posts {
 				err := json.Unmarshal(posts[i], &p)
 				if err != nil {
-					log.Println("Error unmarshal json into", t, err, string(posts[i]))
+					s.Log.Printf("Error unmarshal json into %s: %s", t, err, string(posts[i]))
 
 					post := `<li class="col s12">Error decoding data. Possible file corruption.</li>`
 					_, err := b.Write([]byte(post))
@@ -251,7 +251,7 @@ func (s *Server) contentsHandler(res http.ResponseWriter, req *http.Request) {
 
 	_, err = b.Write([]byte(`</ul>`))
 	if err != nil {
-		log.Println(err)
+		s.Log.Errorf("Error response err 500: %s", err)
 
 		res.WriteHeader(http.StatusInternalServerError)
 		errView, err := s.adminView.Error500()

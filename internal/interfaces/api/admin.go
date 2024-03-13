@@ -22,6 +22,7 @@ func (s *Server) registerAdminHandler() {
 	s.mux.HandleFunc("/admin/contents", Auth(s.contentsHandler))
 
 	s.mux.HandleFunc("/admin/edit", Auth(s.editHandler))
+	s.mux.HandleFunc("/admin/edit/delete", Auth(s.deleteHandler))
 
 	s.mux.HandleFunc("/admin/init", s.initHandler)
 

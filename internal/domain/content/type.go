@@ -7,13 +7,18 @@ import (
 	"net/url"
 )
 
+type Creator func() interface{}
+
 type Content interface {
 	AllContentTypeNames() []string
-	AllContentTypes() map[string]func() interface{}
+	AllContentTypes() map[string]Creator
 	NormalizeString(s string) (string, error)
+	GetContentCreator(string) (Creator, bool)
 
-	GetContent(string) (func() interface{}, bool)
+	GetContent(contentType, id, status string) ([]byte, error)
+	DeleteContent(contentType, id, status string) error
 	NewContent(contentType string, data url.Values) (string, error)
+	UpdateContent(contentType string, data url.Values) error
 }
 
 type Status string

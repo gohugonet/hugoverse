@@ -2,6 +2,7 @@ package admin
 
 import (
 	"bytes"
+	"github.com/gohugonet/hugoverse/internal/domain/content"
 	"html/template"
 )
 
@@ -25,11 +26,11 @@ func SetupView(name string) ([]byte, error) {
 
 type View struct {
 	Logo    string
-	Types   map[string]func() interface{}
+	Types   map[string]content.Creator
 	Subview template.HTML
 }
 
-func NewView(name string, ts map[string]func() interface{}) *View {
+func NewView(name string, ts map[string]content.Creator) *View {
 	return &View{
 		Logo:    name,
 		Types:   ts,

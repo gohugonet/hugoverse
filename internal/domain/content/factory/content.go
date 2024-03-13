@@ -8,7 +8,7 @@ import (
 
 func NewContent(repo repository.Repository) content.Content {
 	c := &entity.Content{
-		Types: make(map[string]func() interface{}),
+		Types: make(map[string]content.Creator),
 		Repo:  repo,
 	}
 	c.Types["Demo"] = func() interface{} { return new(entity.Demo) }

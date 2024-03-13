@@ -53,3 +53,24 @@ func Set(item Item) error {
 
 	return nil
 }
+
+func Delete(item Item) error {
+	err := store.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(item.Bucket()))
+		if b == nil {
+			return bolt.ErrBucketNotFound
+		}
+
+		err := b.Delete([]byte(item.Key()))
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

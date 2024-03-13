@@ -3,7 +3,6 @@ package api
 import (
 	"encoding/json"
 	"github.com/gohugonet/hugoverse/internal/domain/content"
-	"github.com/gohugonet/hugoverse/pkg/db"
 	"log"
 	"net/http"
 )
@@ -16,19 +15,20 @@ func (s *Server) contentHandler(res http.ResponseWriter, req *http.Request) {
 	q := req.URL.Query()
 	id := q.Get("id")
 	t := q.Get("type")
+	status := q.Get("status")
 
 	if t == "" || id == "" {
 		res.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	pt, ok := s.contentApp.GetContent(t)
+	pt, ok := s.contentApp.GetContentCreator(t)
 	if !ok {
 		res.WriteHeader(http.StatusNotFound)
 		return
 	}
 
-	post, err := db.Content(t + ":" + id)
+	post, err := s.contentApp.GetContent(t, id, status)
 	if err != nil {
 		res.WriteHeader(http.StatusInternalServerError)
 		return

@@ -27,6 +27,28 @@ func (d *database) PutUser(email string, data []byte) error {
 	return db.Set(newUserItem(email, data))
 }
 
+func (d *database) GetContent(contentType string, id string) ([]byte, error) {
+	return db.Get(
+		&item{
+			bucket: contentType,
+			key:    id,
+		})
+}
+
+func (d *database) DeleteContent(namespace string, id string, slug string) error {
+	if err := db.Delete(&item{bucket: namespace, key: id}); err != nil {
+		return err
+	}
+
+	if err := db.RemoveIndex(slug); err != nil {
+		return err
+	}
+
+	db.SortContent(namespace)
+
+	return nil
+}
+
 func (d *database) PutContent(ci any, data []byte) error {
 	cii, ok := ci.(content.Identifiable)
 	if !ok {
@@ -55,16 +77,31 @@ func (d *database) PutContent(ci any, data []byte) error {
 		return err
 	}
 
+	if status == content.Public {
+		go db.SortContent(ns)
+	}
+
+	return nil
+}
+
+func (d *database) NewContent(ci any, data []byte) error {
+	if err := d.PutContent(ci, data); err != nil {
+		return err
+	}
+
+	cii, ok := ci.(content.Identifiable)
+	if !ok {
+		return errors.New("invalid content type")
+	}
+	id := cii.ItemID()
+	ns := cii.ItemName()
+
 	ciSlug, ok := ci.(content.Sluggable)
 	if !ok {
 		return errors.New("invalid content type")
 	}
 	if err := db.SetIndex(newKeyValueItem(ciSlug.ItemSlug(), fmt.Sprintf("%s:%d", ns, id))); err != nil {
 		return err
-	}
-
-	if status == content.Public {
-		go db.SortContent(ns)
 	}
 
 	return nil

@@ -15,6 +15,7 @@ const managerHTML = `
     <form method="post" action="/admin/edit" enctype="multipart/form-data">
 		<input type="hidden" name="uuid" value="{{.UUID}}"/>
 		<input type="hidden" name="id" value="{{.ID}}"/>
+		<input type="hidden" name="status" value="{{.Status}}"/>
 		<input type="hidden" name="type" value="{{.Kind}}"/>
 		<input type="hidden" name="slug" value="{{.Slug}}"/>
 		{{ .Editor }}
@@ -114,6 +115,7 @@ var managerTmpl = template.Must(template.New("manager").Parse(managerHTML))
 type manager struct {
 	ID     int
 	UUID   uuid.UUID
+	Status content.Status
 	Kind   string
 	Slug   string
 	Editor template.HTML
@@ -123,23 +125,29 @@ type manager struct {
 func Manage(e editor.Editable, typeName string) ([]byte, error) {
 	v, err := e.MarshalEditor()
 	if err != nil {
-		return nil, fmt.Errorf("Couldn't marshal editor for content %s. %s", typeName, err.Error())
+		return nil, fmt.Errorf("couldn't marshal editor for content %s. %s", typeName, err.Error())
 	}
 
 	i, ok := e.(content.Identifiable)
 	if !ok {
-		return nil, fmt.Errorf("Content type %s does not implement item.Identifiable.", typeName)
+		return nil, fmt.Errorf("content type %s does not implement content.Identifiable", typeName)
 	}
 
 	s, ok := e.(content.Sluggable)
 	if !ok {
-		return nil, fmt.Errorf("Content type %s does not implement item.Sluggable.", typeName)
+		return nil, fmt.Errorf("content type %s does not implement content.Sluggable", typeName)
+	}
+
+	st, ok := e.(content.Statusable)
+	if !ok {
+		return nil, fmt.Errorf("content type %s does not implement content.Statusable", typeName)
 	}
 
 	m := manager{
 		ID:     i.ItemID(),
 		UUID:   i.UniqueID(),
 		Kind:   typeName,
+		Status: st.ItemStatus(),
 		Slug:   s.ItemSlug(),
 		Editor: template.HTML(v),
 	}
