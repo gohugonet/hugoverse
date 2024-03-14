@@ -30,6 +30,18 @@ func (c *Content) GetContentCreator(name string) (content.Creator, bool) {
 	return t, ok
 }
 
+func (c *Content) GetContents(ids []content.Identifier) ([][]byte, error) {
+	var contents [][]byte
+	for _, id := range ids {
+		data, err := c.GetContent(id.ContentType(), id.ID(), "")
+		if err != nil {
+			return nil, err
+		}
+		contents = append(contents, data)
+	}
+	return contents, nil
+}
+
 func (c *Content) GetContent(contentType, id, status string) ([]byte, error) {
 	return c.Repo.GetContent(GetNamespace(contentType, status), id)
 }

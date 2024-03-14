@@ -9,6 +9,8 @@ import (
 
 func (s *Server) registerContentHandler() {
 	s.mux.HandleFunc("/api/contents", Record(s.CORS(s.Gzip(s.contentHandler))))
+
+	s.mux.HandleFunc("/api/search", Record(s.CORS(s.Gzip(s.searchContentHandler))))
 }
 
 func (s *Server) contentHandler(res http.ResponseWriter, req *http.Request) {
@@ -30,13 +32,21 @@ func (s *Server) contentHandler(res http.ResponseWriter, req *http.Request) {
 
 	post, err := s.contentApp.GetContent(t, id, status)
 	if err != nil {
+		s.Log.Errorf("Error getting content: %v", err)
 		res.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if post == nil {
+		res.WriteHeader(http.StatusNotFound)
+		s.Log.Printf("Content not found: %s %s %s", t, id, status)
 		return
 	}
 
 	p := pt()
 	err = json.Unmarshal(post, p)
 	if err != nil {
+		s.Log.Errorf("Error unmarshalling content: %v", err)
 		res.WriteHeader(http.StatusInternalServerError)
 		return
 	}

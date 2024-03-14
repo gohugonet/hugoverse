@@ -20,6 +20,7 @@ func (s *Server) registerAdminHandler() {
 	s.mux.HandleFunc("/admin/configure", Auth(s.configHandler))
 
 	s.mux.HandleFunc("/admin/contents", Auth(s.contentsHandler))
+	s.mux.HandleFunc("/admin/contents/search", Auth(s.searchHandler))
 
 	s.mux.HandleFunc("/admin/edit", Auth(s.editHandler))
 	s.mux.HandleFunc("/admin/edit/delete", Auth(s.deleteHandler))
@@ -30,6 +31,11 @@ func (s *Server) registerAdminHandler() {
 	s.mux.Handle("/admin/static/", s.CacheControl(
 		http.StripPrefix("/admin/static",
 			http.FileServer(restrict(http.Dir(staticDir))))))
+
+	uploadsDir := uploadDir()
+	s.mux.Handle("/api/uploads/", Record(s.CORS(s.CacheControl(
+		http.StripPrefix("/api/uploads/",
+			http.FileServer(restrict(http.Dir(uploadsDir))))))))
 
 }
 

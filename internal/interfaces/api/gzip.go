@@ -10,6 +10,7 @@ import (
 func (s *Server) Gzip(next http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		if s.adminApp.GzipDisabled() {
+			s.Log.Printf("Gzip disabled")
 			next.ServeHTTP(res, req)
 			return
 		}

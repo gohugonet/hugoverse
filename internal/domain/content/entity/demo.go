@@ -15,6 +15,7 @@ type Demo struct {
 	Rating     int    `json:"rating"`
 	Opinion    string `json:"opinion"`
 	SpotifyURL string `json:"spotify_url"`
+	Assets     string `json:"assets"`
 }
 
 // MarshalEditor writes a buffer of html to edit a Demo within the CMS
@@ -56,6 +57,12 @@ func (s *Demo) MarshalEditor() ([]byte, error) {
 				"label":       "SpotifyURL",
 				"type":        "text",
 				"placeholder": "Enter the SpotifyURL here",
+			}),
+		},
+		editor.Field{
+			View: editor.File("Assets", s, map[string]string{
+				"label":       "Assets",
+				"placeholder": "Upload the Assets here",
 			}),
 		},
 	)
@@ -152,4 +159,12 @@ func (s *Demo) AutoApprove(res http.ResponseWriter, req *http.Request) error {
 	// after the BeforeSave hook.
 
 	return nil
+}
+
+func (s *Demo) IndexContent() bool {
+	return true
+}
+
+func (s *Demo) Push(http.ResponseWriter, *http.Request) ([]string, error) {
+	return []string{"assets"}, nil
 }

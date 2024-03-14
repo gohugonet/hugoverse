@@ -7,6 +7,7 @@ import (
 	"github.com/gohugonet/hugoverse/internal/application"
 	"github.com/gohugonet/hugoverse/internal/interfaces/api/admin"
 	"github.com/gohugonet/hugoverse/internal/interfaces/api/analytics"
+	"github.com/gohugonet/hugoverse/internal/interfaces/api/search"
 	"github.com/gohugonet/hugoverse/pkg/log"
 	"io"
 	"net/http"
@@ -87,6 +88,7 @@ func NewServer(options ...func(s *Server) error) (*Server, error) {
 	s.adminView = admin.NewView(s.adminApp.Name(), s.contentApp.AllContentTypes())
 
 	analytics.Setup(dataDir())
+	search.Setup(s.contentApp.AllContentTypes(), searchDir())
 
 	return s, nil
 }

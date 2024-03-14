@@ -105,6 +105,6 @@ func (s *Server) storeFileInfo(size int64, filename, urlPath string, fds []*mult
 	}
 
 	if err := s.adminApp.NewUpload(data); err != nil {
-		s.Log.Errorf("Error saving file upload record to database: %s", err)
+		s.Log.Errorf("Error saving file upload record to database: %v", err)
 	}
 }

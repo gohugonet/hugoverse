@@ -5,7 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/content"
+	"github.com/gohugonet/hugoverse/internal/interfaces/api/search"
 	"github.com/gohugonet/hugoverse/pkg/db"
+	"log"
 	"strconv"
 )
 
@@ -64,7 +66,7 @@ func (d *database) PutContent(ci any, data []byte) error {
 	status := cis.ItemStatus()
 
 	bucket := ns
-	if status != content.Public {
+	if !(status == content.Public || status == "") {
 		bucket = fmt.Sprintf("%s:%s", ns, bucketNameWithPrefix(string(status)))
 	}
 
@@ -80,6 +82,13 @@ func (d *database) PutContent(ci any, data []byte) error {
 	if status == content.Public {
 		go db.SortContent(ns)
 	}
+
+	go func() {
+		// update data in search index
+		if err := search.UpdateIndex(ns, fmt.Sprintf("%d", id), data); err != nil {
+			log.Println("[search] UpdateIndex Error:", err)
+		}
+	}()
 
 	return nil
 }

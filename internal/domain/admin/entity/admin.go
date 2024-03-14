@@ -23,6 +23,8 @@ func (a *Admin) NewUpload(data url.Values) error {
 	var upload FileUpload
 
 	decoder := schema.NewDecoder()
+	decoder.SetAliasTag("json")     // allows simpler struct tagging when creating a content type
+	decoder.IgnoreUnknownKeys(true) // will skip over form values submitted, but not in struct
 	if err := decoder.Decode(&upload, data); err != nil {
 		return err
 	}

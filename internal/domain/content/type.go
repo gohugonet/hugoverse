@@ -2,6 +2,7 @@ package content
 
 import (
 	"errors"
+	"github.com/blevesearch/bleve/mapping"
 	"github.com/gofrs/uuid"
 	"net/http"
 	"net/url"
@@ -9,11 +10,20 @@ import (
 
 type Creator func() interface{}
 
+type Identifier interface {
+	ID() string
+	ContentType() string
+}
+
 type Content interface {
 	AllContentTypeNames() []string
 	AllContentTypes() map[string]Creator
 	NormalizeString(s string) (string, error)
 	GetContentCreator(string) (Creator, bool)
+
+	GetContents([]Identifier) ([][]byte, error)
+
+	//GetContent Todo, convert to identifier
 
 	GetContent(contentType, id, status string) ([]byte, error)
 	DeleteContent(contentType, id, status string) error
@@ -75,6 +85,12 @@ type CSVFormattable interface {
 type Sluggable interface {
 	SetSlug(string)
 	ItemSlug() string
+}
+
+// Searchable ...
+type Searchable interface {
+	SearchMapping() (*mapping.IndexMappingImpl, error)
+	IndexContent() bool
 }
 
 // Identifiable enables a struct to have its ID set/get. Typically this is done

@@ -37,3 +37,11 @@ func getWd() string {
 	}
 	return wd
 }
+
+func searchDir() string {
+	searchDir := os.Getenv("HUGOVERSE_SEARCH_DIR")
+	if searchDir == "" {
+		searchDir = filepath.Join(dataDir(), "search")
+	}
+	return searchDir
+}

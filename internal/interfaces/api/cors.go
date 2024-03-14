@@ -59,6 +59,7 @@ func (s *Server) CORS(next http.HandlerFunc) http.HandlerFunc {
 	return s.CacheControl(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		res, cors := s.responseWithCORS(res, req)
 		if !cors {
+			s.Log.Printf("CORS disabled")
 			return
 		}
 
