@@ -5,6 +5,29 @@ import (
 	bolt "go.etcd.io/bbolt"
 )
 
+func All(item Item) ([][]byte, error) {
+	var items [][]byte
+	err := store.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(item.Bucket()))
+		if b == nil {
+			return bolt.ErrBucketNotFound
+		}
+
+		numKeys := b.Stats().KeyN
+		items = make([][]byte, 0, numKeys)
+
+		return b.ForEach(func(k, v []byte) error {
+			items = append(items, v)
+			return nil
+		})
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return items, nil
+}
+
 func Get(item Item) ([]byte, error) {
 	val := &bytes.Buffer{}
 	err := store.View(func(tx *bolt.Tx) error {

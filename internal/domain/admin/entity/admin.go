@@ -19,6 +19,22 @@ func (a *Admin) ConfigEditor() ([]byte, error) {
 	return a.Conf.MarshalEditor()
 }
 
+func (a *Admin) UploadCreator() func() interface{} {
+	return func() interface{} { return new(FileUpload) }
+}
+
+func (a *Admin) GetUpload(id string) ([]byte, error) {
+	return a.Repo.GetUpload(id)
+}
+
+func (a *Admin) DeleteUpload(id string) error {
+	return a.Repo.DeleteUpload(id)
+}
+
+func (a *Admin) AllUploads() ([][]byte, error) {
+	return a.Repo.AllUploads()
+}
+
 func (a *Admin) NewUpload(data url.Values) error {
 	var upload FileUpload
 

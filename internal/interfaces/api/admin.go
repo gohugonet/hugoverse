@@ -25,6 +25,11 @@ func (s *Server) registerAdminHandler() {
 	s.mux.HandleFunc("/admin/edit", Auth(s.editHandler))
 	s.mux.HandleFunc("/admin/edit/delete", Auth(s.deleteHandler))
 
+	s.mux.HandleFunc("/admin/uploads", Auth(s.uploadContentsHandler))
+	s.mux.HandleFunc("/admin/uploads/search", Auth(s.uploadSearchHandler))
+	s.mux.HandleFunc("/admin/edit/upload", Auth(s.editUploadHandler))
+	s.mux.HandleFunc("/admin/edit/upload/delete", Auth(s.deleteUploadHandler))
+
 	s.mux.HandleFunc("/admin/init", s.initHandler)
 
 	staticDir := adminStaticDir()

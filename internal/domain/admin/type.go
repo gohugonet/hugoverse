@@ -1,6 +1,8 @@
 package admin
 
-import "net/url"
+import (
+	"net/url"
+)
 
 type Admin interface {
 	Name() string
@@ -10,8 +12,13 @@ type Admin interface {
 	Persistence
 	Cache
 	Config
+	Upload
 	Http
 	Client
+}
+
+type Traceable interface {
+	FilePath() string
 }
 
 type Editor interface {
@@ -27,10 +34,17 @@ type UserService interface {
 	NewUser(email, password string) (User, error)
 }
 
+type Upload interface {
+	UploadCreator() func() interface{}
+}
+
 type Persistence interface {
 	PutConfig(key string, value any) error
 	SetConfig(data url.Values) error
 	NewUpload(data url.Values) error
+	GetUpload(id string) ([]byte, error)
+	DeleteUpload(id string) error
+	AllUploads() ([][]byte, error)
 }
 
 type Http interface {

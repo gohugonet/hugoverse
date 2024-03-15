@@ -1,7 +1,9 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
+	"github.com/gohugonet/hugoverse/internal/domain/admin"
 	"github.com/gohugonet/hugoverse/pkg/timestamp"
 	"io"
 	"mime/multipart"
@@ -9,6 +11,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -107,4 +110,34 @@ func (s *Server) storeFileInfo(size int64, filename, urlPath string, fds []*mult
 	if err := s.adminApp.NewUpload(data); err != nil {
 		s.Log.Errorf("Error saving file upload record to database: %v", err)
 	}
+}
+
+func (s *Server) deleteUploadFromDisk(id string) error {
+	// get data on file
+	data, err := s.adminApp.GetUpload(id)
+	if err != nil {
+		return err
+	}
+
+	// unmarshal data
+	upload := s.adminApp.UploadCreator()()
+	if err = json.Unmarshal(data, &upload); err != nil {
+		return err
+	}
+
+	ut, ok := upload.(admin.Traceable)
+	if !ok {
+		return fmt.Errorf("invalid upload type")
+	}
+
+	// split and rebuild path in OS friendly way
+	// use path to delete the physical file from disk
+	pathSplit := strings.Split(strings.TrimPrefix(ut.FilePath(), "/api/"), "/")
+	pathJoin := filepath.Join(pathSplit...)
+	err = os.Remove(pathJoin)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

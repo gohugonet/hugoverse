@@ -10,6 +10,9 @@ type Repository interface {
 
 	NewUpload(id, slug string, data []byte) error
 	NextUploadId() (uint64, error)
+	GetUpload(id string) ([]byte, error)
+	DeleteUpload(id string) error
+	AllUploads() ([][]byte, error)
 
 	CheckSlugForDuplicate(slug string) (string, error)
 }

@@ -128,6 +128,26 @@ func (d *database) NextUploadId() (uint64, error) {
 	return db.NextSequence(newBucketItem("uploads"))
 }
 
+func (d *database) GetUpload(id string) ([]byte, error) {
+	key, err := keyBit8Uint64(id)
+	if err != nil {
+		return nil, err
+	}
+	return db.Get(newUploadItem(key, nil))
+}
+
+func (d *database) DeleteUpload(id string) error {
+	key, err := keyBit8Uint64(id)
+	if err != nil {
+		return err
+	}
+	return db.Delete(newUploadItem(key, nil))
+}
+
+func (d *database) AllUploads() ([][]byte, error) {
+	return db.All(newUploadItem("", nil))
+}
+
 func (d *database) NewUpload(id, slug string, data []byte) error {
 	key, err := keyBit8Uint64(id)
 	if err != nil {
