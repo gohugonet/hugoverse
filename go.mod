@@ -1,6 +1,6 @@
 module github.com/gohugonet/hugoverse
 
-go 1.21.1
+go 1.21
 
 require (
 	github.com/blevesearch/bleve v1.0.14
