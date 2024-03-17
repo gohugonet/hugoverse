@@ -71,7 +71,7 @@ func SortContent(namespace string) {
 	for i := range all {
 		j := all[i]
 
-		t := func() interface{} { return new(entity.Demo) }
+		t := func() interface{} { return new(entity.Song) }
 		post := t()
 
 		err := json.Unmarshal(j, &post)

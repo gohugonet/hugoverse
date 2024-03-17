@@ -11,7 +11,8 @@ func NewContent(repo repository.Repository) content.Content {
 		Types: make(map[string]content.Creator),
 		Repo:  repo,
 	}
-	c.Types["Demo"] = func() interface{} { return new(entity.Demo) }
+	c.Types["Song"] = func() interface{} { return new(entity.Song) }
+	c.Types["Student"] = func() interface{} { return new(entity.Student) }
 
 	return c
 }
