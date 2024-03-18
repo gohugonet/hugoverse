@@ -24,6 +24,7 @@ func (s *Server) registerAdminHandler() {
 
 	s.mux.HandleFunc("/admin/edit", Auth(s.editHandler))
 	s.mux.HandleFunc("/admin/edit/delete", Auth(s.deleteHandler))
+	s.mux.HandleFunc("/admin/edit/approve", Auth(s.approveContentHandler))
 
 	s.mux.HandleFunc("/admin/uploads", Auth(s.uploadContentsHandler))
 	s.mux.HandleFunc("/admin/uploads/search", Auth(s.uploadSearchHandler))

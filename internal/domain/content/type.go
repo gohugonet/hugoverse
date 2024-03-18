@@ -66,6 +66,12 @@ type Createable interface {
 	Create(http.ResponseWriter, *http.Request) error
 }
 
+// Trustable allows external content to be auto-approved, meaning content sent
+// as an Createable will be stored in the public content bucket
+type Trustable interface {
+	AutoApprove(http.ResponseWriter, *http.Request) error
+}
+
 // Sortable ensures data is sortable by time
 type Sortable interface {
 	Time() int64

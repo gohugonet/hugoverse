@@ -8,6 +8,7 @@ import (
 	"github.com/gohugonet/hugoverse/internal/interfaces/api/admin"
 	"github.com/gohugonet/hugoverse/pkg/editor"
 	"github.com/gohugonet/hugoverse/pkg/timestamp"
+	"github.com/gorilla/schema"
 	"log"
 	"net/http"
 	"strings"
@@ -172,7 +173,7 @@ func (s *Server) editHandler(res http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		req.PostForm.Set("Name", pt)
+		req.PostForm.Set("namespace", pt)
 		s.Log.Printf("PostForm: %+v", req.PostForm)
 
 		if cid == "-1" {
@@ -361,5 +362,144 @@ func (s *Server) deleteHandler(res http.ResponseWriter, req *http.Request) {
 
 	redir := strings.TrimSuffix(req.URL.Scheme+req.URL.Host+req.URL.Path, "/edit/delete")
 	redir = redir + "/contents?type=" + ct
+	http.Redirect(res, req, redir, http.StatusFound)
+}
+
+func (s *Server) approveContentHandler(res http.ResponseWriter, req *http.Request) {
+	if req.Method != http.MethodPost {
+		res.WriteHeader(http.StatusMethodNotAllowed)
+		errView, err := s.adminView.Error405()
+		if err != nil {
+			return
+		}
+
+		res.Write(errView)
+		return
+	}
+
+	err := req.ParseMultipartForm(1024 * 1024 * 4) // maxMemory 4MB
+	if err != nil {
+		res.WriteHeader(http.StatusInternalServerError)
+		errView, err := s.adminView.Error500()
+		if err != nil {
+			return
+		}
+
+		res.Write(errView)
+		return
+	}
+
+	pendingID := req.FormValue("id")
+	t := req.FormValue("type")
+
+	post := s.contentApp.AllContentTypes()[t]()
+
+	// run hooks
+	hook, ok := post.(content.Hookable)
+	if !ok {
+		s.Log.Printf("Type %s does not implement item.Hookable or embed item.Item.", t)
+		res.WriteHeader(http.StatusBadRequest)
+		errView, err := s.adminView.Error400()
+		if err != nil {
+			return
+		}
+
+		res.Write(errView)
+		return
+	}
+
+	// check if we have a Mergeable
+	m, ok := post.(editor.Mergeable)
+	if !ok {
+		s.Log.Printf("Type %s does not implement editor.Mergeable.", t)
+		res.WriteHeader(http.StatusBadRequest)
+		errView, err := s.adminView.Error400()
+		if err != nil {
+			return
+		}
+
+		res.Write(errView)
+		return
+	}
+
+	dec := schema.NewDecoder()
+	dec.IgnoreUnknownKeys(true)
+	dec.SetAliasTag("json")
+	err = dec.Decode(post, req.Form)
+	if err != nil {
+		s.Log.Errorf("Error decoding post form for content approval: %s", err)
+		res.WriteHeader(http.StatusInternalServerError)
+		errView, err := s.adminView.Error500()
+		if err != nil {
+			return
+		}
+
+		res.Write(errView)
+		return
+	}
+
+	err = hook.BeforeApprove(res, req)
+	if err != nil {
+		s.Log.Errorf("Error running BeforeApprove hook in approveContentHandler for:", t, err)
+		return
+	}
+
+	// call its Approve method
+	err = m.Approve(res, req)
+	if err != nil {
+		s.Log.Errorf("Error running Approve method in approveContentHandler for:", t, err)
+		return
+	}
+
+	err = hook.AfterApprove(res, req)
+	if err != nil {
+		s.Log.Errorf("Error running AfterApprove hook in approveContentHandler for:", t, err)
+		return
+	}
+
+	err = hook.BeforeSave(res, req)
+	if err != nil {
+		s.Log.Errorf("Error running BeforeSave hook in approveContentHandler for:", t, err)
+		return
+	}
+
+	req.PostForm.Set("namespace", t)
+	req.PostForm.Set("status", "public")
+	s.Log.Printf("PostForm: %+v", req.PostForm)
+
+	// Store the content in the bucket t
+	id, err := s.contentApp.NewContent(t, req.PostForm)
+	if err != nil {
+		s.Log.Errorf("Error storing content in approveContentHandler for:", t, err)
+		res.WriteHeader(http.StatusInternalServerError)
+		errView, err := s.adminView.Error500()
+		if err != nil {
+			return
+		}
+
+		res.Write(errView)
+		return
+	}
+
+	// set the target in the context so user can get saved value from db in hook
+	ctx := context.WithValue(req.Context(), "target", fmt.Sprintf("%s:%d", t, id))
+	req = req.WithContext(ctx)
+
+	err = hook.AfterSave(res, req)
+	if err != nil {
+		log.Println("Error running AfterSave hook in approveContentHandler for:", t, err)
+		return
+	}
+
+	if pendingID != "" {
+		err = s.contentApp.DeleteContent(t, pendingID, "pending")
+		if err != nil {
+			s.Log.Errorf("Failed to remove content after approval: %s", err)
+		}
+	}
+
+	// redirect to the new approved content's editor
+	redir := req.URL.Scheme + req.URL.Host + strings.TrimSuffix(req.URL.Path, "/approve")
+	redir += fmt.Sprintf("?type=%s&id=%d", t, id)
 	http.Redirect(res, req, redir, http.StatusFound)
 }

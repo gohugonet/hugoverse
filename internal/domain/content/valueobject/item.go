@@ -1,4 +1,4 @@
-package entity
+package valueobject
 
 import (
 	"fmt"
@@ -13,7 +13,7 @@ import (
 type Item struct {
 	UUID      uuid.UUID      `json:"uuid"`
 	Status    content.Status `json:"status"`
-	Name      string         `json:"name"`
+	Namespace string         `json:"namespace"`
 	ID        int            `json:"id"`
 	Slug      string         `json:"slug"`
 	Timestamp int64          `json:"timestamp"`
@@ -46,10 +46,10 @@ func (i *Item) ItemID() int {
 	return i.ID
 }
 
-// ItemName gets the *Item's Name field
+// ItemName gets the *Item's Namespace field
 // partially implements the Identifiable interface
 func (i *Item) ItemName() string {
-	return i.Name
+	return i.Namespace
 }
 
 // SetItemID sets the *Item's ID field

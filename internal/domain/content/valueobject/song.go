@@ -1,4 +1,4 @@
-package entity
+package valueobject
 
 import (
 	"fmt"
@@ -10,6 +10,7 @@ import (
 type Song struct {
 	Item
 
+	Student    string `json:"student"`
 	Title      string `json:"title"`
 	Artist     string `json:"artist"`
 	Rating     int    `json:"rating"`
@@ -25,6 +26,14 @@ func (s *Song) MarshalEditor() ([]byte, error) {
 		// Take note that the first argument to these Input-like functions
 		// is the string version of each Song field, and must follow
 		// this pattern for auto-decoding and auto-encoding reasons:
+		editor.Field{
+			View: editor.RefSelect("Student", s, map[string]string{
+				"label": "Student",
+			},
+				"Student",
+				`{{ .name }} `,
+			),
+		},
 		editor.Field{
 			View: editor.Input("Title", s, map[string]string{
 				"label":       "Title",
@@ -166,5 +175,5 @@ func (s *Song) IndexContent() bool {
 }
 
 func (s *Song) Push(http.ResponseWriter, *http.Request) ([]string, error) {
-	return []string{"assets"}, nil
+	return []string{"student"}, nil
 }

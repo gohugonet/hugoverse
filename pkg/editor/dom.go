@@ -17,7 +17,7 @@ type Element struct {
 	ViewBuf *bytes.Buffer
 }
 
-// NewElement returns an Element with Name and Data already processed from the
+// NewElement returns an Element with Namespace and Data already processed from the
 // fieldName and content interface provided
 func NewElement(tagName, label, fieldName string, p interface{}, attrs map[string]string) *Element {
 	return &Element{

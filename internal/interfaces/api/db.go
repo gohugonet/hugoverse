@@ -29,6 +29,14 @@ func (d *database) PutUser(email string, data []byte) error {
 	return db.Set(newUserItem(email, data))
 }
 
+func (d *database) PutSortedContent(namespace string, m map[string][]byte) error {
+	return db.Sort(newItems(namespace, m))
+}
+
+func (d *database) AllContent(namespace string) [][]byte {
+	return db.ContentAll(namespace)
+}
+
 func (d *database) GetContent(contentType string, id string) ([]byte, error) {
 	return db.Get(
 		&item{
@@ -45,8 +53,6 @@ func (d *database) DeleteContent(namespace string, id string, slug string) error
 	if err := db.RemoveIndex(slug); err != nil {
 		return err
 	}
-
-	db.SortContent(namespace)
 
 	return nil
 }
@@ -67,8 +73,10 @@ func (d *database) PutContent(ci any, data []byte) error {
 
 	bucket := ns
 	if !(status == content.Public || status == "") {
-		bucket = fmt.Sprintf("%s:%s", ns, bucketNameWithPrefix(string(status)))
+		bucket = fmt.Sprintf("%s%s", ns, bucketNameWithPrefix(string(status)))
 	}
+
+	fmt.Printf(" === bucket: %s\n", bucket)
 
 	if err := db.Set(
 		&item{
@@ -77,10 +85,6 @@ func (d *database) PutContent(ci any, data []byte) error {
 			value:  data,
 		}); err != nil {
 		return err
-	}
-
-	if status == content.Public {
-		go db.SortContent(ns)
 	}
 
 	go func() {
@@ -193,56 +197,3 @@ func (d *database) LoadConfig() ([]byte, error) {
 func (d *database) CheckSlugForDuplicate(slug string) (string, error) {
 	return db.CheckSlugForDuplicate(slug)
 }
-
-const ItemBucketPrefix = "__"
-
-func bucketNameWithPrefix(name string) string {
-	return ItemBucketPrefix + name
-}
-
-func newUploadItem(id string, data []byte) *item {
-	return &item{
-		bucket: bucketNameWithPrefix("uploads"),
-		key:    id,
-		value:  data,
-	}
-}
-
-func newConfigItem(val []byte) *item {
-	return &item{
-		bucket: bucketNameWithPrefix("config"),
-		key:    "settings",
-		value:  val,
-	}
-}
-
-func newUserItem(email string, user []byte) *item {
-	return &item{
-		bucket: bucketNameWithPrefix("users"),
-		key:    email,
-		value:  user,
-	}
-}
-
-func newKeyValueItem(key, value string) *item {
-	return &item{
-		key:   key,
-		value: []byte(value),
-	}
-}
-
-func newBucketItem(name string) *item {
-	return &item{
-		bucket: bucketNameWithPrefix(name),
-	}
-}
-
-type item struct {
-	bucket string
-	key    string
-	value  []byte
-}
-
-func (it *item) Bucket() string { return it.bucket }
-func (it *item) Key() string    { return it.key }
-func (it *item) Value() []byte  { return it.value }

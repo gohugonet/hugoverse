@@ -2,11 +2,11 @@ package factory
 
 import (
 	"github.com/gofrs/uuid"
-	"github.com/gohugonet/hugoverse/internal/domain/content/entity"
+	"github.com/gohugonet/hugoverse/internal/domain/content/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/timestamp"
 )
 
-func NewItem() (*entity.Item, error) {
+func NewItem() (*valueobject.Item, error) {
 	uid, err := uuid.NewV4()
 	if err != nil {
 		return nil, err
@@ -14,7 +14,7 @@ func NewItem() (*entity.Item, error) {
 
 	nowMillis := timestamp.CurrentTimeMillis()
 
-	return &entity.Item{
+	return &valueobject.Item{
 		UUID:      uid,
 		ID:        -1,
 		Slug:      "",

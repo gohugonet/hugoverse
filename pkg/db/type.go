@@ -5,6 +5,11 @@ type Item interface {
 	KeyValue
 }
 
+type Items interface {
+	BucketItem
+	KeyValues() []KeyValue
+}
+
 type KeyValue interface {
 	Key() string
 	Value() []byte

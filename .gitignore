@@ -26,7 +26,8 @@ hugov
 
 *.db
 
-uploads
+/uploads/
 /search/
+/tls/
 
-dddplayer
+/dddplayer/

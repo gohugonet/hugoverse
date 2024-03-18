@@ -8,6 +8,7 @@ import (
 	"github.com/gohugonet/hugoverse/internal/interfaces/api/admin"
 	"github.com/gohugonet/hugoverse/internal/interfaces/api/analytics"
 	"github.com/gohugonet/hugoverse/internal/interfaces/api/search"
+	"github.com/gohugonet/hugoverse/internal/interfaces/api/tls"
 	"github.com/gohugonet/hugoverse/pkg/log"
 	"io"
 	"net/http"
@@ -16,8 +17,9 @@ import (
 type PORT string
 
 const (
-	HttpsPort PORT = "https_port"
-	HttpPort  PORT = "http_port"
+	HttpsPort    PORT = "https_port"
+	HttpPort     PORT = "http_port"
+	DevHttpsPort PORT = "dev_https_port"
 )
 
 const BindAddress = "bind_addr"
@@ -30,28 +32,33 @@ const (
 )
 
 type Server struct {
-	mux        *http.ServeMux
-	cache      responseCache
-	Log        log.Logger
-	Bind       string
-	HttpsPort  int
-	HttpPort   int
+	mux          *http.ServeMux
+	cache        responseCache
+	Log          log.Logger
+	Bind         string
+	HttpsPort    int
+	HttpPort     int
+	DevHttpsPort int
+
 	db         *database
 	contentApp *application.ContentServer
 	adminApp   *application.AdminServer
 	adminView  *admin.View
+
+	tls *tls.Tls
 }
 
 func (s *Server) ListenAndServe(env ENV, enableHttps bool) error {
+	if err := s.saveConfig(); err != nil {
+		s.Log.Fatalf("System failed to save config. Please try to run again.", err)
+		return err
+	}
+
 	if enableHttps {
 		if err := s.enableTLS(env); err != nil {
 			s.Log.Fatalf("System failed to enable TLS. Please try to run again.", err)
 			return err
 		}
-	}
-	if err := s.saveConfig(); err != nil {
-		s.Log.Fatalf("System failed to save config. Please try to run again.", err)
-		return err
 	}
 
 	s.Log.Printf("Listening on %s:%d", s.Bind, s.HttpPort)
@@ -60,11 +67,12 @@ func (s *Server) ListenAndServe(env ENV, enableHttps bool) error {
 
 func NewServer(options ...func(s *Server) error) (*Server, error) {
 	s := &Server{
-		mux:       http.NewServeMux(),
-		db:        &database{},
-		Bind:      "localhost",
-		HttpPort:  80,
-		HttpsPort: 443,
+		mux:          http.NewServeMux(),
+		db:           &database{},
+		Bind:         "localhost",
+		HttpPort:     80,
+		HttpsPort:    443,
+		DevHttpsPort: 10443,
 	}
 	for _, o := range options {
 		if err := o(s); err != nil {
@@ -89,6 +97,8 @@ func NewServer(options ...func(s *Server) error) (*Server, error) {
 
 	analytics.Setup(dataDir())
 	search.Setup(s.contentApp.AllContentTypes(), searchDir())
+
+	s.tls = tls.NewTls(s, s.adminApp.Admin, tlsDir())
 
 	return s, nil
 }
@@ -138,8 +148,11 @@ func (s *Server) writeJSONResponse(w http.ResponseWriter, resp interface{}, stat
 func (s *Server) enableTLS(env ENV) error {
 	switch env {
 	case DEV:
-		// todo
-		return nil
+		go func() {
+			if err := s.tls.EnableDev(); err != nil {
+				s.Log.Errorf("System failed to enable TLS. Please try to run again.", err)
+			}
+		}()
 	case PROD:
 		// todo
 		return nil
@@ -156,6 +169,11 @@ func (s *Server) saveConfig() error {
 	err = s.adminApp.PutConfig(string(HttpPort), s.HttpPort)
 	if err != nil {
 		s.Log.Fatalf("System failed to save Http Port config. Please try to run again.", err)
+		return err
+	}
+	err = s.adminApp.PutConfig(string(DevHttpsPort), s.DevHttpsPort)
+	if err != nil {
+		s.Log.Fatalf("System failed to save DevHttpsPort config. Please try to run again.", err)
 		return err
 	}
 	err = s.adminApp.PutConfig(string(BindAddress), s.Bind)

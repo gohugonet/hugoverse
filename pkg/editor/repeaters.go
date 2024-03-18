@@ -13,25 +13,26 @@ import (
 // IMPORTANT:
 // The `fieldName` argument will cause a panic if it is not exactly the string
 // form of the struct field that this editor input is representing
-// 	type Person struct {
+//
+//	type Person struct {
 //		item.Item
 //		editor editor.Editor
 //
-// 		Names []string `json:"names"`
+//		Names []string `json:"names"`
 //		//...
-// 	}
+//	}
 //
-// 	func (p *Person) MarshalEditor() ([]byte, error) {
-// 		view, err := editor.Form(p,
-// 			editor.Field{
-// 				View: editor.InputRepeater("Names", p, map[string]string{
-// 					"label":       "Names",
-// 					"type":        "text",
-// 					"placeholder": "Enter a Name here",
-// 				}),
-// 			}
-// 		)
-// 	}
+//	func (p *Person) MarshalEditor() ([]byte, error) {
+//		view, err := editor.Form(p,
+//			editor.Field{
+//				View: editor.InputRepeater("Names", p, map[string]string{
+//					"label":       "Names",
+//					"type":        "text",
+//					"placeholder": "Enter a Namespace here",
+//				}),
+//			}
+//		)
+//	}
 func InputRepeater(fieldName string, p interface{}, attrs map[string]string) []byte {
 	// find the field values in p to determine pre-filled inputs
 	fieldVals := ValueFromStructField(fieldName, p)
@@ -204,7 +205,7 @@ func FileRepeater(fieldName string, p interface{}, attrs map[string]string) []by
 			<div class="preview"><div class="img-clip"></div></div>			
 			<input class="store %[4]s" type="hidden" name="%[1]s" value="%[3]s" />
 		</div>`
-		// 1=nameidx, 2=addLabelFirst, 3=val, 4=className, 5=fieldName
+	// 1=nameidx, 2=addLabelFirst, 3=val, 4=className, 5=fieldName
 	script :=
 		`<script>
 			$(function() {
@@ -309,7 +310,7 @@ func FileRepeater(fieldName string, p interface{}, attrs map[string]string) []by
 				}
 			});	
 		</script>`
-		// 1=nameidx, 2=className
+	// 1=nameidx, 2=className
 
 	name := TagNameFromStructField(fieldName, p)
 

@@ -1,19 +1,19 @@
 package entity
 
 import (
-	"bytes"
-	crand "crypto/rand"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"github.com/gohugonet/hugoverse/internal/domain/admin"
 	"github.com/gohugonet/hugoverse/internal/domain/admin/repository"
-	"golang.org/x/crypto/bcrypt"
-	mrand "math/rand"
-	"time"
+	"github.com/gohugonet/hugoverse/internal/domain/admin/valueobject"
 )
 
-func (a *Admin) ValidateUser(email, password string) error {
+type Administrator struct {
+	Repo repository.Repository
+}
+
+func (a *Administrator) ValidateUser(email, password string) error {
 	user, err := getUser(email, a.Repo)
 	if err != nil {
 		return err
@@ -30,7 +30,7 @@ func (a *Admin) ValidateUser(email, password string) error {
 	return nil
 }
 
-func (a *Admin) NewUser(email, password string) (admin.User, error) {
+func (a *Administrator) NewUser(email, password string) (admin.User, error) {
 	userData, err := getUser(email, a.Repo)
 	if err != nil {
 		return nil, err
@@ -39,12 +39,12 @@ func (a *Admin) NewUser(email, password string) (admin.User, error) {
 		return nil, errors.New("user already exists")
 	}
 
-	salt, err := randSalt()
+	salt, err := valueobject.RandSalt()
 	if err != nil {
 		return nil, err
 	}
 
-	hash, err := hashPassword([]byte(password), salt)
+	hash, err := valueobject.HashPassword([]byte(password), salt)
 	if err != nil {
 		return nil, err
 	}
@@ -54,7 +54,7 @@ func (a *Admin) NewUser(email, password string) (admin.User, error) {
 		return nil, err
 	}
 
-	user := &User{
+	user := &valueobject.User{
 		Id:    id,
 		Email: email,
 		Hash:  string(hash),
@@ -71,74 +71,14 @@ func (a *Admin) NewUser(email, password string) (admin.User, error) {
 	return user, nil
 }
 
-type User struct {
-	Id    uint64 `json:"id"`
-	Email string `json:"email"`
-	Hash  string `json:"hash"`
-	Salt  string `json:"salt"`
-}
-
-func (u *User) Name() string {
-	return u.Email
-}
-
-var (
-	r = mrand.New(mrand.NewSource(time.Now().Unix()))
-)
-
-// randSalt generates 16 * 8 bits of data for a random salt
-func randSalt() ([]byte, error) {
-	buf := make([]byte, 16)
-	count := len(buf)
-	n, err := crand.Read(buf)
-	if err != nil {
-		return nil, err
-	}
-
-	if n != count || err != nil {
-		for count > 0 {
-			count--
-			buf[count] = byte(r.Int31n(256))
-		}
-	}
-
-	return buf, nil
-}
-
-// hashPassword encrypts the salted password using bcrypt
-func hashPassword(password, salt []byte) ([]byte, error) {
-	salted, err := saltPassword(password, salt)
-	if err != nil {
-		return nil, err
-	}
-
-	hash, err := bcrypt.GenerateFromPassword(salted, 10)
-	if err != nil {
-		return nil, err
-	}
-
-	return hash, nil
-}
-
-// saltPassword combines the salt and password provided
-func saltPassword(password, salt []byte) ([]byte, error) {
-	salted := &bytes.Buffer{}
-	_, err := salted.Write(append(salt, password...))
-	if err != nil {
-		return nil, err
-	}
-
-	return salted.Bytes(), nil
-}
-
 // IsUser checks for consistency in email/pass combination
-func isUser(usr *User, password string) error {
+func isUser(usr *valueobject.User, password string) error {
 	salt, err := base64.StdEncoding.DecodeString(usr.Salt)
 	if err != nil {
 		return err
 	}
 
-	err = checkPassword([]byte(usr.Hash), []byte(password), salt)
+	err = valueobject.CheckPassword([]byte(usr.Hash), []byte(password), salt)
 	if err != nil {
 		return err
 	}
@@ -146,7 +86,7 @@ func isUser(usr *User, password string) error {
 	return nil
 }
 
-func getUser(email string, repo repository.Repository) (*User, error) {
+func getUser(email string, repo repository.Repository) (*valueobject.User, error) {
 	userByte, err := repo.User(email)
 	if err != nil {
 		return nil, err
@@ -156,23 +96,11 @@ func getUser(email string, repo repository.Repository) (*User, error) {
 		return nil, nil
 	}
 
-	user := &User{}
+	user := &valueobject.User{}
 	err = json.Unmarshal(userByte, user)
 	if err != nil {
 		return nil, err
 	}
 
 	return user, nil
-}
-
-// checkPassword compares the hash with the salted password. A nil return means
-// the password is correct, but an error could mean either the password is not
-// correct, or the salt process failed - indicated in logs
-func checkPassword(hash, password, salt []byte) error {
-	salted, err := saltPassword(password, salt)
-	if err != nil {
-		return err
-	}
-
-	return bcrypt.CompareHashAndPassword(hash, salted)
 }

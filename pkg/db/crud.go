@@ -58,12 +58,12 @@ func Get(item Item) ([]byte, error) {
 
 func Set(item Item) error {
 	err := store.Update(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket([]byte(item.Bucket()))
-		if bucket == nil {
-			return bolt.ErrBucketNotFound
+		bucket, err := tx.CreateBucketIfNotExists([]byte(item.Bucket()))
+		if err != nil {
+			return err
 		}
 
-		err := bucket.Put([]byte(item.Key()), item.Value())
+		err = bucket.Put([]byte(item.Key()), item.Value())
 		if err != nil {
 			return err
 		}

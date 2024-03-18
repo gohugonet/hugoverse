@@ -6,6 +6,14 @@ import (
 	"path/filepath"
 )
 
+func tlsDir() string {
+	tlsDir := os.Getenv("HUGOVERSE_TLS_DIR")
+	if tlsDir == "" {
+		tlsDir = filepath.Join(dataDir(), "tls")
+	}
+	return tlsDir
+}
+
 func dataDir() string {
 	dataDir := os.Getenv("HUGOVERSE_DATA_DIR")
 	if dataDir == "" {

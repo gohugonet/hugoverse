@@ -91,7 +91,7 @@ var initAdminHTML = `
         <div>Configuration</div>
         <div class="input-field col s12">        
             <input placeholder="Enter the name of your site (interal use only)" class="validate required" type="text" id="name" name="name"/>
-            <label for="name" class="active">Site Name</label>
+            <label for="name" class="active">Site Namespace</label>
         </div>
         <div class="input-field col s12">        
             <input placeholder="Used for acquiring SSL certificate (e.g. www.example.com or  example.com)" class="validate" type="text" id="domain" name="domain"/>

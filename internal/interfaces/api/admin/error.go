@@ -32,3 +32,14 @@ var err500HTML = []byte(`
 </div>
 </div>
 `)
+
+var err405HTML = []byte(`
+<div class="error-page e405 col s6">
+<div class="card">
+<div class="card-content">
+    <div class="card-title"><b>405</b> Error: Method Not Allowed</div>
+    <blockquote>Sorry, the method of your request is not allowed.</blockquote>
+</div>
+</div>
+</div>
+`)

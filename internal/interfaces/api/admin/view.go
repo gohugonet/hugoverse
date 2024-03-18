@@ -72,3 +72,8 @@ func (v *View) Error404() ([]byte, error) {
 func (v *View) Error500() ([]byte, error) {
 	return v.SubView(err500HTML)
 }
+
+// Error405 creates a subview for a 405 error page
+func (v *View) Error405() ([]byte, error) {
+	return v.SubView(err405HTML)
+}

@@ -50,6 +50,8 @@ type Persistence interface {
 type Http interface {
 	Domain() string
 	HttpPort() string
+	BindAddress() string
+	DevHttpsPort() string
 }
 
 type Cache interface {

@@ -1,9 +1,9 @@
-package entity
+package valueobject
 
 import (
 	"encoding/json"
 	"fmt"
-	contentEntity "github.com/gohugonet/hugoverse/internal/domain/content/entity"
+	contentVO "github.com/gohugonet/hugoverse/internal/domain/content/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/editor"
 	"github.com/gohugonet/hugoverse/pkg/form"
 	"github.com/gorilla/schema"
@@ -18,13 +18,14 @@ const (
 )
 
 type Config struct {
-	contentEntity.Item
+	contentVO.Item
 
 	Name                    string   `json:"name"`
 	Domain                  string   `json:"domain"`
 	BindAddress             string   `json:"bind_addr"`
 	HTTPPort                string   `json:"http_port"`
 	HTTPSPort               string   `json:"https_port"`
+	DevHTTPSPort            string   `json:"dev_https_port"`
 	AdminEmail              string   `json:"admin_email"`
 	ClientSecret            string   `json:"client_secret"`
 	Etag                    string   `json:"etag"`
@@ -37,7 +38,7 @@ type Config struct {
 	BackupBasicAuthPassword string   `json:"backup_basic_auth_password"`
 }
 
-func (c *Config) isCacheInvalidate() bool {
+func (c *Config) IsCacheInvalidate() bool {
 	return len(c.CacheInvalidate) > 0 && c.CacheInvalidate[0] == "invalidate"
 }
 

@@ -3,12 +3,16 @@ package entity
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/gofrs/uuid"
 	"github.com/gohugonet/hugoverse/internal/domain/content"
 	"github.com/gohugonet/hugoverse/internal/domain/content/repository"
+	"github.com/gohugonet/hugoverse/internal/domain/content/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/form"
 	"github.com/gorilla/schema"
+	"log"
 	"net/url"
+	"sort"
 	"strconv"
 )
 
@@ -60,7 +64,18 @@ func (c *Content) DeleteContent(contentType, id, status string) error {
 		return err
 	}
 
-	return c.Repo.DeleteContent(GetNamespace(contentType, status), id, cti.(content.Sluggable).ItemSlug())
+	if err := c.Repo.DeleteContent(
+		GetNamespace(contentType, status),
+		id,
+		cti.(content.Sluggable).ItemSlug()); err != nil {
+		return err
+	}
+
+	if err := c.SortContent(contentType); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (c *Content) UpdateContent(contentType string, data url.Values) error {
@@ -89,6 +104,79 @@ func (c *Content) UpdateContent(contentType string, data url.Values) error {
 	}
 
 	if err := c.Repo.PutContent(ci, b); err != nil {
+		return err
+	}
+
+	cis, ok := ci.(content.Statusable)
+	if !ok {
+		return errors.New("invalid content type")
+	}
+	status := cis.ItemStatus()
+	if status == content.Public {
+		go func() {
+			err := c.SortContent(contentType)
+			if err != nil {
+				log.Println("sort content err: ", err)
+			}
+		}()
+	}
+
+	return nil
+}
+
+func (c *Content) SortContent(contentType string) error {
+	// wait if running too frequently per namespace
+	if !valueobject.EnoughTime(contentType, c.SortContent) {
+		return nil
+	}
+
+	t, ok := c.GetContentCreator(contentType)
+	if !ok {
+		return errors.New("invalid content type")
+	}
+
+	all := c.Repo.AllContent(contentType)
+
+	var posts valueobject.SortableContent
+	// decode each (json) into type to then sort
+	for i := range all {
+		j := all[i]
+
+		post := t()
+		err := json.Unmarshal(j, &post)
+		if err != nil {
+			log.Println("Error decoding json while sorting", contentType, ":", err)
+			return err
+		}
+
+		posts = append(posts, post.(content.Sortable))
+	}
+
+	// sort posts
+	sort.Sort(posts)
+
+	// marshal posts to json
+	var bb [][]byte
+	for i := range posts {
+		j, err := json.Marshal(posts[i])
+		if err != nil {
+			// log error and kill sort so __sorted is not in invalid state
+			log.Println("Error marshal post to json in SortContent:", err)
+			return err
+		}
+
+		bb = append(bb, j)
+	}
+
+	m := make(map[string][]byte)
+	// encode to json and store as 'post.Time():i':post
+	for i := range bb {
+		cid := fmt.Sprintf("%d:%d", posts[i].Time(), i)
+		m[cid] = bb[i]
+	}
+
+	// store in <namespace>_sorted bucket, first delete existing
+	if err := c.Repo.PutSortedContent(contentType, m); err != nil {
 		return err
 	}
 
@@ -165,6 +253,12 @@ func (c *Content) NewContent(contentType string, data url.Values) (string, error
 
 	if err := c.Repo.NewContent(ci, b); err != nil {
 		return "", err
+	}
+
+	if cis.ItemStatus() == content.Public {
+		if err := c.SortContent(contentType); err != nil {
+			return "", err
+		}
 	}
 
 	return strconv.FormatInt(int64(cii.ItemID()), 10), nil

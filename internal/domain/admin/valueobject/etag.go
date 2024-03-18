@@ -1,4 +1,4 @@
-package entity
+package valueobject
 
 import (
 	"encoding/base64"
@@ -6,8 +6,8 @@ import (
 	"time"
 )
 
-// newEtag generates a new Etag for response caching
-func newEtag() string {
+// NewEtag generates a new Etag for response caching
+func NewEtag() string {
 	now := fmt.Sprintf("%d", time.Now().Unix())
 	etag := base64.StdEncoding.EncodeToString([]byte(now))
 

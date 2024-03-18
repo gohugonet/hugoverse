@@ -1,15 +1,15 @@
-package entity
+package valueobject
 
 import (
 	"fmt"
 	"github.com/gohugonet/hugoverse/pkg/editor"
+	"net/http"
 )
 
 type Student struct {
 	Item
 
 	Name string `json:"name"`
-	Song string `json:"song"`
 }
 
 // MarshalEditor writes a buffer of html to edit a Artist within the CMS
@@ -23,16 +23,8 @@ func (a *Student) MarshalEditor() ([]byte, error) {
 			View: editor.Input("Name", a, map[string]string{
 				"label":       "Name",
 				"type":        "text",
-				"placeholder": "Enter the Name here",
+				"placeholder": "Enter the Namespace here",
 			}),
-		},
-		editor.Field{
-			View: editor.RefSelect("Song", a, map[string]string{
-				"label": "Song",
-			},
-				"Song",
-				`{{ .title }} `,
-			),
 		},
 	)
 
@@ -46,5 +38,13 @@ func (a *Student) MarshalEditor() ([]byte, error) {
 // String defines how a Artist is printed. Update it using more descriptive
 // fields from the Artist struct type
 func (a *Student) String() string {
-	return fmt.Sprintf("Artist: %s", a.UUID)
+	return a.Name
+}
+
+func (a *Student) Create(res http.ResponseWriter, req *http.Request) error {
+	return nil
+}
+
+func (a *Student) Approve(http.ResponseWriter, *http.Request) error {
+	return nil
 }
