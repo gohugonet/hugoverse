@@ -11,7 +11,7 @@ type Admin interface {
 	UserService
 	Persistence
 	Cache
-	Config
+	Controller
 	Upload
 	Http
 	Client
@@ -61,7 +61,7 @@ type Cache interface {
 	CacheMaxAge() int64
 }
 
-type Config interface {
+type Controller interface {
 	CacheDisabled() bool
 	CorsDisabled() bool
 	GzipDisabled() bool

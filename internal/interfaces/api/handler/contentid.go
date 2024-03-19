@@ -1,4 +1,4 @@
-package api
+package handler
 
 import (
 	"github.com/gohugonet/hugoverse/internal/domain/content"

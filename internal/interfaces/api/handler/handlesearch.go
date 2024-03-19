@@ -1,4 +1,4 @@
-package api
+package handler
 
 import (
 	"bytes"
@@ -12,19 +12,19 @@ import (
 	"strings"
 )
 
-func (s *Server) searchContentHandler(res http.ResponseWriter, req *http.Request) {
+func (s *Handler) SearchContentHandler(res http.ResponseWriter, req *http.Request) {
 	qs := req.URL.Query()
 	t := qs.Get("type")
 	// type must be set, future version may compile multi-type result set
 	if t == "" {
-		s.Log.Printf("Type must be set")
+		s.log.Printf("Type must be set")
 		res.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	it, ok := s.contentApp.AllContentTypes()[t]
 	if !ok {
-		s.Log.Printf("Type %s not found", t)
+		s.log.Printf("Type %s not found", t)
 		res.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -35,14 +35,14 @@ func (s *Server) searchContentHandler(res http.ResponseWriter, req *http.Request
 
 	q, err := url.QueryUnescape(qs.Get("q"))
 	if err != nil {
-		s.Log.Errorf("Error unescaping query: %v", err)
+		s.log.Errorf("Error unescaping query: %v", err)
 		res.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	// q must be set
 	if q == "" {
-		s.Log.Errorf("Query must be set")
+		s.log.Errorf("Query must be set")
 		res.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -70,12 +70,12 @@ func (s *Server) searchContentHandler(res http.ResponseWriter, req *http.Request
 	// execute search for query provided, if no index for type send 404
 	indices, err := search.TypeQuery(t, q, count, offset)
 	if err == search.ErrNoIndex {
-		s.Log.Errorf("Index for type %s not found", t)
+		s.log.Errorf("Index for type %s not found", t)
 		res.WriteHeader(http.StatusNotFound)
 		return
 	}
 	if err != nil {
-		s.Log.Errorf("Error searching for type %s: %v", t, err)
+		s.log.Errorf("Error searching for type %s: %v", t, err)
 		res.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -83,7 +83,7 @@ func (s *Server) searchContentHandler(res http.ResponseWriter, req *http.Request
 	// respond with json formatted results
 	bb, err := s.contentApp.GetContents(ConvertToIdentifiers(indices))
 	if err != nil {
-		s.Log.Errorf("Error getting content: %v", err)
+		s.log.Errorf("Error getting content: %v", err)
 		res.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -98,7 +98,7 @@ func (s *Server) searchContentHandler(res http.ResponseWriter, req *http.Request
 		result = append(result, bb[i])
 	}
 
-	j, err := fmtJSON(result...)
+	j, err := s.res.FmtJSON(result...)
 	if err != nil {
 		res.WriteHeader(http.StatusInternalServerError)
 		return
@@ -110,10 +110,10 @@ func (s *Server) searchContentHandler(res http.ResponseWriter, req *http.Request
 		return
 	}
 
-	sendData(res, req, j)
+	s.res.Json(res, j)
 }
 
-func (s *Server) searchHandler(res http.ResponseWriter, req *http.Request) {
+func (s *Handler) SearchHandler(res http.ResponseWriter, req *http.Request) {
 	q := req.URL.Query()
 	t := q.Get("type")
 	query := q.Get("q")
@@ -167,17 +167,17 @@ func (s *Server) searchHandler(res http.ResponseWriter, req *http.Request) {
 
 		err := json.Unmarshal(posts[i], &p)
 		if err != nil {
-			s.Log.Printf("Error unmarshal search result json into %s with err: %v, content: %v", t, err, posts[i])
+			s.log.Printf("Error unmarshal search result json into %s with err: %v, content: %v", t, err, posts[i])
 
 			post := `<li class="col s12">Error decoding data. Possible file corruption.</li>`
 			_, err = b.Write([]byte(post))
 			if err != nil {
-				s.Log.Errorf("[admin] Error: %v", err)
+				s.log.Errorf("[admin] Error: %v", err)
 
 				res.WriteHeader(http.StatusInternalServerError)
 				errView, err := s.adminView.Error500()
 				if err != nil {
-					s.Log.Errorf("[admin] Error: %v", err)
+					s.log.Errorf("[admin] Error: %v", err)
 				}
 
 				res.Write(errView)
@@ -189,12 +189,12 @@ func (s *Server) searchHandler(res http.ResponseWriter, req *http.Request) {
 		post := adminPostListItem(p, t, status)
 		_, err = b.Write([]byte(post))
 		if err != nil {
-			s.Log.Errorf("[admin] Error: %v", err)
+			s.log.Errorf("[admin] Error: %v", err)
 
 			res.WriteHeader(http.StatusInternalServerError)
 			errView, err := s.adminView.Error500()
 			if err != nil {
-				s.Log.Errorf("[admin] Error: %v", err)
+				s.log.Errorf("[admin] Error: %v", err)
 			}
 
 			res.Write(errView)
@@ -204,12 +204,12 @@ func (s *Server) searchHandler(res http.ResponseWriter, req *http.Request) {
 
 	_, err := b.WriteString(`</ul></div></div>`)
 	if err != nil {
-		s.Log.Errorf("[admin] Error: %v", err)
+		s.log.Errorf("[admin] Error: %v", err)
 
 		res.WriteHeader(http.StatusInternalServerError)
 		errView, err := s.adminView.Error500()
 		if err != nil {
-			s.Log.Errorf("[admin] Error: %v", err)
+			s.log.Errorf("[admin] Error: %v", err)
 		}
 
 		res.Write(errView)
@@ -245,7 +245,7 @@ func (s *Server) searchHandler(res http.ResponseWriter, req *http.Request) {
 
 	adminView, err := s.adminView.SubView([]byte(html))
 	if err != nil {
-		s.Log.Errorf("[admin] Error: %v", err)
+		s.log.Errorf("[admin] Error: %v", err)
 		res.WriteHeader(http.StatusInternalServerError)
 		return
 	}

@@ -1,4 +1,4 @@
-package api
+package handler
 
 import (
 	"encoding/json"
@@ -16,7 +16,7 @@ import (
 )
 
 // StoreFiles stores file uploads at paths like /YYYY/MM/filename.ext
-func (s *Server) StoreFiles(req *http.Request) (map[string]string, error) {
+func (s *Handler) StoreFiles(req *http.Request) (map[string]string, error) {
 	err := req.ParseMultipartForm(1024 * 1024 * 4) // maxMemory 4MB
 	if err != nil {
 		return nil, err
@@ -44,7 +44,7 @@ func (s *Server) StoreFiles(req *http.Request) (map[string]string, error) {
 
 	urlPathPrefix := "api"
 	uploadDirName := "uploads"
-	uploadDir := filepath.Join(uploadDir(), fmt.Sprintf("%d", tm.Year()), fmt.Sprintf("%02d", tm.Month()))
+	uploadDir := filepath.Join(s.uploadDir, fmt.Sprintf("%d", tm.Year()), fmt.Sprintf("%02d", tm.Month()))
 	err = os.MkdirAll(uploadDir, os.ModeDir|os.ModePerm)
 	if err != nil {
 		return nil, err
@@ -99,7 +99,7 @@ func (s *Server) StoreFiles(req *http.Request) (map[string]string, error) {
 	return urlPaths, nil
 }
 
-func (s *Server) storeFileInfo(size int64, filename, urlPath string, fds []*multipart.FileHeader) {
+func (s *Handler) storeFileInfo(size int64, filename, urlPath string, fds []*multipart.FileHeader) {
 	data := url.Values{
 		"name":           []string{filename},
 		"path":           []string{urlPath},
@@ -108,11 +108,11 @@ func (s *Server) storeFileInfo(size int64, filename, urlPath string, fds []*mult
 	}
 
 	if err := s.adminApp.NewUpload(data); err != nil {
-		s.Log.Errorf("Error saving file upload record to database: %v", err)
+		s.log.Errorf("Error saving file upload record to database: %v", err)
 	}
 }
 
-func (s *Server) deleteUploadFromDisk(id string) error {
+func (s *Handler) deleteUploadFromDisk(id string) error {
 	// get data on file
 	data, err := s.adminApp.GetUpload(id)
 	if err != nil {

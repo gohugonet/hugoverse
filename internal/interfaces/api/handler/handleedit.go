@@ -1,4 +1,4 @@
-package api
+package handler
 
 import (
 	"context"
@@ -14,7 +14,7 @@ import (
 	"strings"
 )
 
-func (s *Server) editHandler(res http.ResponseWriter, req *http.Request) {
+func (s *Handler) EditHandler(res http.ResponseWriter, req *http.Request) {
 	switch req.Method {
 	case http.MethodGet:
 		q := req.URL.Query()
@@ -32,8 +32,8 @@ func (s *Server) editHandler(res http.ResponseWriter, req *http.Request) {
 		if i != "" {
 			data, err := s.contentApp.GetContent(t, i, status)
 			if err != nil {
-				if err := s.responseErr500(res); err != nil {
-					s.Log.Errorf("Error response err 500: %s", err)
+				if err := s.res.err500(res); err != nil {
+					s.log.Errorf("Error response err 500: %s", err)
 				}
 				return
 			}
@@ -51,15 +51,15 @@ func (s *Server) editHandler(res http.ResponseWriter, req *http.Request) {
 
 			err = json.Unmarshal(data, post)
 			if err != nil {
-				if err := s.responseErr500(res); err != nil {
-					s.Log.Errorf("Error response err 500: %s", err)
+				if err := s.res.err500(res); err != nil {
+					s.log.Errorf("Error response err 500: %s", err)
 				}
 				return
 			}
 		} else {
 			item, ok := post.(content.Identifiable)
 			if !ok {
-				s.Log.Printf("Content type %s doesn't implement item.Identifiable", t)
+				s.log.Printf("Content type %s doesn't implement item.Identifiable", t)
 				return
 			}
 
@@ -68,18 +68,18 @@ func (s *Server) editHandler(res http.ResponseWriter, req *http.Request) {
 
 		m, err := admin.Manage(post.(editor.Editable), t)
 		if err != nil {
-			s.Log.Errorf("Error rendering admin view: %v", err)
-			if err := s.responseErr500(res); err != nil {
-				s.Log.Errorf("Error response err 500: %s", err)
+			s.log.Errorf("Error rendering admin view: %v", err)
+			if err := s.res.err500(res); err != nil {
+				s.log.Errorf("Error response err 500: %s", err)
 			}
 			return
 		}
 
 		adminView, err := s.adminView.SubView(m)
 		if err != nil {
-			s.Log.Errorf("Error rendering admin view: %v", err)
-			if err := s.responseErr500(res); err != nil {
-				s.Log.Errorf("Error response err 500: %s", err)
+			s.log.Errorf("Error rendering admin view: %v", err)
+			if err := s.res.err500(res); err != nil {
+				s.log.Errorf("Error response err 500: %s", err)
 			}
 			return
 		}
@@ -90,9 +90,9 @@ func (s *Server) editHandler(res http.ResponseWriter, req *http.Request) {
 	case http.MethodPost:
 		err := req.ParseMultipartForm(1024 * 1024 * 4) // maxMemory 4MB
 		if err != nil {
-			s.Log.Errorf("Error parsing multipart form: %v", err)
-			if err := s.responseErr500(res); err != nil {
-				s.Log.Errorf("Error response err 500: %s", err)
+			s.log.Errorf("Error parsing multipart form: %v", err)
+			if err := s.res.err500(res); err != nil {
+				s.log.Errorf("Error response err 500: %s", err)
 			}
 			return
 		}
@@ -114,8 +114,8 @@ func (s *Server) editHandler(res http.ResponseWriter, req *http.Request) {
 
 		urlPaths, err := s.StoreFiles(req)
 		if err != nil {
-			if err := s.responseErr500(res); err != nil {
-				s.Log.Errorf("Error response err 500: %s", err)
+			if err := s.res.err500(res); err != nil {
+				s.log.Errorf("Error response err 500: %s", err)
 			}
 			return
 		}
@@ -126,8 +126,8 @@ func (s *Server) editHandler(res http.ResponseWriter, req *http.Request) {
 
 		p, ok := s.contentApp.AllContentTypes()[pt]
 		if !ok {
-			if err := s.responseErr400(res); err != nil {
-				s.Log.Errorf("Error response err 400: %s", err)
+			if err := s.res.err400(res); err != nil {
+				s.log.Errorf("Error response err 400: %s", err)
 			}
 			return
 		}
@@ -135,53 +135,53 @@ func (s *Server) editHandler(res http.ResponseWriter, req *http.Request) {
 		post := p()
 		hook, ok := post.(content.Hookable)
 		if !ok {
-			if err := s.responseErr400(res); err != nil {
-				s.Log.Errorf("Error response err 400: %s", err)
+			if err := s.res.err400(res); err != nil {
+				s.log.Errorf("Error response err 400: %s", err)
 			}
 			return
 		}
 
 		ext, ok := post.(content.Createable)
 		if !ok {
-			s.Log.Errorf("[Create] type does not implement Createable:", pt, "from:", req.RemoteAddr)
+			s.log.Errorf("[Create] type does not implement Createable:", pt, "from:", req.RemoteAddr)
 			res.WriteHeader(http.StatusBadRequest)
 			return
 		}
 		err = ext.Create(res, req)
 		if err != nil {
-			s.Log.Errorf("[Create] error calling Create:", err)
+			s.log.Errorf("[Create] error calling Create:", err)
 			return
 		}
 
 		if cid == "-1" {
 			err = hook.BeforeAdminCreate(res, req)
 			if err != nil {
-				s.Log.Errorf("Error running BeforeAdminCreate method in editHandler for:", pt, err)
+				s.log.Errorf("Error running BeforeAdminCreate method in editHandler for:", pt, err)
 				return
 			}
 		} else {
 			err = hook.BeforeAdminUpdate(res, req)
 			if err != nil {
-				s.Log.Errorf("Error running BeforeAdminUpdate method in editHandler for:", pt, err)
+				s.log.Errorf("Error running BeforeAdminUpdate method in editHandler for:", pt, err)
 				return
 			}
 		}
 
 		err = hook.BeforeSave(res, req)
 		if err != nil {
-			s.Log.Errorf("Error running BeforeSave method in editHandler for:", pt, err)
+			s.log.Errorf("Error running BeforeSave method in editHandler for:", pt, err)
 			return
 		}
 
 		req.PostForm.Set("namespace", pt)
-		s.Log.Printf("PostForm: %+v", req.PostForm)
+		s.log.Printf("PostForm: %+v", req.PostForm)
 
 		if cid == "-1" {
 			id, err := s.contentApp.NewContent(pt, req.PostForm)
 			if err != nil {
-				s.Log.Errorf("Error creating new content: %s", err)
-				if err := s.responseErr500(res); err != nil {
-					s.Log.Errorf("Error response err 500: %s", err)
+				s.log.Errorf("Error creating new content: %s", err)
+				if err := s.res.err500(res); err != nil {
+					s.log.Errorf("Error response err 500: %s", err)
 				}
 				return
 			}
@@ -189,16 +189,16 @@ func (s *Server) editHandler(res http.ResponseWriter, req *http.Request) {
 			cid = id
 		} else {
 			if err = s.contentApp.UpdateContent(pt, req.PostForm); err != nil {
-				s.Log.Errorf("Error updating content: %s", err)
-				if err := s.responseErr500(res); err != nil {
-					s.Log.Errorf("Error response err 500: %s", err)
+				s.log.Errorf("Error updating content: %s", err)
+				if err := s.res.err500(res); err != nil {
+					s.log.Errorf("Error response err 500: %s", err)
 				}
 				return
 			}
 		}
 
 		if err := s.adminApp.InvalidateCache(); err != nil {
-			s.Log.Errorf("Error invalidating cache: %s", err)
+			s.log.Errorf("Error invalidating cache: %s", err)
 		}
 
 		// set the target in the context so user can get saved value from db in hook
@@ -207,20 +207,20 @@ func (s *Server) editHandler(res http.ResponseWriter, req *http.Request) {
 
 		err = hook.AfterSave(res, req)
 		if err != nil {
-			s.Log.Errorf("Error running AfterSave method in editHandler for:", pt, err)
+			s.log.Errorf("Error running AfterSave method in editHandler for:", pt, err)
 			return
 		}
 
 		if cid == "-1" {
 			err = hook.AfterAdminCreate(res, req)
 			if err != nil {
-				s.Log.Errorf("Error running AfterAdminCreate method in editHandler for:", pt, err)
+				s.log.Errorf("Error running AfterAdminCreate method in editHandler for:", pt, err)
 				return
 			}
 		} else {
 			err = hook.AfterAdminUpdate(res, req)
 			if err != nil {
-				s.Log.Errorf("Error running AfterAdminUpdate method in editHandler for:", pt, err)
+				s.log.Errorf("Error running AfterAdminUpdate method in editHandler for:", pt, err)
 				return
 			}
 		}
@@ -241,7 +241,7 @@ func (s *Server) editHandler(res http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func (s *Server) deleteHandler(res http.ResponseWriter, req *http.Request) {
+func (s *Handler) DeleteHandler(res http.ResponseWriter, req *http.Request) {
 	if req.Method != http.MethodPost {
 		res.WriteHeader(http.StatusMethodNotAllowed)
 		return
@@ -249,7 +249,7 @@ func (s *Server) deleteHandler(res http.ResponseWriter, req *http.Request) {
 
 	err := req.ParseMultipartForm(1024 * 1024 * 4) // maxMemory 4MB
 	if err != nil {
-		s.Log.Errorf("Error parsing multipart form: %v", err)
+		s.log.Errorf("Error parsing multipart form: %v", err)
 		res.WriteHeader(http.StatusInternalServerError)
 		errView, err := s.adminView.Error500()
 		if err != nil {
@@ -272,7 +272,7 @@ func (s *Server) deleteHandler(res http.ResponseWriter, req *http.Request) {
 
 	p, ok := s.contentApp.AllContentTypes()[ct]
 	if !ok {
-		s.Log.Printf("Type %s does not implement item.Hookable or embed item.Item.", t)
+		s.log.Printf("Type %s does not implement item.Hookable or embed item.Item.", t)
 		res.WriteHeader(http.StatusBadRequest)
 		errView, err := s.adminView.Error400()
 		if err != nil {
@@ -286,7 +286,7 @@ func (s *Server) deleteHandler(res http.ResponseWriter, req *http.Request) {
 	post := p()
 	hook, ok := post.(content.Hookable)
 	if !ok {
-		s.Log.Printf("Type %s does not implement item.Hookable or embed item.Item.", t)
+		s.log.Printf("Type %s does not implement item.Hookable or embed item.Item.", t)
 		res.WriteHeader(http.StatusBadRequest)
 		errView, err := s.adminView.Error400()
 		if err != nil {
@@ -299,7 +299,7 @@ func (s *Server) deleteHandler(res http.ResponseWriter, req *http.Request) {
 
 	data, err := s.contentApp.GetContent(t, id, status)
 	if err != nil {
-		s.Log.Printf("Error in db.Content %s:%s: %s", t, id, err)
+		s.log.Printf("Error in db.Content %s:%s: %s", t, id, err)
 		return
 	}
 
@@ -331,31 +331,31 @@ func (s *Server) deleteHandler(res http.ResponseWriter, req *http.Request) {
 
 	err = s.contentApp.DeleteContent(t, id, status)
 	if err != nil {
-		s.Log.Errorf("Error in db.Content %s:%s: %s", t, id, err)
+		s.log.Errorf("Error in db.Content %s:%s: %s", t, id, err)
 		res.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	if err := s.adminApp.InvalidateCache(); err != nil {
-		s.Log.Errorf("Error invalidating cache: %s", err)
+		s.log.Errorf("Error invalidating cache: %s", err)
 	}
 
 	err = hook.AfterDelete(res, req)
 	if err != nil {
-		s.Log.Errorf("Error running AfterDelete method in deleteHandler for:", t, err)
+		s.log.Errorf("Error running AfterDelete method in deleteHandler for:", t, err)
 		return
 	}
 
 	err = hook.AfterAdminDelete(res, req)
 	if err != nil {
-		s.Log.Errorf("Error running AfterAdminDelete method in deleteHandler for:", t, err)
+		s.log.Errorf("Error running AfterAdminDelete method in deleteHandler for:", t, err)
 		return
 	}
 
 	if reject == "true" {
 		err = hook.AfterReject(res, req)
 		if err != nil {
-			s.Log.Errorf("Error running AfterReject method in deleteHandler for:", t, err)
+			s.log.Errorf("Error running AfterReject method in deleteHandler for:", t, err)
 			return
 		}
 	}
@@ -365,7 +365,7 @@ func (s *Server) deleteHandler(res http.ResponseWriter, req *http.Request) {
 	http.Redirect(res, req, redir, http.StatusFound)
 }
 
-func (s *Server) approveContentHandler(res http.ResponseWriter, req *http.Request) {
+func (s *Handler) ApproveContentHandler(res http.ResponseWriter, req *http.Request) {
 	if req.Method != http.MethodPost {
 		res.WriteHeader(http.StatusMethodNotAllowed)
 		errView, err := s.adminView.Error405()
@@ -397,7 +397,7 @@ func (s *Server) approveContentHandler(res http.ResponseWriter, req *http.Reques
 	// run hooks
 	hook, ok := post.(content.Hookable)
 	if !ok {
-		s.Log.Printf("Type %s does not implement item.Hookable or embed item.Item.", t)
+		s.log.Printf("Type %s does not implement item.Hookable or embed item.Item.", t)
 		res.WriteHeader(http.StatusBadRequest)
 		errView, err := s.adminView.Error400()
 		if err != nil {
@@ -411,7 +411,7 @@ func (s *Server) approveContentHandler(res http.ResponseWriter, req *http.Reques
 	// check if we have a Mergeable
 	m, ok := post.(editor.Mergeable)
 	if !ok {
-		s.Log.Printf("Type %s does not implement editor.Mergeable.", t)
+		s.log.Printf("Type %s does not implement editor.Mergeable.", t)
 		res.WriteHeader(http.StatusBadRequest)
 		errView, err := s.adminView.Error400()
 		if err != nil {
@@ -427,7 +427,7 @@ func (s *Server) approveContentHandler(res http.ResponseWriter, req *http.Reques
 	dec.SetAliasTag("json")
 	err = dec.Decode(post, req.Form)
 	if err != nil {
-		s.Log.Errorf("Error decoding post form for content approval: %s", err)
+		s.log.Errorf("Error decoding post form for content approval: %s", err)
 		res.WriteHeader(http.StatusInternalServerError)
 		errView, err := s.adminView.Error500()
 		if err != nil {
@@ -440,37 +440,37 @@ func (s *Server) approveContentHandler(res http.ResponseWriter, req *http.Reques
 
 	err = hook.BeforeApprove(res, req)
 	if err != nil {
-		s.Log.Errorf("Error running BeforeApprove hook in approveContentHandler for:", t, err)
+		s.log.Errorf("Error running BeforeApprove hook in approveContentHandler for:", t, err)
 		return
 	}
 
 	// call its Approve method
 	err = m.Approve(res, req)
 	if err != nil {
-		s.Log.Errorf("Error running Approve method in approveContentHandler for:", t, err)
+		s.log.Errorf("Error running Approve method in approveContentHandler for:", t, err)
 		return
 	}
 
 	err = hook.AfterApprove(res, req)
 	if err != nil {
-		s.Log.Errorf("Error running AfterApprove hook in approveContentHandler for:", t, err)
+		s.log.Errorf("Error running AfterApprove hook in approveContentHandler for:", t, err)
 		return
 	}
 
 	err = hook.BeforeSave(res, req)
 	if err != nil {
-		s.Log.Errorf("Error running BeforeSave hook in approveContentHandler for:", t, err)
+		s.log.Errorf("Error running BeforeSave hook in approveContentHandler for:", t, err)
 		return
 	}
 
 	req.PostForm.Set("namespace", t)
 	req.PostForm.Set("status", "public")
-	s.Log.Printf("PostForm: %+v", req.PostForm)
+	s.log.Printf("PostForm: %+v", req.PostForm)
 
 	// Store the content in the bucket t
 	id, err := s.contentApp.NewContent(t, req.PostForm)
 	if err != nil {
-		s.Log.Errorf("Error storing content in approveContentHandler for:", t, err)
+		s.log.Errorf("Error storing content in approveContentHandler for:", t, err)
 		res.WriteHeader(http.StatusInternalServerError)
 		errView, err := s.adminView.Error500()
 		if err != nil {
@@ -494,7 +494,7 @@ func (s *Server) approveContentHandler(res http.ResponseWriter, req *http.Reques
 	if pendingID != "" {
 		err = s.contentApp.DeleteContent(t, pendingID, "pending")
 		if err != nil {
-			s.Log.Errorf("Failed to remove content after approval: %s", err)
+			s.log.Errorf("Failed to remove content after approval: %s", err)
 		}
 	}
 

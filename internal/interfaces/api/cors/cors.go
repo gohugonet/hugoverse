@@ -1,10 +1,48 @@
-package api
+package cors
 
 import (
-	"log"
+	"github.com/gohugonet/hugoverse/internal/interfaces/api/cache"
+	"github.com/gohugonet/hugoverse/pkg/log"
 	"net/http"
 	"net/url"
 )
+
+type Controller interface {
+	CorsDisabled() bool
+	Domain() string
+}
+
+type Cors struct {
+	adminApp Controller
+	log      log.Logger
+	cache    *cache.Cache
+}
+
+func New(log log.Logger, adminApp Controller, cache *cache.Cache) *Cors {
+	return &Cors{
+		adminApp: adminApp,
+		log:      log,
+		cache:    cache,
+	}
+}
+
+// Handle wraps a HandlerFunc to respond OPTIONS requests properly
+func (s *Cors) Handle(next http.HandlerFunc) http.HandlerFunc {
+	return s.cache.Control(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		res, cors := s.responseWithCORS(res, req)
+		if !cors {
+			s.log.Printf("CORS disabled")
+			return
+		}
+
+		if req.Method == http.MethodOptions {
+			sendPreflight(res)
+			return
+		}
+
+		next.ServeHTTP(res, req)
+	}))
+}
 
 // sendPreflight is used to respond to a cross-origin "OPTIONS" request
 func sendPreflight(res http.ResponseWriter) {
@@ -14,14 +52,14 @@ func sendPreflight(res http.ResponseWriter) {
 	return
 }
 
-func (s *Server) responseWithCORS(res http.ResponseWriter, req *http.Request) (http.ResponseWriter, bool) {
+func (s *Cors) responseWithCORS(res http.ResponseWriter, req *http.Request) (http.ResponseWriter, bool) {
 	if s.adminApp.CorsDisabled() {
 		// check origin matches config domain
 		domain := s.adminApp.Domain()
 		origin := req.Header.Get("Origin")
 		u, err := url.Parse(origin)
 		if err != nil {
-			log.Println("Error parsing URL from request Origin header:", origin)
+			s.log.Printf("Error parsing URL from request Origin header: %s", origin)
 			return res, false
 		}
 
@@ -52,22 +90,4 @@ func (s *Server) responseWithCORS(res http.ResponseWriter, req *http.Request) (h
 	res.Header().Set("Access-Control-Allow-Origin", "*")
 
 	return res, true
-}
-
-// CORS wraps a HandlerFunc to respond OPTIONS requests properly
-func (s *Server) CORS(next http.HandlerFunc) http.HandlerFunc {
-	return s.CacheControl(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		res, cors := s.responseWithCORS(res, req)
-		if !cors {
-			s.Log.Printf("CORS disabled")
-			return
-		}
-
-		if req.Method == http.MethodOptions {
-			sendPreflight(res)
-			return
-		}
-
-		next.ServeHTTP(res, req)
-	}))
 }

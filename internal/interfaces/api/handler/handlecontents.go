@@ -1,4 +1,4 @@
-package api
+package handler
 
 import (
 	"bytes"
@@ -14,12 +14,12 @@ import (
 	"time"
 )
 
-func (s *Server) contentsHandler(res http.ResponseWriter, req *http.Request) {
+func (s *Handler) ContentsHandler(res http.ResponseWriter, req *http.Request) {
 	q := req.URL.Query()
 	t := q.Get("type")
 	if t == "" {
-		if err := s.responseErr400(res); err != nil {
-			s.Log.Errorf("Error response err 400: %s", err)
+		if err := s.res.err400(res); err != nil {
+			s.log.Errorf("Error response err 400: %s", err)
 		}
 		return
 	}
@@ -31,8 +31,8 @@ func (s *Server) contentsHandler(res http.ResponseWriter, req *http.Request) {
 
 	contentType, ok := s.contentApp.AllContentTypes()[t]
 	if !ok {
-		if err := s.responseErr400(res); err != nil {
-			s.Log.Errorf("Error response err 400: %s", err)
+		if err := s.res.err400(res); err != nil {
+			s.log.Errorf("Error response err 400: %s", err)
 		}
 		return
 	}
@@ -41,8 +41,8 @@ func (s *Server) contentsHandler(res http.ResponseWriter, req *http.Request) {
 
 	p, ok := pt.(editor.Editable)
 	if !ok {
-		if err := s.responseErr500(res); err != nil {
-			s.Log.Errorf("Error response err 500: %s", err)
+		if err := s.res.err500(res); err != nil {
+			s.log.Errorf("Error response err 500: %s", err)
 		}
 		return
 	}
@@ -52,8 +52,8 @@ func (s *Server) contentsHandler(res http.ResponseWriter, req *http.Request) {
 		if q.Get("count") == "" {
 			count = 10
 		} else {
-			if err := s.responseErr500(res); err != nil {
-				s.Log.Errorf("Error response err 500: %s", err)
+			if err := s.res.err500(res); err != nil {
+				s.log.Errorf("Error response err 500: %s", err)
 			}
 			return
 		}
@@ -64,8 +64,8 @@ func (s *Server) contentsHandler(res http.ResponseWriter, req *http.Request) {
 		if q.Get("offset") == "" {
 			offset = 0
 		} else {
-			if err := s.responseErr500(res); err != nil {
-				s.Log.Errorf("Error response err 500: %s", err)
+			if err := s.res.err500(res); err != nil {
+				s.log.Errorf("Error response err 500: %s", err)
 			}
 			return
 		}
@@ -127,15 +127,15 @@ func (s *Server) contentsHandler(res http.ResponseWriter, req *http.Request) {
 			for i := range posts {
 				err := json.Unmarshal(posts[i], &p)
 				if err != nil {
-					s.Log.Printf("Error unmarshal json into %s: %s", t, err, string(posts[i]))
+					s.log.Printf("Error unmarshal json into %s: %s", t, err, string(posts[i]))
 
 					post := `<li class="col s12">Error decoding data. Possible file corruption.</li>`
 					_, err := b.Write([]byte(post))
 					if err != nil {
-						s.Log.Errorf("Error writing post: %s", err)
+						s.log.Errorf("Error writing post: %s", err)
 
-						if err := s.responseErr500(res); err != nil {
-							s.Log.Errorf("Error response err 500: %s", err)
+						if err := s.res.err500(res); err != nil {
+							s.log.Errorf("Error response err 500: %s", err)
 						}
 						return
 					}
@@ -146,10 +146,10 @@ func (s *Server) contentsHandler(res http.ResponseWriter, req *http.Request) {
 				post := adminPostListItem(p, t, status)
 				_, err = b.Write(post)
 				if err != nil {
-					s.Log.Errorf("Error writing post: %s", err)
+					s.log.Errorf("Error writing post: %s", err)
 
-					if err := s.responseErr500(res); err != nil {
-						s.Log.Errorf("Error response err 500: %s", err)
+					if err := s.res.err500(res); err != nil {
+						s.log.Errorf("Error response err 500: %s", err)
 					}
 					return
 				}
@@ -174,12 +174,12 @@ func (s *Server) contentsHandler(res http.ResponseWriter, req *http.Request) {
 					post := `<li class="col s12">Error decoding data. Possible file corruption.</li>`
 					_, err := b.Write([]byte(post))
 					if err != nil {
-						s.Log.Errorf("Error writing post: %s", err)
+						s.log.Errorf("Error writing post: %s", err)
 
 						res.WriteHeader(http.StatusInternalServerError)
 						errView, err := s.adminView.Error500()
 						if err != nil {
-							s.Log.Errorf("Error response err 500: %s", err)
+							s.log.Errorf("Error response err 500: %s", err)
 						}
 
 						res.Write(errView)
@@ -196,7 +196,7 @@ func (s *Server) contentsHandler(res http.ResponseWriter, req *http.Request) {
 					res.WriteHeader(http.StatusInternalServerError)
 					errView, err := s.adminView.Error500()
 					if err != nil {
-						s.Log.Errorf("Error response err 500: %s", err)
+						s.log.Errorf("Error response err 500: %s", err)
 					}
 
 					res.Write(errView)
@@ -251,7 +251,7 @@ func (s *Server) contentsHandler(res http.ResponseWriter, req *http.Request) {
 
 	_, err = b.Write([]byte(`</ul>`))
 	if err != nil {
-		s.Log.Errorf("Error response err 500: %s", err)
+		s.log.Errorf("Error response err 500: %s", err)
 
 		res.WriteHeader(http.StatusInternalServerError)
 		errView, err := s.adminView.Error500()

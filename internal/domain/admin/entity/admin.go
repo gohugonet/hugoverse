@@ -14,6 +14,9 @@ type Admin struct {
 	*Administrator
 	*Upload
 	*Http
+	*Cache
+	*Controller
+	*Client
 }
 
 func (a *Admin) ConfigEditor() ([]byte, error) {
@@ -88,6 +91,11 @@ func (a *Admin) PutConfig(key string, value any) error {
 	return nil
 }
 
+func (a *Admin) RefreshETage() {
+	a.Conf.Etag = valueobject.NewEtag()
+	a.Conf.CacheInvalidate = []string{}
+}
+
 func (a *Admin) InvalidateCache() error {
 	err := a.PutConfig("etag", valueobject.NewEtag())
 	if err != nil {
@@ -97,16 +105,4 @@ func (a *Admin) InvalidateCache() error {
 	return nil
 }
 
-func (a *Admin) RefreshETage() {
-	a.Conf.Etag = valueobject.NewEtag()
-	a.Conf.CacheInvalidate = []string{}
-}
-
-func (a *Admin) Name() string         { return a.Conf.Name }
-func (a *Admin) ETage() string        { return a.Conf.Etag }
-func (a *Admin) NewETage() string     { return valueobject.NewEtag() }
-func (a *Admin) CacheMaxAge() int64   { return a.Conf.CacheMaxAge }
-func (a *Admin) CacheDisabled() bool  { return a.Conf.DisableHTTPCache }
-func (a *Admin) CorsDisabled() bool   { return a.Conf.DisableCORS }
-func (a *Admin) GzipDisabled() bool   { return a.Conf.DisableGZIP }
-func (a *Admin) ClientSecret() string { return a.Conf.ClientSecret }
+func (a *Admin) Name() string { return a.Conf.Name }

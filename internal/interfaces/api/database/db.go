@@ -1,4 +1,4 @@
-package api
+package database
 
 import (
 	"encoding/binary"
@@ -11,33 +11,41 @@ import (
 	"strconv"
 )
 
-type database struct{}
-
-func (d *database) start(contentTypeNames []string) {
-	db.Start(dataDir(), contentTypeNames)
+type Database struct {
+	dataDir string
 }
 
-func (d *database) close() {
+func New(dataDir string) *Database {
+	return &Database{
+		dataDir: dataDir,
+	}
+}
+
+func (d *Database) Start(contentTypeNames []string) {
+	db.Start(d.dataDir, contentTypeNames)
+}
+
+func (d *Database) Close() {
 	db.Close()
 }
 
-func (d *database) User(email string) ([]byte, error) {
+func (d *Database) User(email string) ([]byte, error) {
 	return db.Get(newUserItem(email, nil))
 }
 
-func (d *database) PutUser(email string, data []byte) error {
+func (d *Database) PutUser(email string, data []byte) error {
 	return db.Set(newUserItem(email, data))
 }
 
-func (d *database) PutSortedContent(namespace string, m map[string][]byte) error {
+func (d *Database) PutSortedContent(namespace string, m map[string][]byte) error {
 	return db.Sort(newItems(namespace, m))
 }
 
-func (d *database) AllContent(namespace string) [][]byte {
+func (d *Database) AllContent(namespace string) [][]byte {
 	return db.ContentAll(namespace)
 }
 
-func (d *database) GetContent(contentType string, id string) ([]byte, error) {
+func (d *Database) GetContent(contentType string, id string) ([]byte, error) {
 	return db.Get(
 		&item{
 			bucket: contentType,
@@ -45,7 +53,7 @@ func (d *database) GetContent(contentType string, id string) ([]byte, error) {
 		})
 }
 
-func (d *database) DeleteContent(namespace string, id string, slug string) error {
+func (d *Database) DeleteContent(namespace string, id string, slug string) error {
 	if err := db.Delete(&item{bucket: namespace, key: id}); err != nil {
 		return err
 	}
@@ -57,7 +65,7 @@ func (d *database) DeleteContent(namespace string, id string, slug string) error
 	return nil
 }
 
-func (d *database) PutContent(ci any, data []byte) error {
+func (d *Database) PutContent(ci any, data []byte) error {
 	cii, ok := ci.(content.Identifiable)
 	if !ok {
 		return errors.New("invalid content type")
@@ -97,7 +105,7 @@ func (d *database) PutContent(ci any, data []byte) error {
 	return nil
 }
 
-func (d *database) NewContent(ci any, data []byte) error {
+func (d *Database) NewContent(ci any, data []byte) error {
 	if err := d.PutContent(ci, data); err != nil {
 		return err
 	}
@@ -120,19 +128,19 @@ func (d *database) NewContent(ci any, data []byte) error {
 	return nil
 }
 
-func (d *database) NextContentId(ns string) (uint64, error) {
+func (d *Database) NextContentId(ns string) (uint64, error) {
 	return db.NextSequence(&item{bucket: ns})
 }
 
-func (d *database) NextUserId(email string) (uint64, error) {
+func (d *Database) NextUserId(email string) (uint64, error) {
 	return db.NextSequence(newBucketItem("users"))
 }
 
-func (d *database) NextUploadId() (uint64, error) {
+func (d *Database) NextUploadId() (uint64, error) {
 	return db.NextSequence(newBucketItem("uploads"))
 }
 
-func (d *database) GetUpload(id string) ([]byte, error) {
+func (d *Database) GetUpload(id string) ([]byte, error) {
 	key, err := keyBit8Uint64(id)
 	if err != nil {
 		return nil, err
@@ -140,7 +148,7 @@ func (d *database) GetUpload(id string) ([]byte, error) {
 	return db.Get(newUploadItem(key, nil))
 }
 
-func (d *database) DeleteUpload(id string) error {
+func (d *Database) DeleteUpload(id string) error {
 	key, err := keyBit8Uint64(id)
 	if err != nil {
 		return err
@@ -148,11 +156,11 @@ func (d *database) DeleteUpload(id string) error {
 	return db.Delete(newUploadItem(key, nil))
 }
 
-func (d *database) AllUploads() ([][]byte, error) {
+func (d *Database) AllUploads() ([][]byte, error) {
 	return db.All(newUploadItem("", nil))
 }
 
-func (d *database) NewUpload(id, slug string, data []byte) error {
+func (d *Database) NewUpload(id, slug string, data []byte) error {
 	key, err := keyBit8Uint64(id)
 	if err != nil {
 		return err
@@ -181,11 +189,11 @@ func keyBit8Uint64(sid string) (string, error) {
 	return string(b), err
 }
 
-func (d *database) PutConfig(data []byte) error {
+func (d *Database) PutConfig(data []byte) error {
 	return db.Set(newConfigItem(data))
 }
 
-func (d *database) LoadConfig() ([]byte, error) {
+func (d *Database) LoadConfig() ([]byte, error) {
 	data, err := db.Get(newConfigItem(nil))
 	if err != nil {
 		return nil, err
@@ -194,6 +202,6 @@ func (d *database) LoadConfig() ([]byte, error) {
 	return data, nil
 }
 
-func (d *database) CheckSlugForDuplicate(slug string) (string, error) {
+func (d *Database) CheckSlugForDuplicate(slug string) (string, error) {
 	return db.CheckSlugForDuplicate(slug)
 }

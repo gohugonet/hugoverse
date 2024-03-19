@@ -1,4 +1,4 @@
-package api
+package handler
 
 import (
 	"encoding/base64"
@@ -11,44 +11,10 @@ import (
 	"time"
 )
 
-func (s *Server) registerAdminHandler() {
-	s.mux.HandleFunc("/admin", Auth(s.adminHandler))
-
-	s.mux.HandleFunc("/admin/login", s.loginHandler)
-	s.mux.HandleFunc("/admin/logout", s.logoutHandler)
-
-	s.mux.HandleFunc("/admin/configure", Auth(s.configHandler))
-
-	s.mux.HandleFunc("/admin/contents", Auth(s.contentsHandler))
-	s.mux.HandleFunc("/admin/contents/search", Auth(s.searchHandler))
-
-	s.mux.HandleFunc("/admin/edit", Auth(s.editHandler))
-	s.mux.HandleFunc("/admin/edit/delete", Auth(s.deleteHandler))
-	s.mux.HandleFunc("/admin/edit/approve", Auth(s.approveContentHandler))
-
-	s.mux.HandleFunc("/admin/uploads", Auth(s.uploadContentsHandler))
-	s.mux.HandleFunc("/admin/uploads/search", Auth(s.uploadSearchHandler))
-	s.mux.HandleFunc("/admin/edit/upload", Auth(s.editUploadHandler))
-	s.mux.HandleFunc("/admin/edit/upload/delete", Auth(s.deleteUploadHandler))
-
-	s.mux.HandleFunc("/admin/init", s.initHandler)
-
-	staticDir := adminStaticDir()
-	s.mux.Handle("/admin/static/", s.CacheControl(
-		http.StripPrefix("/admin/static",
-			http.FileServer(restrict(http.Dir(staticDir))))))
-
-	uploadsDir := uploadDir()
-	s.mux.Handle("/api/uploads/", Record(s.CORS(s.CacheControl(
-		http.StripPrefix("/api/uploads/",
-			http.FileServer(restrict(http.Dir(uploadsDir))))))))
-
-}
-
-func (s *Server) adminHandler(res http.ResponseWriter, req *http.Request) {
+func (s *Handler) AdminHandler(res http.ResponseWriter, req *http.Request) {
 	view, err := s.adminView.Dashboard()
 	if err != nil {
-		s.Log.Errorf("Error rendering admin view: %v", err)
+		s.log.Errorf("Error rendering admin view: %v", err)
 		res.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -57,7 +23,7 @@ func (s *Server) adminHandler(res http.ResponseWriter, req *http.Request) {
 	res.Write(view)
 }
 
-func (s *Server) initHandler(res http.ResponseWriter, req *http.Request) {
+func (s *Handler) InitHandler(res http.ResponseWriter, req *http.Request) {
 	if db.SystemInitComplete() {
 		http.Redirect(res, req, req.URL.Scheme+req.URL.Host+"/admin", http.StatusFound)
 		return
@@ -67,7 +33,7 @@ func (s *Server) initHandler(res http.ResponseWriter, req *http.Request) {
 	case http.MethodGet:
 		view, err := admin.SetupView(s.adminApp.Name())
 		if err != nil {
-			s.Log.Errorf("Error rendering admin view: %v", err)
+			s.log.Errorf("Error rendering admin view: %v", err)
 			res.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -76,7 +42,7 @@ func (s *Server) initHandler(res http.ResponseWriter, req *http.Request) {
 	case http.MethodPost:
 		err := req.ParseForm()
 		if err != nil {
-			s.Log.Errorf("Error parsing form: %v", err)
+			s.log.Errorf("Error parsing form: %v", err)
 			res.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -96,7 +62,7 @@ func (s *Server) initHandler(res http.ResponseWriter, req *http.Request) {
 
 		_, err = s.adminApp.NewUser(email, password)
 		if err != nil {
-			s.Log.Errorf("Error creating new user: %v", err)
+			s.log.Errorf("Error creating new user: %v", err)
 			res.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -109,7 +75,7 @@ func (s *Server) initHandler(res http.ResponseWriter, req *http.Request) {
 
 		err = s.adminApp.SetConfig(req.Form)
 		if err != nil {
-			s.Log.Errorf("Error setting config: %v", err)
+			s.log.Errorf("Error setting config: %v", err)
 			res.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -124,7 +90,7 @@ func (s *Server) initHandler(res http.ResponseWriter, req *http.Request) {
 		jwt.Secret([]byte(secret))
 		token, err := jwt.New(claims)
 		if err != nil {
-			s.Log.Errorf("Error creating JWT: %v", err)
+			s.log.Errorf("Error creating JWT: %v", err)
 			res.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -143,7 +109,7 @@ func (s *Server) initHandler(res http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func (s *Server) loginHandler(res http.ResponseWriter, req *http.Request) {
+func (s *Handler) LoginHandler(res http.ResponseWriter, req *http.Request) {
 	if !db.SystemInitComplete() {
 		redir := req.URL.Scheme + req.URL.Host + "/admin/init"
 		http.Redirect(res, req, redir, http.StatusFound)
@@ -152,14 +118,14 @@ func (s *Server) loginHandler(res http.ResponseWriter, req *http.Request) {
 
 	switch req.Method {
 	case http.MethodGet:
-		if IsValid(req) {
+		if s.auth.IsValid(req) {
 			http.Redirect(res, req, req.URL.Scheme+req.URL.Host+"/admin", http.StatusFound)
 			return
 		}
 
 		view, err := admin.Login(s.adminApp.Name())
 		if err != nil {
-			s.Log.Errorf("Error rendering login view: %v", err)
+			s.log.Errorf("Error rendering login view: %v", err)
 			res.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -168,14 +134,14 @@ func (s *Server) loginHandler(res http.ResponseWriter, req *http.Request) {
 		res.Write(view)
 
 	case http.MethodPost:
-		if IsValid(req) {
+		if s.auth.IsValid(req) {
 			http.Redirect(res, req, req.URL.Scheme+req.URL.Host+"/admin", http.StatusFound)
 			return
 		}
 
 		err := req.ParseForm()
 		if err != nil {
-			s.Log.Errorf("Error parsing login form: %v", err)
+			s.log.Errorf("Error parsing login form: %v", err)
 			http.Redirect(res, req, req.URL.String(), http.StatusFound)
 			return
 		}
@@ -186,7 +152,7 @@ func (s *Server) loginHandler(res http.ResponseWriter, req *http.Request) {
 
 		err = s.adminApp.ValidateUser(email, pwd)
 		if err != nil {
-			s.Log.Errorf("Error validating user: %v", err)
+			s.log.Errorf("Error validating user: %v", err)
 			http.Redirect(res, req, req.URL.String(), http.StatusFound)
 			return
 		}
@@ -199,7 +165,7 @@ func (s *Server) loginHandler(res http.ResponseWriter, req *http.Request) {
 		}
 		token, err := jwt.New(claims)
 		if err != nil {
-			s.Log.Errorf("Error creating JWT: %v", err)
+			s.log.Errorf("Error creating JWT: %v", err)
 			http.Redirect(res, req, req.URL.String(), http.StatusFound)
 			return
 		}
@@ -216,7 +182,7 @@ func (s *Server) loginHandler(res http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func (s *Server) logoutHandler(res http.ResponseWriter, req *http.Request) {
+func (s *Handler) LogoutHandler(res http.ResponseWriter, req *http.Request) {
 	http.SetCookie(res, &http.Cookie{
 		Name:    "_token",
 		Expires: time.Unix(0, 0),
@@ -227,7 +193,7 @@ func (s *Server) logoutHandler(res http.ResponseWriter, req *http.Request) {
 	http.Redirect(res, req, req.URL.Scheme+req.URL.Host+"/admin/login", http.StatusFound)
 }
 
-func (s *Server) configHandler(res http.ResponseWriter, req *http.Request) {
+func (s *Handler) ConfigHandler(res http.ResponseWriter, req *http.Request) {
 	switch req.Method {
 	case http.MethodGet:
 		cfg, err := s.adminApp.ConfigEditor()
@@ -257,7 +223,7 @@ func (s *Server) configHandler(res http.ResponseWriter, req *http.Request) {
 
 		err = s.adminApp.SetConfig(req.Form)
 		if err != nil {
-			s.Log.Errorf("Error setting config: %v", err)
+			s.log.Errorf("Error setting config: %v", err)
 			res.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -267,5 +233,4 @@ func (s *Server) configHandler(res http.ResponseWriter, req *http.Request) {
 	default:
 		res.WriteHeader(http.StatusMethodNotAllowed)
 	}
-
 }

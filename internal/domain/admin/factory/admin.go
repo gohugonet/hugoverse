@@ -21,9 +21,11 @@ func NewAdmin(repo repository.Repository) (admin.Admin, error) {
 	if err := a.LoadConfig(); err != nil {
 		return nil, err
 	}
-	a.Http = &entity.Http{
-		Conf: a.Conf,
-	}
+
+	a.Http = &entity.Http{Conf: a.Conf}
+	a.Cache = &entity.Cache{Conf: a.Conf}
+	a.Controller = &entity.Controller{Conf: a.Conf}
+	a.Client = &entity.Client{Conf: a.Conf}
 
 	return a, nil
 }

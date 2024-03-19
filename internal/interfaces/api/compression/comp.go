@@ -1,16 +1,34 @@
-package api
+package compression
 
 import (
 	"compress/gzip"
+	"github.com/gohugonet/hugoverse/pkg/log"
 	"net/http"
 	"strings"
 )
 
+type GzipControl interface {
+	GzipDisabled() bool
+}
+
+type Compression struct {
+	adminApp GzipControl
+	log      log.Logger
+}
+
+func New(log log.Logger, adminApp GzipControl) *Compression {
+	return &Compression{
+		adminApp: adminApp,
+		log:      log,
+	}
+}
+
 // Gzip wraps a HandlerFunc to compress responses when possible
-func (s *Server) Gzip(next http.HandlerFunc) http.HandlerFunc {
+func (s *Compression) Gzip(next http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		if s.adminApp.GzipDisabled() {
-			s.Log.Printf("Gzip disabled")
+			s.log.Printf("Gzip disabled")
+
 			next.ServeHTTP(res, req)
 			return
 		}

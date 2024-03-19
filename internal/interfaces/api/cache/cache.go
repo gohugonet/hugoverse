@@ -1,24 +1,43 @@
-package api
+package cache
 
 import (
 	"fmt"
+	"github.com/gohugonet/hugoverse/pkg/log"
 	"net/http"
 	"strings"
 )
+
+type Controller interface {
+	CacheDisabled() bool
+	CacheMaxAge() int64
+	ETage() string
+}
+
+type Cache struct {
+	adminApp Controller
+	log      log.Logger
+}
+
+func New(log log.Logger, adminApp Controller) *Cache {
+	return &Cache{
+		adminApp: adminApp,
+		log:      log,
+	}
+}
 
 const (
 	// DefaultMaxAge provides a 2592000 second (30-day) cache max-age setting
 	DefaultMaxAge = int64(60 * 60 * 24 * 30)
 )
 
-// CacheControl sets the default cache policy on static asset responses
-func (s *Server) CacheControl(next http.Handler) http.HandlerFunc {
+// Control sets the default cache policy on static asset responses
+func (s *Cache) Control(next http.Handler) http.HandlerFunc {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		if s.adminApp.CacheDisabled() {
 			res.Header().Add("Cache-Control", "no-cache")
 			next.ServeHTTP(res, req)
 		} else {
-			age := int64(s.adminApp.CacheMaxAge())
+			age := s.adminApp.CacheMaxAge()
 			etag := s.adminApp.ETage()
 			if age == 0 {
 				age = DefaultMaxAge

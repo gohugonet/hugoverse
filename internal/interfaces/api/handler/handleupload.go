@@ -1,4 +1,4 @@
-package api
+package handler
 
 import (
 	"bytes"
@@ -16,11 +16,11 @@ import (
 	"time"
 )
 
-func (s *Server) uploadContentsHandler(res http.ResponseWriter, req *http.Request) {
+func (s *Handler) UploadContentsHandler(res http.ResponseWriter, req *http.Request) {
 	order := query.Order(req)
 	count, err := query.Count(req)
 	if err != nil {
-		s.Log.Errorf("Error parsing count: %v", err)
+		s.log.Errorf("Error parsing count: %v", err)
 		res.WriteHeader(http.StatusInternalServerError)
 		errView, err := s.adminView.Error500()
 		if err != nil {
@@ -32,7 +32,7 @@ func (s *Server) uploadContentsHandler(res http.ResponseWriter, req *http.Reques
 	}
 	offset, err := query.Offset(req)
 	if err != nil {
-		s.Log.Errorf("Error parsing offset: %v", err)
+		s.log.Errorf("Error parsing offset: %v", err)
 		res.WriteHeader(http.StatusInternalServerError)
 		errView, err := s.adminView.Error500()
 		if err != nil {
@@ -103,7 +103,7 @@ func (s *Server) uploadContentsHandler(res http.ResponseWriter, req *http.Reques
 	pt := s.adminApp.UploadCreator()()
 	p, ok := pt.(editor.Editable)
 	if !ok {
-		s.Log.Errorf("Error getting post type: %v", pt)
+		s.log.Errorf("Error getting post type: %v", pt)
 		res.WriteHeader(http.StatusInternalServerError)
 		errView, err := s.adminView.Error500()
 		if err != nil {
@@ -117,17 +117,17 @@ func (s *Server) uploadContentsHandler(res http.ResponseWriter, req *http.Reques
 	for i := range posts {
 		err := json.Unmarshal(posts[i], p)
 		if err != nil {
-			s.Log.Printf("Error unmarshal json into %s: %v", t, err)
+			s.log.Printf("Error unmarshal json into %s: %v", t, err)
 
 			post := `<li class="col s12">Error decoding data. Possible file corruption.</li>`
 			_, err := b.Write([]byte(post))
 			if err != nil {
-				s.Log.Errorf("Error writing post: %v", err)
+				s.log.Errorf("Error writing post: %v", err)
 
 				res.WriteHeader(http.StatusInternalServerError)
 				errView, err := s.adminView.Error500()
 				if err != nil {
-					s.Log.Errorf("Error rendering admin view: %v", err)
+					s.log.Errorf("Error rendering admin view: %v", err)
 				}
 
 				res.Write(errView)
@@ -139,12 +139,12 @@ func (s *Server) uploadContentsHandler(res http.ResponseWriter, req *http.Reques
 		post := adminPostListItem(p, t, status)
 		_, err = b.Write(post)
 		if err != nil {
-			s.Log.Errorf("Error writing post: %v", err)
+			s.log.Errorf("Error writing post: %v", err)
 
 			res.WriteHeader(http.StatusInternalServerError)
 			errView, err := s.adminView.Error500()
 			if err != nil {
-				s.Log.Errorf("Error rendering admin view: %v", err)
+				s.log.Errorf("Error rendering admin view: %v", err)
 			}
 
 			res.Write(errView)
@@ -156,7 +156,7 @@ func (s *Server) uploadContentsHandler(res http.ResponseWriter, req *http.Reques
 
 	_, err = b.Write([]byte(`</ul>`))
 	if err != nil {
-		s.Log.Errorf("Error writing post: %v", err)
+		s.log.Errorf("Error writing post: %v", err)
 
 		res.WriteHeader(http.StatusInternalServerError)
 		errView, err := s.adminView.Error500()
@@ -217,7 +217,7 @@ func (s *Server) uploadContentsHandler(res http.ResponseWriter, req *http.Reques
 
 	_, err = b.Write([]byte(pagination + `</div></div>`))
 	if err != nil {
-		s.Log.Errorf("Error writing post: %v", err)
+		s.log.Errorf("Error writing post: %v", err)
 
 		res.WriteHeader(http.StatusInternalServerError)
 		errView, err := s.adminView.Error500()
@@ -254,7 +254,7 @@ func (s *Server) uploadContentsHandler(res http.ResponseWriter, req *http.Reques
 
 	adminView, err := s.adminView.SubView([]byte(html))
 	if err != nil {
-		s.Log.Errorf("Error rendering admin view: %v", err)
+		s.log.Errorf("Error rendering admin view: %v", err)
 		res.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -263,7 +263,7 @@ func (s *Server) uploadContentsHandler(res http.ResponseWriter, req *http.Reques
 	res.Write(adminView)
 }
 
-func (s *Server) editUploadHandler(res http.ResponseWriter, req *http.Request) {
+func (s *Handler) EditUploadHandler(res http.ResponseWriter, req *http.Request) {
 	switch req.Method {
 	case http.MethodGet:
 		q := req.URL.Query()
@@ -275,7 +275,7 @@ func (s *Server) editUploadHandler(res http.ResponseWriter, req *http.Request) {
 		if i != "" {
 			data, err := s.adminApp.GetUpload(i)
 			if err != nil {
-				s.Log.Errorf("Error getting upload: %v", err)
+				s.log.Errorf("Error getting upload: %v", err)
 
 				res.WriteHeader(http.StatusInternalServerError)
 				errView, err := s.adminView.Error500()
@@ -300,7 +300,7 @@ func (s *Server) editUploadHandler(res http.ResponseWriter, req *http.Request) {
 
 			err = json.Unmarshal(data, post)
 			if err != nil {
-				s.Log.Errorf("Error unmarshal json into %s: %v", t, err)
+				s.log.Errorf("Error unmarshal json into %s: %v", t, err)
 
 				res.WriteHeader(http.StatusInternalServerError)
 				errView, err := s.adminView.Error500()
@@ -314,7 +314,7 @@ func (s *Server) editUploadHandler(res http.ResponseWriter, req *http.Request) {
 		} else {
 			it, ok := post.(content.Identifiable)
 			if !ok {
-				s.Log.Printf("Content type %s doesn't implement item.Identifiable", t)
+				s.log.Printf("Content type %s doesn't implement item.Identifiable", t)
 				return
 			}
 
@@ -323,7 +323,7 @@ func (s *Server) editUploadHandler(res http.ResponseWriter, req *http.Request) {
 
 		m, err := admin.Manage(post.(editor.Editable), t)
 		if err != nil {
-			s.Log.Errorf("Error rendering admin view: %v", err)
+			s.log.Errorf("Error rendering admin view: %v", err)
 
 			res.WriteHeader(http.StatusInternalServerError)
 			errView, err := s.adminView.Error500()
@@ -337,7 +337,7 @@ func (s *Server) editUploadHandler(res http.ResponseWriter, req *http.Request) {
 
 		adminView, err := s.adminView.SubView(m)
 		if err != nil {
-			s.Log.Errorf("Error rendering admin view: %v", err)
+			s.log.Errorf("Error rendering admin view: %v", err)
 
 			res.WriteHeader(http.StatusInternalServerError)
 			return
@@ -349,7 +349,7 @@ func (s *Server) editUploadHandler(res http.ResponseWriter, req *http.Request) {
 	case http.MethodPost:
 		err := req.ParseMultipartForm(1024 * 1024 * 4) // maxMemory 4MB
 		if err != nil {
-			s.Log.Errorf("Error parsing multipart form: %v", err)
+			s.log.Errorf("Error parsing multipart form: %v", err)
 
 			res.WriteHeader(http.StatusInternalServerError)
 			errView, err := s.adminView.Error500()
@@ -380,7 +380,7 @@ func (s *Server) editUploadHandler(res http.ResponseWriter, req *http.Request) {
 
 		hook, ok := post.(content.Hookable)
 		if !ok {
-			s.Log.Printf("Type %s does not implement item.Hookable or embed item.Item.", pt)
+			s.log.Printf("Type %s does not implement item.Hookable or embed item.Item.", pt)
 
 			res.WriteHeader(http.StatusBadRequest)
 			errView, err := s.adminView.Error400()
@@ -394,14 +394,14 @@ func (s *Server) editUploadHandler(res http.ResponseWriter, req *http.Request) {
 
 		err = hook.BeforeSave(res, req)
 		if err != nil {
-			s.Log.Errorf("Error running BeforeSave method in editHandler for %s: %v", t, err)
+			s.log.Errorf("Error running BeforeSave method in editHandler for %s: %v", t, err)
 			return
 		}
 
 		// StoreFiles has the SetUpload call (which is equivalent of SetContent in other handlers)
 		urlPaths, err := s.StoreFiles(req)
 		if err != nil {
-			s.Log.Errorf("Error storing files: %v", err)
+			s.log.Errorf("Error storing files: %v", err)
 
 			res.WriteHeader(http.StatusInternalServerError)
 			errView, err := s.adminView.Error500()
@@ -419,7 +419,7 @@ func (s *Server) editUploadHandler(res http.ResponseWriter, req *http.Request) {
 
 		req.PostForm, err = form.Convert(req.PostForm)
 		if err != nil {
-			s.Log.Errorf("Error converting post form: %v", err)
+			s.log.Errorf("Error converting post form: %v", err)
 			res.WriteHeader(http.StatusInternalServerError)
 			errView, err := s.adminView.Error500()
 			if err != nil {
@@ -432,7 +432,7 @@ func (s *Server) editUploadHandler(res http.ResponseWriter, req *http.Request) {
 
 		err = hook.AfterSave(res, req)
 		if err != nil {
-			s.Log.Printf("Error running AfterSave method in editHandler for %s: %v", t, err)
+			s.log.Printf("Error running AfterSave method in editHandler for %s: %v", t, err)
 			return
 		}
 
@@ -444,7 +444,7 @@ func (s *Server) editUploadHandler(res http.ResponseWriter, req *http.Request) {
 	case http.MethodPut:
 		urlPaths, err := s.StoreFiles(req)
 		if err != nil {
-			s.Log.Errorf("Error storing files: %v", err)
+			s.log.Errorf("Error storing files: %v", err)
 			res.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -458,7 +458,7 @@ func (s *Server) editUploadHandler(res http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func (s *Server) deleteUploadHandler(res http.ResponseWriter, req *http.Request) {
+func (s *Handler) DeleteUploadHandler(res http.ResponseWriter, req *http.Request) {
 	if req.Method != http.MethodPost {
 		res.WriteHeader(http.StatusMethodNotAllowed)
 		return
@@ -466,7 +466,7 @@ func (s *Server) deleteUploadHandler(res http.ResponseWriter, req *http.Request)
 
 	err := req.ParseMultipartForm(1024 * 1024 * 4) // maxMemory 4MB
 	if err != nil {
-		s.Log.Errorf("Error parsing multipart form: %v", err)
+		s.log.Errorf("Error parsing multipart form: %v", err)
 
 		res.WriteHeader(http.StatusInternalServerError)
 		errView, err := s.adminView.Error500()
@@ -489,7 +489,7 @@ func (s *Server) deleteUploadHandler(res http.ResponseWriter, req *http.Request)
 	post := s.adminApp.UploadCreator()()
 	hook, ok := post.(content.Hookable)
 	if !ok {
-		s.Log.Printf("Type %s does not implement item.Hookable or embed item.Item.", t)
+		s.log.Printf("Type %s does not implement item.Hookable or embed item.Item.", t)
 		res.WriteHeader(http.StatusBadRequest)
 		errView, err := s.adminView.Error400()
 		if err != nil {
@@ -502,7 +502,7 @@ func (s *Server) deleteUploadHandler(res http.ResponseWriter, req *http.Request)
 
 	err = hook.BeforeDelete(res, req)
 	if err != nil {
-		s.Log.Errorf("Error running BeforeDelete method in deleteHandler for %s: %v", t, err)
+		s.log.Errorf("Error running BeforeDelete method in deleteHandler for %s: %v", t, err)
 		return
 	}
 
@@ -510,21 +510,21 @@ func (s *Server) deleteUploadHandler(res http.ResponseWriter, req *http.Request)
 	// from database, if bad error 500
 	err = s.deleteUploadFromDisk(id)
 	if err != nil {
-		s.Log.Errorf("Error deleting upload from disk: %v", err)
+		s.log.Errorf("Error deleting upload from disk: %v", err)
 		res.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	err = s.adminApp.DeleteUpload(id)
 	if err != nil {
-		s.Log.Errorf("Error deleting upload from database: %v", err)
+		s.log.Errorf("Error deleting upload from database: %v", err)
 		res.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	err = hook.AfterDelete(res, req)
 	if err != nil {
-		s.Log.Errorf("Error running AfterDelete method in deleteHandler for %s: %v", t, err)
+		s.log.Errorf("Error running AfterDelete method in deleteHandler for %s: %v", t, err)
 		return
 	}
 
@@ -532,7 +532,7 @@ func (s *Server) deleteUploadHandler(res http.ResponseWriter, req *http.Request)
 	http.Redirect(res, req, redir, http.StatusFound)
 }
 
-func (s *Server) uploadSearchHandler(res http.ResponseWriter, req *http.Request) {
+func (s *Handler) UploadSearchHandler(res http.ResponseWriter, req *http.Request) {
 	q := req.URL.Query()
 	search := q.Get("q")
 	status := q.Get("status")
@@ -546,12 +546,12 @@ func (s *Server) uploadSearchHandler(res http.ResponseWriter, req *http.Request)
 
 	posts, err := s.adminApp.AllUploads()
 	if err != nil {
-		s.Log.Errorf("Error getting all uploads: %v", err)
+		s.log.Errorf("Error getting all uploads: %v", err)
 		http.Redirect(res, req, req.URL.Scheme+req.URL.Host+"/admin", http.StatusFound)
 		return
 	}
 	if posts == nil {
-		s.Log.Printf("No uploads found.")
+		s.log.Printf("No uploads found.")
 		http.Redirect(res, req, req.URL.Scheme+req.URL.Host+"/admin", http.StatusFound)
 		return
 	}

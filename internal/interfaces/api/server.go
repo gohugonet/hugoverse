@@ -1,16 +1,18 @@
 package api
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
 	"github.com/gohugonet/hugoverse/internal/application"
-	"github.com/gohugonet/hugoverse/internal/interfaces/api/admin"
-	"github.com/gohugonet/hugoverse/internal/interfaces/api/analytics"
+	"github.com/gohugonet/hugoverse/internal/interfaces/api/auth"
+	"github.com/gohugonet/hugoverse/internal/interfaces/api/cache"
+	"github.com/gohugonet/hugoverse/internal/interfaces/api/compression"
+	"github.com/gohugonet/hugoverse/internal/interfaces/api/cors"
+	"github.com/gohugonet/hugoverse/internal/interfaces/api/database"
+	"github.com/gohugonet/hugoverse/internal/interfaces/api/handler"
+	"github.com/gohugonet/hugoverse/internal/interfaces/api/record"
 	"github.com/gohugonet/hugoverse/internal/interfaces/api/search"
 	"github.com/gohugonet/hugoverse/internal/interfaces/api/tls"
 	"github.com/gohugonet/hugoverse/pkg/log"
-	"io"
 	"net/http"
 )
 
@@ -32,20 +34,83 @@ const (
 )
 
 type Server struct {
-	mux          *http.ServeMux
-	cache        responseCache
-	Log          log.Logger
+	mux *http.ServeMux
+	Log log.Logger
+
 	Bind         string
 	HttpsPort    int
 	HttpPort     int
 	DevHttpsPort int
 
-	db         *database
-	contentApp *application.ContentServer
-	adminApp   *application.AdminServer
-	adminView  *admin.View
+	db       *database.Database
+	adminApp *application.AdminServer
 
 	tls *tls.Tls
+
+	record *record.Record
+	comp   *compression.Compression
+	cache  *cache.Cache
+	cors   *cors.Cors
+	auth   *auth.Auth
+
+	handler *handler.Handler
+}
+
+func NewServer(options ...func(s *Server) error) (*Server, error) {
+	s := &Server{
+		mux:          http.NewServeMux(),
+		Bind:         "localhost",
+		HttpPort:     80,
+		HttpsPort:    443,
+		DevHttpsPort: 10443,
+
+		db:     database.New(dataDir()),
+		record: record.New(dataDir()),
+		auth:   &auth.Auth{},
+	}
+	for _, o := range options {
+		if err := o(s); err != nil {
+			return nil, err
+		}
+	}
+	if s.Log == nil {
+		return nil, fmt.Errorf("must provide an option func that specifies a logger")
+	}
+
+	contentApp := application.NewContentServer(s.db)
+
+	s.db.Start(contentApp.AllContentTypeNames())
+
+	server, err := application.NewAdminServer(s.db)
+	if err != nil {
+		return nil, err
+	}
+	s.adminApp = server
+
+	s.comp = compression.New(s.Log, s.adminApp)
+	s.cache = cache.New(s.Log, s.adminApp)
+	s.cors = cors.New(s.Log, s.adminApp, s.cache)
+
+	s.record.Start()
+	search.Setup(contentApp.AllContentTypes(), searchDir())
+
+	s.tls = tls.NewTls(s, s.adminApp, tlsDir())
+
+	s.handler = handler.New(s.Log, uploadDir(), s.db, contentApp, s.adminApp)
+
+	s.registerHandler()
+
+	return s, nil
+}
+
+func (s *Server) Close() {
+	s.db.Close()
+	s.record.Close()
+}
+
+func (s *Server) registerHandler() {
+	s.registerContentHandler()
+	s.registerAdminHandler()
 }
 
 func (s *Server) ListenAndServe(env ENV, enableHttps bool) error {
@@ -65,56 +130,6 @@ func (s *Server) ListenAndServe(env ENV, enableHttps bool) error {
 	return http.ListenAndServe(fmt.Sprintf("%s:%d", s.Bind, s.HttpPort), s)
 }
 
-func NewServer(options ...func(s *Server) error) (*Server, error) {
-	s := &Server{
-		mux:          http.NewServeMux(),
-		db:           &database{},
-		Bind:         "localhost",
-		HttpPort:     80,
-		HttpsPort:    443,
-		DevHttpsPort: 10443,
-	}
-	for _, o := range options {
-		if err := o(s); err != nil {
-			return nil, err
-		}
-	}
-	if s.Log == nil {
-		return nil, fmt.Errorf("must provide an option func that specifies a logger")
-	}
-	s.registerHandler()
-
-	s.contentApp = application.NewContentServer(s.db)
-
-	s.db.start(s.contentApp.AllContentTypeNames())
-
-	server, err := application.NewAdminServer(s.db)
-	if err != nil {
-		return nil, err
-	}
-	s.adminApp = server
-	s.adminView = admin.NewView(s.adminApp.Name(), s.contentApp.AllContentTypes())
-
-	analytics.Setup(dataDir())
-	search.Setup(s.contentApp.AllContentTypes(), searchDir())
-
-	s.tls = tls.NewTls(s, s.adminApp.Admin, tlsDir())
-
-	return s, nil
-}
-
-func (s *Server) Close() {
-	s.db.close()
-	analytics.Close()
-}
-
-func (s *Server) registerHandler() {
-	s.mux.HandleFunc("/api/demo", s.handleDemo)
-
-	s.registerContentHandler()
-	s.registerAdminHandler()
-}
-
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Header.Get("X-Forwarded-Proto") == "http" {
 		r.URL.Scheme = "https"
@@ -126,23 +141,6 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Strict-Transport-Security", "max-age=31536000; preload")
 	}
 	s.mux.ServeHTTP(w, r)
-}
-
-// writeJSONResponse JSON-encodes resp and writes to w with the given HTTP
-// status.
-func (s *Server) writeJSONResponse(w http.ResponseWriter, resp interface{}, status int) {
-	w.Header().Set("Content-Type", "application/json")
-	var buf bytes.Buffer
-	if err := json.NewEncoder(&buf).Encode(resp); err != nil {
-		s.Log.Errorf("error encoding response: %v", err)
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
-	}
-	w.WriteHeader(status)
-	if _, err := io.Copy(w, &buf); err != nil {
-		s.Log.Errorf("io.Copy(w, &buf): %v", err)
-		return
-	}
 }
 
 func (s *Server) enableTLS(env ENV) error {

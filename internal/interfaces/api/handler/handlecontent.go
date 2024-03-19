@@ -1,4 +1,4 @@
-package api
+package handler
 
 import (
 	"context"
@@ -15,15 +15,7 @@ import (
 	"strings"
 )
 
-func (s *Server) registerContentHandler() {
-	s.mux.HandleFunc("/api/contents", Record(s.CORS(s.Gzip(s.apiContentsHandler))))
-	s.mux.HandleFunc("/api/content", Record(s.CORS(s.Gzip(s.contentHandler))))
-	s.mux.HandleFunc("/api/content/create", Record(s.CORS(s.createContentHandler)))
-
-	s.mux.HandleFunc("/api/search", Record(s.CORS(s.Gzip(s.searchContentHandler))))
-}
-
-func (s *Server) apiContentsHandler(res http.ResponseWriter, req *http.Request) {
+func (s *Handler) ApiContentsHandler(res http.ResponseWriter, req *http.Request) {
 	q := req.URL.Query()
 	t := q.Get("type")
 	if t == "" {
@@ -67,7 +59,7 @@ func (s *Server) apiContentsHandler(res http.ResponseWriter, req *http.Request) 
 		result = append(result, bb[i])
 	}
 
-	j, err := fmtJSON(result...)
+	j, err := s.res.FmtJSON(result...)
 	if err != nil {
 		res.WriteHeader(http.StatusInternalServerError)
 		return
@@ -96,7 +88,7 @@ func (s *Server) apiContentsHandler(res http.ResponseWriter, req *http.Request) 
 		return
 	}
 
-	sendData(res, req, j)
+	s.res.Json(res, j)
 
 	// hook after response
 	err = hook.AfterAPIResponse(res, req, j)
@@ -106,7 +98,7 @@ func (s *Server) apiContentsHandler(res http.ResponseWriter, req *http.Request) 
 	}
 }
 
-func (s *Server) contentHandler(res http.ResponseWriter, req *http.Request) {
+func (s *Handler) ContentHandler(res http.ResponseWriter, req *http.Request) {
 	q := req.URL.Query()
 	id := q.Get("id")
 	t := q.Get("type")
@@ -125,21 +117,21 @@ func (s *Server) contentHandler(res http.ResponseWriter, req *http.Request) {
 
 	post, err := s.contentApp.GetContent(t, id, status)
 	if err != nil {
-		s.Log.Errorf("Error getting content: %v", err)
+		s.log.Errorf("Error getting content: %v", err)
 		res.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	if post == nil {
 		res.WriteHeader(http.StatusNotFound)
-		s.Log.Printf("Content not found: %s %s %s", t, id, status)
+		s.log.Printf("Content not found: %s %s %s", t, id, status)
 		return
 	}
 
 	p := pt()
 	err = json.Unmarshal(post, p)
 	if err != nil {
-		s.Log.Errorf("Error unmarshalling content: %v", err)
+		s.log.Errorf("Error unmarshalling content: %v", err)
 		res.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -150,7 +142,7 @@ func (s *Server) contentHandler(res http.ResponseWriter, req *http.Request) {
 
 	push(res, req, p, post)
 
-	j, err := fmtJSON(json.RawMessage(post))
+	j, err := s.res.FmtJSON(json.RawMessage(post))
 	if err != nil {
 		res.WriteHeader(http.StatusInternalServerError)
 		return
@@ -179,7 +171,7 @@ func (s *Server) contentHandler(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	sendData(res, req, j)
+	s.res.Json(res, j)
 
 	// hook after response
 	err = hook.AfterAPIResponse(res, req, j)
@@ -189,7 +181,7 @@ func (s *Server) contentHandler(res http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func (s *Server) createContentHandler(res http.ResponseWriter, req *http.Request) {
+func (s *Handler) CreateContentHandler(res http.ResponseWriter, req *http.Request) {
 	if req.Method != http.MethodPost {
 		res.WriteHeader(http.StatusMethodNotAllowed)
 		return
@@ -197,7 +189,7 @@ func (s *Server) createContentHandler(res http.ResponseWriter, req *http.Request
 
 	err := req.ParseMultipartForm(1024 * 1024 * 4) // maxMemory 4MB
 	if err != nil {
-		s.Log.Errorf("Error parsing multipart form: %v", err)
+		s.log.Errorf("Error parsing multipart form: %v", err)
 		res.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -210,7 +202,7 @@ func (s *Server) createContentHandler(res http.ResponseWriter, req *http.Request
 
 	p, found := s.contentApp.AllContentTypes()[t]
 	if !found {
-		s.Log.Printf("Attempt to submit unknown type: %s from %s", t, req.RemoteAddr)
+		s.log.Printf("Attempt to submit unknown type: %s from %s", t, req.RemoteAddr)
 		res.WriteHeader(http.StatusNotFound)
 		return
 	}
@@ -219,7 +211,7 @@ func (s *Server) createContentHandler(res http.ResponseWriter, req *http.Request
 
 	ext, ok := post.(content.Createable)
 	if !ok {
-		s.Log.Printf("Attempt to create non-createable type: %s from %s", t, req.RemoteAddr)
+		s.log.Printf("Attempt to create non-createable type: %s from %s", t, req.RemoteAddr)
 		res.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -230,7 +222,7 @@ func (s *Server) createContentHandler(res http.ResponseWriter, req *http.Request
 
 	urlPaths, err := s.StoreFiles(req)
 	if err != nil {
-		s.Log.Errorf("Error storing files: %v", err)
+		s.log.Errorf("Error storing files: %v", err)
 		res.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -241,14 +233,14 @@ func (s *Server) createContentHandler(res http.ResponseWriter, req *http.Request
 
 	req.PostForm, err = form.Convert(req.PostForm)
 	if err != nil {
-		s.Log.Errorf("Error converting form: %v", err)
+		s.log.Errorf("Error converting form: %v", err)
 		res.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	hook, ok := post.(content.Hookable)
 	if !ok {
-		s.Log.Printf("Attempt to create non-hookable type: %s from %s", t, req.RemoteAddr)
+		s.log.Printf("Attempt to create non-hookable type: %s from %s", t, req.RemoteAddr)
 		res.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -259,26 +251,26 @@ func (s *Server) createContentHandler(res http.ResponseWriter, req *http.Request
 	dec.SetAliasTag("json")
 	err = dec.Decode(post, req.PostForm)
 	if err != nil {
-		s.Log.Printf("Error decoding post form for edit %s handler: %v", t, err)
+		s.log.Printf("Error decoding post form for edit %s handler: %v", t, err)
 		res.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	err = hook.BeforeAPICreate(res, req)
 	if err != nil {
-		s.Log.Errorf("Error calling BeforeCreate: %v", err)
+		s.log.Errorf("Error calling BeforeCreate: %v", err)
 		return
 	}
 
 	err = ext.Create(res, req)
 	if err != nil {
-		s.Log.Errorf("Error calling Accept: %v", err)
+		s.log.Errorf("Error calling Accept: %v", err)
 		return
 	}
 
 	err = hook.BeforeSave(res, req)
 	if err != nil {
-		s.Log.Errorf("Error calling BeforeSave: %v", err)
+		s.log.Errorf("Error calling BeforeSave: %v", err)
 		return
 	}
 
@@ -293,7 +285,7 @@ func (s *Server) createContentHandler(res http.ResponseWriter, req *http.Request
 	if ok {
 		err := trusted.AutoApprove(res, req)
 		if err != nil {
-			s.Log.Errorf("Error calling AutoApprove: %v", err)
+			s.log.Errorf("Error calling AutoApprove: %v", err)
 			return
 		}
 	} else {
@@ -302,11 +294,11 @@ func (s *Server) createContentHandler(res http.ResponseWriter, req *http.Request
 	}
 
 	req.PostForm.Set("namespace", t)
-	s.Log.Printf("PostForm: %+v", req.PostForm)
+	s.log.Printf("PostForm: %+v", req.PostForm)
 
 	id, err := s.contentApp.NewContent(t, req.PostForm)
 	if err != nil {
-		s.Log.Errorf("Error calling SetContent: %v", err)
+		s.log.Errorf("Error calling SetContent: %v", err)
 		res.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -317,13 +309,13 @@ func (s *Server) createContentHandler(res http.ResponseWriter, req *http.Request
 
 	err = hook.AfterSave(res, req)
 	if err != nil {
-		s.Log.Errorf("Error calling AfterSave: %v", err)
+		s.log.Errorf("Error calling AfterSave: %v", err)
 		return
 	}
 
 	err = hook.AfterAPICreate(res, req)
 	if err != nil {
-		s.Log.Errorf("Error calling AfterAccept: %v", err)
+		s.log.Errorf("Error calling AfterAccept: %v", err)
 		return
 	}
 
@@ -352,7 +344,7 @@ func (s *Server) createContentHandler(res http.ResponseWriter, req *http.Request
 
 	j, err := json.Marshal(resp)
 	if err != nil {
-		s.Log.Errorf("Error marshalling response to JSON: %v", err)
+		s.log.Errorf("Error marshalling response to JSON: %v", err)
 		res.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -360,7 +352,7 @@ func (s *Server) createContentHandler(res http.ResponseWriter, req *http.Request
 	res.Header().Set("Content-Type", "application/json")
 	_, err = res.Write(j)
 	if err != nil {
-		s.Log.Errorf("Error writing response: %v", err)
+		s.log.Errorf("Error writing response: %v", err)
 		return
 	}
 }
