@@ -4,6 +4,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"github.com/gohugonet/hugoverse/internal/interfaces/cli"
 	"os"
 )
 
@@ -35,7 +36,7 @@ func New() error {
 
 		switch subCommand {
 		case "version":
-			versionCmd, err := NewVersionCmd(topLevel)
+			versionCmd, err := cli.NewVersionCmd(topLevel)
 			if err != nil {
 				return err
 			}
@@ -43,11 +44,27 @@ func New() error {
 				return err
 			}
 		case "serve":
-			serveCmd, err := NewServeCmd(topLevel)
+			serveCmd, err := cli.NewServeCmd(topLevel)
 			if err != nil {
 				return err
 			}
 			if err := serveCmd.Run(); err != nil {
+				return err
+			}
+		case "demo":
+			demoCmd, err := cli.NewDemoCmd(topLevel)
+			if err != nil {
+				return err
+			}
+			if err := demoCmd.Run(); err != nil {
+				return err
+			}
+		case "build":
+			openCmd, err := cli.NewBuildCmd(topLevel)
+			if err != nil {
+				return err
+			}
+			if err := openCmd.Run(); err != nil {
 				return err
 			}
 
