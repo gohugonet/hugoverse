@@ -29,6 +29,7 @@ require (
 	github.com/gorilla/schema v1.2.1 // indirect
 	github.com/mschoch/smat v0.2.0 // indirect
 	github.com/nilslice/jwt v1.0.0 // indirect
+	github.com/pelletier/go-toml/v2 v2.2.0 // indirect
 	github.com/philhofer/fwd v1.0.0 // indirect
 	github.com/spf13/afero v1.11.0 // indirect
 	github.com/spf13/cast v1.6.0 // indirect
@@ -39,9 +40,12 @@ require (
 	github.com/tidwall/sjson v1.2.5 // indirect
 	github.com/tinylib/msgp v1.1.0 // indirect
 	github.com/willf/bitset v1.1.10 // indirect
+	github.com/yuin/goldmark v1.7.0 // indirect
 	go.etcd.io/bbolt v1.3.9 // indirect
 	golang.org/x/crypto v0.21.0 // indirect
+	golang.org/x/sync v0.6.0 // indirect
 	golang.org/x/sys v0.18.0 // indirect
 	golang.org/x/tools v0.19.0 // indirect
 	google.golang.org/protobuf v1.33.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

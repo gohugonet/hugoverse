@@ -29,6 +29,7 @@ func (m *Module) Load() error {
 	if m.Theme != "" {
 		ms, err := m.loadModules(m.Theme)
 		if err != nil {
+			m.log.Errorf("load modules: %w", err)
 			return err
 		}
 		m.modules = ms
@@ -56,11 +57,10 @@ func (m *Module) loadModules(theme string) ([]module.Module, error) {
 	collectHook := func(mods []module.Module) {
 		// Apply default project mounts.
 		// Default folder structure for hugo project
-		for i, mod := range mods {
+		for _, mod := range mods {
 			if mod.IsProj() {
 				valueobject.ApplyProjectConfigDefaults(mod)
 			}
-			m.log.Printf("Apply default project mounts: %d, %+v", i, mod)
 		}
 	}
 	mc.CollectModules(projModuleConfig, collectHook)

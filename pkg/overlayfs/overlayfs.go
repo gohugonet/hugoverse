@@ -1,7 +1,6 @@
 package overlayfs
 
 import (
-	"fmt"
 	"github.com/spf13/afero"
 	"os"
 	"time"
@@ -85,8 +84,6 @@ func (ofs *OverlayFs) Append(fss ...afero.Fs) *OverlayFs {
 // If name is a directory, a *Dir is returned representing all directories matching name.
 // Note that a *Dir must not be used after it's closed.
 func (ofs *OverlayFs) Open(name string) (afero.File, error) {
-	fmt.Println(">>> OverlayFs.Open", name)
-
 	bfs, fi, err := ofs.stat(name)
 	if err != nil {
 		return nil, err

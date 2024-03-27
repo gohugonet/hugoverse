@@ -1,24 +1,19 @@
 package application
 
 import (
-	"fmt"
 	cfFact "github.com/gohugonet/hugoverse/internal/domain/config/factory"
 	chFact "github.com/gohugonet/hugoverse/internal/domain/contenthub/factory"
 	fsFact "github.com/gohugonet/hugoverse/internal/domain/fs/factory"
-	"path"
+	mdFact "github.com/gohugonet/hugoverse/internal/domain/module/factory"
 )
 
 func GenerateStaticSite(projPath string) error {
-	c, err := cfFact.NewConfigFromPath(path.Join(projPath, "config.toml"))
+	c, err := cfFact.NewConfigFromPath(projPath)
 	if err != nil {
 		return err
 	}
 
-	ch, err := chFact.New(
-		&themeProvider{
-			name: c.GetString("theme"),
-		},
-	)
+	mods, err := mdFact.New(c.GetString("theme"))
 	if err != nil {
 		return err
 	}
@@ -26,23 +21,18 @@ func GenerateStaticSite(projPath string) error {
 	fs, err := fsFact.New(&fsDir{
 		workingDir: c.GetString("workingDir"),
 		publishDir: c.GetString("publishDir"),
-	}, ch.Modules)
+	}, mods)
 
+	ch, err := chFact.New(fs)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println(ch, fs)
+	if err := ch.Process(); err != nil {
+		return err
+	}
 
 	return nil
-}
-
-type themeProvider struct {
-	name string
-}
-
-func (t *themeProvider) Name() string {
-	return t.name
 }
 
 type fsDir struct {

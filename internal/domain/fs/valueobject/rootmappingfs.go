@@ -103,8 +103,6 @@ func (m *RootMappingFs) doLstat(name string) ([]FileMetaInfo, error) {
 			return nil, &os.PathError{Op: "LStat", Path: name, Err: os.ErrNotExist}
 		}
 
-		fmt.Println(">>> RootMappingFs.doLstat 2", name, key, roots)
-
 		var err error
 		var fis []FileMetaInfo
 

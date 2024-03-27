@@ -4,6 +4,7 @@ import (
 	"github.com/gohugonet/hugoverse/internal/domain/config"
 	"github.com/gohugonet/hugoverse/internal/domain/config/entity"
 	"github.com/gohugonet/hugoverse/internal/domain/config/valueobject"
+	"path"
 )
 
 func New() *entity.Config {
@@ -13,9 +14,9 @@ func New() *entity.Config {
 		}}
 }
 
-func NewConfigFromPath(path string) (config.LanguageProvider, error) {
-	c := entity.ConfigLoader{
-		Path: path,
+func NewConfigFromPath(projPath string) (config.LanguageProvider, error) {
+	c := &entity.ConfigLoader{
+		Path: path.Join(projPath, "config.toml"),
 	}
 
 	m, err := c.LoadConfigFromDisk()
@@ -25,8 +26,8 @@ func NewConfigFromPath(path string) (config.LanguageProvider, error) {
 
 	provider := New()
 	provider.SetRoot(m)
-	provider.Set("path", path)
-	provider.Set("workingDir", path)
+	provider.Set("path", projPath)
+	provider.Set("workingDir", projPath)
 	provider.SetDefault()
 
 	provider.SetLanguages([]config.Language{NewDefaultLanguage(provider)})
