@@ -87,7 +87,7 @@ func (p *pageState) shiftToOutputFormat() error {
 	cp := p.pageOutput.cp
 	if cp == nil {
 		var err error
-		cp, err = newPageContentOutput(p, p.pageOutput)
+		cp, err = newPageContentOutput(p)
 		if err != nil {
 			return err
 		}
@@ -102,13 +102,6 @@ func (p *pageState) initPage() error {
 	if _, err := p.init.Do(); err != nil {
 		return err
 	}
-	return nil
-}
-
-func (p *pageState) initCommonProviders(pp pagePaths) error {
-	//p.OutputFormatsProvider = pp
-	p.targetPathDescriptor = pp.targetPathDescriptor
-
 	return nil
 }
 
@@ -127,13 +120,6 @@ func (p *pageState) getContentConverter() contenthub.Converter {
 		fmt.Printf("Failed to create content converter: %v", err)
 	}
 	return p.m.contentConverter
-}
-
-func (p *pageState) outputFormat() (f valueobject.Format) {
-	if p.pageOutput == nil {
-		panic("no pageOutput")
-	}
-	return p.pageOutput.f
 }
 
 func (p *pageState) getLayoutDescriptor() valueobject.LayoutDescriptor {

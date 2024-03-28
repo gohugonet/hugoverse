@@ -1,7 +1,6 @@
-package entity
+package valueobject
 
 import (
-	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub/valueobject"
 	"path"
@@ -9,13 +8,13 @@ import (
 	"strings"
 )
 
-type targetPathsHolder struct {
-	paths valueobject.TargetPaths
-	valueobject.OutputFormat
+type TargetPathsHolder struct {
+	Paths valueobject.TargetPaths
+	OutputFormat
 }
 
-func (t targetPathsHolder) TargetPaths() valueobject.TargetPaths {
-	return t.paths
+func (t TargetPathsHolder) TargetPaths() valueobject.TargetPaths {
+	return t.Paths
 }
 
 // TargetPathDescriptor describes how a file path for a given resource
@@ -25,7 +24,7 @@ func (t targetPathsHolder) TargetPaths() valueobject.TargetPaths {
 // The big motivating behind this is to have only one source of truth for URLs,
 // and by that also get rid of most of the fragile string parsing/encoding etc.
 type TargetPathDescriptor struct {
-	Type valueobject.Format
+	Type Format
 	Kind string
 
 	Sections []string
@@ -55,27 +54,14 @@ type TargetPathDescriptor struct {
 	ExpandedPermalink string
 }
 
-func createTargetPathDescriptor(p contenthub.Page) (TargetPathDescriptor, error) {
-	var (
-		dir      string
-		baseName string
-	)
-
-	fmt.Println("555 createTargetPathDescriptor: ", p)
-	fmt.Println("555 createTargetPathDescriptor: ", p.File())
-
-	if !p.File().IsZero() {
-		dir = p.File().Dir()
-		baseName = p.File().TranslationBaseName()
-	}
-
+func createTargetPathDescriptor(kind string, sec []string, dir, basename string) (TargetPathDescriptor, error) {
 	desc := TargetPathDescriptor{
-		Kind:        p.Kind(),
-		Sections:    p.SectionsEntries(),
+		Kind:        kind,
+		Sections:    sec,
 		ForcePrefix: false,
 		Dir:         dir,
 		URL:         "",
-		BaseName:    baseName,
+		BaseName:    basename,
 	}
 
 	return desc, nil

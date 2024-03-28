@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
-	"github.com/gohugonet/hugoverse/internal/domain/contenthub/valueobject"
+	"github.com/gohugonet/hugoverse/internal/domain/site/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/lazy"
 	"html/template"
 	"runtime/debug"
@@ -13,12 +13,11 @@ import (
 	"time"
 )
 
-func newPageContentOutput(p *pageState, po *pageOutput) (*pageContentOutput, error) {
+func newPageContentOutput(p *pageState) (*pageContentOutput, error) {
 	parent := p.init
 
 	cp := &pageContentOutput{
 		p: p,
-		f: po.f,
 	}
 
 	initContent := func() (err error) {
@@ -105,6 +104,8 @@ func (cp *pageContentOutput) renderContent(
 func (cp *pageContentOutput) renderContentWithConverter(
 	c contenthub.Converter, content []byte, renderTOC bool) (contenthub.Result, error) {
 
+	fmt.Println("renderContentWithConverter", string(content), renderTOC)
+
 	r, err := c.Convert(
 		contenthub.RenderContext{
 			Src:       content,
@@ -115,8 +116,16 @@ func (cp *pageContentOutput) renderContentWithConverter(
 }
 
 func (cp *pageContentOutput) Content() (any, error) {
-	//if cp.p.s.initInit(cp.initMain) {
-	//	return cp.content, nil
-	//}
+	if cp.initInit(cp.initMain) {
+		return cp.content, nil
+	}
 	return nil, nil
+}
+
+func (cp *pageContentOutput) initInit(init *lazy.Init) bool {
+	_, err := init.Do()
+	if err != nil {
+		fmt.Printf("fatal error %v", err)
+	}
+	return err == nil
 }

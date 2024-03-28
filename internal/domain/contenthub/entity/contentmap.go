@@ -204,22 +204,3 @@ func (m *ContentMap) CreateMissingNodes() error {
 
 	return nil
 }
-
-func (m *PageMap) splitKey(k string) []string {
-	if k == "" || k == "/" {
-		return nil
-	}
-
-	return strings.Split(k, "/")[1:]
-}
-
-// withEveryBundlePage applies fn to every Page, including those bundled inside
-// leaf bundles.
-func (m *PageMap) withEveryBundlePage(fn func(p *pageState) bool) {
-	m.BundleTrees.Walk(func(s string, n *contentNode) bool {
-		if n.p != nil {
-			return fn(n.p)
-		}
-		return false
-	})
-}

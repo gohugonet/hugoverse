@@ -5,6 +5,7 @@ import (
 	chFact "github.com/gohugonet/hugoverse/internal/domain/contenthub/factory"
 	fsFact "github.com/gohugonet/hugoverse/internal/domain/fs/factory"
 	mdFact "github.com/gohugonet/hugoverse/internal/domain/module/factory"
+	stFact "github.com/gohugonet/hugoverse/internal/domain/site/factory"
 )
 
 func GenerateStaticSite(projPath string) error {
@@ -28,7 +29,12 @@ func GenerateStaticSite(projPath string) error {
 		return err
 	}
 
-	if err := ch.Process(); err != nil {
+	if err := ch.CollectPages(); err != nil {
+		return err
+	}
+
+	site := stFact.New(fs, ch)
+	if err := site.Build(); err != nil {
 		return err
 	}
 

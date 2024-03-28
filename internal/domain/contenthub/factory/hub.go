@@ -28,6 +28,9 @@ func New(fs contenthub.Fs) (*entity.ContentHub, error) {
 		}),
 	}
 
+	// TODO remove it
+	ch.CS()
+
 	return ch, nil
 }
 

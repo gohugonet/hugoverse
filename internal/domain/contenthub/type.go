@@ -14,6 +14,8 @@ const (
 	KindSection = "section"
 )
 
+var AllKindsInPages = []string{KindPage, KindHome, KindSection}
+
 type Fs interface {
 	LayoutFs() afero.Fs
 	ContentFs() afero.Fs
@@ -21,6 +23,7 @@ type Fs interface {
 
 type TemplateExecutor interface {
 	ExecuteWithContext(ctx context.Context, tmpl template.Template, wr io.Writer, data any) error
+	LookupLayout(layoutNames []string) (template.Template, bool, error)
 }
 
 type ConverterRegistry interface {

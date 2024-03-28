@@ -1,8 +1,8 @@
 package entity
 
 import (
+	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
-	"github.com/gohugonet/hugoverse/internal/domain/contenthub/valueobject"
 	"sync"
 )
 
@@ -62,6 +62,10 @@ type pageMeta struct {
 	f contenthub.File
 }
 
+func (p *pageMeta) setMetadata() {
+	p.markup = "markdown"
+}
+
 func (p *pageMeta) applyDefaultValues() { // buildConfig, markup, title
 	if p.markup == "" {
 		p.markup = "markdown"
@@ -92,19 +96,41 @@ func (p *pageMeta) Layout() string {
 	return p.layout
 }
 
-// The output formats this page will be rendered to.
-func (p *pageMeta) outputFormats() valueobject.Formats {
-	// TODO
-	return nil
-	//return p.s.OutputFormats[p.Kind()]
-}
-
 func (p *pageMeta) noLink() bool {
 	return false
 }
 
 func (p *pageMeta) newContentConverter(ps *pageState, markup string) (contenthub.Converter, error) {
-	//TODO
+	if ps == nil {
+		panic("no Page provided")
+	}
+	cp := contentSpec.GetContentProvider(markup)
+	if cp == nil {
+		panic(fmt.Errorf("no content renderer found for markup %q", p.markup))
+	}
 
-	return nil, nil
+	var id string
+	var filename string
+	var path string
+	if !p.f.IsZero() {
+		id = p.f.UniqueID()
+		filename = p.f.Filename()
+		path = p.f.Path()
+	} else {
+		panic("no file provided")
+	}
+
+	cpp, err := cp.New(
+		contenthub.DocumentContext{
+			Document:     nil, //TODO
+			DocumentID:   id,
+			DocumentName: path,
+			Filename:     filename,
+		},
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	return cpp, nil
 }

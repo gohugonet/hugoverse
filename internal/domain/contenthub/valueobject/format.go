@@ -1,10 +1,11 @@
 package valueobject
 
-import (
-	"fmt"
-	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
-	"strings"
-)
+// HTMLFormat An ordered list of built-in output formats.
+var HTMLFormat = Format{
+	Name:      "HTML",
+	MediaType: HTMLType,
+	BaseName:  "index",
+}
 
 // Format represents an output representation, usually to a file on disk.
 type Format struct {
@@ -18,92 +19,36 @@ type Format struct {
 	BaseName string `json:"baseName"`
 }
 
-// Formats is a slice of Format.
-type Formats []Format
+const defaultDelimiter = "."
 
-func (formats Formats) Len() int      { return len(formats) }
-func (formats Formats) Swap(i, j int) { formats[i], formats[j] = formats[j], formats[i] }
-func (formats Formats) Less(i, j int) bool {
-	fi, fj := formats[i], formats[j]
-	return fi.Name < fj.Name
+var HTMLType = newMediaType("text", "html")
+
+func newMediaType(main, sub string) Type {
+	t := Type{
+		MainType:  main,
+		SubType:   sub,
+		Delimiter: defaultDelimiter}
+	return t
 }
 
-// GetByName gets a format by its identifier name.
-func (formats Formats) GetByName(name string) (f Format, found bool) {
-	for _, ff := range formats {
-		if strings.EqualFold(name, ff.Name) {
-			f = ff
-			found = true
-			return
-		}
-	}
-	return
+type Type struct {
+	MainType  string `json:"mainType"`  // i.e. text
+	SubType   string `json:"subType"`   // i.e. html
+	Delimiter string `json:"delimiter"` // e.g. "."
 }
 
-// FromFilename gets a Format given a filename.
-func (formats Formats) FromFilename(filename string) (f Format, found bool) {
-	// mytemplate.amp.html
-	// mytemplate.html
-	// mytemplate
-	var ext, outFormat string
-
-	parts := strings.Split(filename, ".")
-	if len(parts) > 2 {
-		outFormat = parts[1]
-		ext = parts[2]
-	} else if len(parts) > 1 {
-		ext = parts[1]
-	}
-
-	if outFormat != "" {
-		return formats.GetByName(outFormat)
-	}
-
-	if ext != "" {
-		f, found = formats.GetByName(ext)
-	}
-	return
+// Type returns a string representing the main- and sub-type of a media type, e.g. "text/css".
+// A suffix identifier will be appended after a "+" if set, e.g. "image/svg+xml".
+// Hugo will register a set of default media types.
+// These can be overridden by the user in the configuration,
+// by defining a media type with the same Type.
+func (m Type) Type() string {
+	// Examples are
+	// image/svg+xml
+	// text/css
+	return m.MainType + "/" + m.SubType
 }
 
-// HTMLFormat An ordered list of built-in output formats.
-var HTMLFormat = Format{
-	Name:      "HTML",
-	MediaType: HTMLType,
-	BaseName:  "index",
-}
-
-// DefaultFormats contains the default output formats supported by Hugo.
-var DefaultFormats = Formats{
-	HTMLFormat,
-}
-
-// DecodeFormats takes a list of output format configurations and merges those,
-// in the order given, with the Hugo defaults as the last resort.
-func DecodeFormats(mediaTypes Types) Formats {
-	// Format could be modified by mediaTypes configuration
-	// just make it simple for example
-	fmt.Println(mediaTypes)
-
-	f := make(Formats, len(DefaultFormats))
-	copy(f, DefaultFormats)
-
-	return f
-}
-
-func CreateSiteOutputFormats(allFormats Formats) map[string]Formats {
-	defaultOutputFormats :=
-		createDefaultOutputFormats(allFormats)
-	return defaultOutputFormats
-}
-
-func createDefaultOutputFormats(allFormats Formats) map[string]Formats {
-	htmlOut, _ := allFormats.GetByName(HTMLFormat.Name)
-
-	m := map[string]Formats{
-		contenthub.KindPage:    {htmlOut},
-		contenthub.KindHome:    {htmlOut},
-		contenthub.KindSection: {htmlOut},
-	}
-
-	return m
+func (m Type) FullSuffix() string {
+	return m.Delimiter + m.SubType
 }
