@@ -9,10 +9,6 @@ import (
 )
 
 type pageState struct {
-	// This slice will be of same length as the number of global slice of output
-	// formats (for all sites).
-	pageOutputs []*pageOutput
-
 	// This will be shifted out when we start to render a new output format.
 	*pageOutput
 
@@ -79,7 +75,6 @@ func (p *pageState) shiftToOutputFormat() error {
 		return err
 	}
 
-	p.pageOutput = p.pageOutputs[0]
 	if p.pageOutput == nil {
 		panic(fmt.Sprintf("pageOutput is nil for output idx %d", 0))
 	}
@@ -122,7 +117,7 @@ func (p *pageState) getContentConverter() contenthub.Converter {
 	return p.m.contentConverter
 }
 
-func (p *pageState) getLayoutDescriptor() valueobject.LayoutDescriptor {
+func (p *pageState) getLayoutDescriptor(tmpl contenthub.TemplateDescriptor) valueobject.LayoutDescriptor {
 	p.layoutDescriptorInit.Do(func() {
 		var section string
 		sections := p.SectionsEntries()
@@ -141,6 +136,9 @@ func (p *pageState) getLayoutDescriptor() valueobject.LayoutDescriptor {
 			Lang:    "en",
 			Layout:  p.Layout(),
 			Section: section,
+
+			FormatName: tmpl.Name(),
+			Extension:  tmpl.Extension(),
 		}
 	})
 

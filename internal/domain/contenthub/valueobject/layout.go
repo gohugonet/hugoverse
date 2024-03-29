@@ -24,6 +24,9 @@ type LayoutDescriptor struct {
 
 	RenderingHook bool
 	Baseof        bool
+
+	FormatName string
+	Extension  string
 }
 
 // LayoutHandler calculates the layout template to use to render a given output type.
@@ -44,9 +47,9 @@ func NewLayoutHandler() *LayoutHandler {
 
 // For returns a layout for the given LayoutDescriptor and options.
 // Layouts are rendered and cached internally.
-func (l *LayoutHandler) For(d LayoutDescriptor, f Format) ([]string, error) {
+func (l *LayoutHandler) For(d LayoutDescriptor) ([]string, error) {
 	// We will get lots of requests for the same layouts, so avoid recalculations.
-	key := layoutCacheKey{d, f.Name}
+	key := layoutCacheKey{d, d.FormatName}
 	l.mu.RLock()
 	if cacheVal, found := l.cache[key]; found {
 		l.mu.RUnlock()
@@ -54,7 +57,7 @@ func (l *LayoutHandler) For(d LayoutDescriptor, f Format) ([]string, error) {
 	}
 	l.mu.RUnlock()
 
-	layouts := resolvePageTemplate(d, f)
+	layouts := resolvePageTemplate(d)
 
 	layouts = UniqueStringsReuse(layouts)
 
@@ -86,8 +89,8 @@ func UniqueStringsReuse(s []string) []string {
 	return result
 }
 
-func resolvePageTemplate(d LayoutDescriptor, f Format) []string {
-	b := &layoutBuilder{d: d, f: f}
+func resolvePageTemplate(d LayoutDescriptor) []string {
+	b := &layoutBuilder{d: d}
 
 	if !d.RenderingHook && d.Layout != "" {
 		b.addLayoutVariations(d.Layout)
@@ -154,7 +157,6 @@ type layoutBuilder struct {
 	layoutVariations []string
 	typeVariations   []string
 	d                LayoutDescriptor
-	f                Format
 }
 
 func (l *layoutBuilder) addLayoutVariations(vars ...string) {
@@ -208,7 +210,7 @@ func (l *layoutBuilder) resolveVariations() []string {
 	var layouts []string
 
 	var variations []string
-	name := strings.ToLower(l.f.Name)
+	name := strings.ToLower(l.d.FormatName)
 	variations = append(variations, name)
 
 	variations = append(variations, "")
@@ -220,7 +222,7 @@ func (l *layoutBuilder) resolveVariations() []string {
 					continue
 				}
 
-				s := constructLayoutPath(typeVar, layoutVar, variation, l.f.MediaType.SubType)
+				s := constructLayoutPath(typeVar, layoutVar, variation, l.d.Extension)
 				if s != "" {
 					layouts = append(layouts, s)
 				}

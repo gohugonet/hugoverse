@@ -2,10 +2,11 @@ package valueobject
 
 import (
 	"fmt"
+	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
 )
 
-func NewPagePaths(ofs Formats, kind string, sec []string, dir, basename string) (PagePaths, error) {
-	targetPathDescriptor, err := createTargetPathDescriptor(kind, sec, dir, basename)
+func NewPagePaths(ofs Formats, page contenthub.PageInfo) (PagePaths, error) {
+	targetPathDescriptor, err := createTargetPathDescriptor(page)
 	if err != nil {
 		return PagePaths{}, err
 	}
@@ -35,7 +36,6 @@ func NewPagePaths(ofs Formats, kind string, sec []string, dir, basename string) 
 			Paths:        paths,
 			OutputFormat: pageOutputFormats[permalinksIndex],
 		}
-
 	}
 
 	return PagePaths{

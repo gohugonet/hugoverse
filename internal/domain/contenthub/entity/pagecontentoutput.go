@@ -4,12 +4,10 @@ import (
 	"context"
 	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
-	"github.com/gohugonet/hugoverse/internal/domain/site/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/lazy"
 	"html/template"
 	"runtime/debug"
 	"strings"
-	"sync"
 	"time"
 )
 
@@ -68,35 +66,23 @@ func BytesToHTML(b []byte) template.HTML {
 
 // pageContentOutput represents the Page content for a given output format.
 type pageContentOutput struct {
-	f valueobject.Format
-
 	p *pageState
 
 	// Lazy load dependencies
 	initMain  *lazy.Init
 	initPlain *lazy.Init
 
-	placeholdersEnabled     bool
-	placeholdersEnabledInit sync.Once
-
 	workContent []byte
 
-	// ΩContent sections
+	// Content sections
 	content template.HTML
 	summary template.HTML
 
-	truncated bool
-
-	plainWords     []string
-	plain          string
-	fuzzyWordCount int
-	wordCount      int
-	readingTime    int
+	plainWords []string
+	plain      string
 }
 
-func (cp *pageContentOutput) renderContent(
-	content []byte, renderTOC bool) (contenthub.Result, error) {
-
+func (cp *pageContentOutput) renderContent(content []byte, renderTOC bool) (contenthub.Result, error) {
 	c := cp.p.getContentConverter()
 	return cp.renderContentWithConverter(c, content, renderTOC)
 }

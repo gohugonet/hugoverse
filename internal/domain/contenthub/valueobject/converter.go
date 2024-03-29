@@ -10,10 +10,10 @@ type ConverterRegistry struct {
 	// Note that this is also used for aliasing, so the same converter
 	// may be registered multiple times.
 	// All names are lower case.
-	Converters map[string]contenthub.Provider
+	Converters map[string]contenthub.ConverterProvider
 }
 
-func (r *ConverterRegistry) Get(name string) contenthub.Provider {
+func (r *ConverterRegistry) Get(name string) contenthub.ConverterProvider {
 	return r.Converters[strings.ToLower(name)]
 }
 

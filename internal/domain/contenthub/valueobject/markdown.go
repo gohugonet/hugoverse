@@ -12,7 +12,7 @@ type provide struct {
 	name string
 }
 
-func (p provide) New() (contenthub.Provider, error) {
+func (p provide) New() (contenthub.ConverterProvider, error) {
 	//TODO, implement me with dddplayer/markdown
 	// md := newMarkdown()
 

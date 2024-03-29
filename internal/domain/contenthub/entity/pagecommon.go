@@ -3,7 +3,6 @@ package entity
 import (
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub/valueobject"
-	valueobject2 "github.com/gohugonet/hugoverse/internal/domain/site/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/compare"
 	"github.com/gohugonet/hugoverse/pkg/lazy"
 	"sync"
@@ -21,10 +20,6 @@ type pageCommon struct {
 
 	compare.Eqer
 
-	// Describes how paths and URLs for this page and its descendants
-	// should look like.
-	targetPathDescriptor valueobject2.TargetPathDescriptor
-
 	layoutDescriptor     valueobject.LayoutDescriptor
 	layoutDescriptorInit sync.Once
 
@@ -37,7 +32,4 @@ type pageCommon struct {
 
 	// Will only be set for bundled pages.
 	parent *pageState
-
-	// Set in fast render mode to force render a given page.
-	forceRender bool
 }

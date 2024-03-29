@@ -24,6 +24,6 @@ func (c *ContentSpec) ResolveMarkup(in string) string {
 	return ""
 }
 
-func (c *ContentSpec) GetContentProvider(name string) contenthub.Provider {
+func (c *ContentSpec) GetContentConvertProvider(name string) contenthub.ConverterProvider {
 	return c.Converters.Get(name)
 }

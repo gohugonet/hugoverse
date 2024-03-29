@@ -2,18 +2,17 @@ package valueobject
 
 import (
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
-	"github.com/gohugonet/hugoverse/internal/domain/contenthub/valueobject"
 	"path"
 	"path/filepath"
 	"strings"
 )
 
 type TargetPathsHolder struct {
-	Paths valueobject.TargetPaths
+	Paths TargetPaths
 	OutputFormat
 }
 
-func (t TargetPathsHolder) TargetPaths() valueobject.TargetPaths {
+func (t TargetPathsHolder) TargetPaths() TargetPaths {
 	return t.Paths
 }
 
@@ -54,14 +53,14 @@ type TargetPathDescriptor struct {
 	ExpandedPermalink string
 }
 
-func createTargetPathDescriptor(kind string, sec []string, dir, basename string) (TargetPathDescriptor, error) {
+func createTargetPathDescriptor(page contenthub.PageInfo) (TargetPathDescriptor, error) {
 	desc := TargetPathDescriptor{
-		Kind:        kind,
-		Sections:    sec,
+		Kind:        page.Kind(),
+		Sections:    page.Sections(),
 		ForcePrefix: false,
-		Dir:         dir,
+		Dir:         page.Dir(),
 		URL:         "",
-		BaseName:    basename,
+		BaseName:    page.Name(),
 	}
 
 	return desc, nil
@@ -69,7 +68,7 @@ func createTargetPathDescriptor(kind string, sec []string, dir, basename string)
 
 const slash = "/"
 
-func createTargetPaths(d TargetPathDescriptor) (tp valueobject.TargetPaths) {
+func createTargetPaths(d TargetPathDescriptor) (tp TargetPaths) {
 	if d.Type.Name == "" {
 		panic("CreateTargetPath: missing type")
 	}

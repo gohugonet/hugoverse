@@ -8,7 +8,7 @@ import (
 	"github.com/gohugonet/hugoverse/pkg/radixtree"
 )
 
-func New(fs contenthub.Fs) (*entity.ContentHub, error) {
+func New(fs contenthub.Fs) (contenthub.ContentHub, error) {
 	cs, err := newContentSpec()
 	if err != nil {
 		return nil, err
@@ -21,15 +21,13 @@ func New(fs contenthub.Fs) (*entity.ContentHub, error) {
 
 	ch := &entity.ContentHub{
 		Fs:               fs,
-		ContentSpec:      cs,
 		TemplateExecutor: exec,
-		PageCollections: newPageCollections(&entity.PageMap{
-			ContentMap: newContentMap(),
-		}),
+		PageCollections: newPageCollections(
+			&entity.PageMap{
+				ContentMap:  newContentMap(),
+				ContentSpec: cs,
+			}),
 	}
-
-	// TODO remove it
-	ch.CS()
 
 	return ch, nil
 }
@@ -51,7 +49,7 @@ func newContentSpec() (*entity.ContentSpec, error) {
 }
 
 func newConverterRegistry() (contenthub.ConverterRegistry, error) {
-	converters := make(map[string]contenthub.Provider)
+	converters := make(map[string]contenthub.ConverterProvider)
 
 	add := func(p contenthub.ProviderProvider) error {
 		c, err := p.New()

@@ -1,12 +1,32 @@
 package contenthub
 
 import (
+	"bytes"
 	"context"
 	fsVO "github.com/gohugonet/hugoverse/internal/domain/fs/valueobject"
 	"github.com/gohugonet/hugoverse/internal/domain/template"
 	"github.com/spf13/afero"
 	"io"
 )
+
+type ContentHub interface {
+	CollectPages() error
+	PreparePages() error
+	RenderPages(td TemplateDescriptor, cb func(info PageInfo) error) error
+}
+
+type TemplateDescriptor interface {
+	Name() string
+	Extension() string
+}
+
+type PageInfo interface {
+	Kind() string
+	Sections() []string
+	Dir() string
+	Name() string
+	Buffer() *bytes.Buffer
+}
 
 const (
 	KindPage    = "page"
@@ -25,20 +45,23 @@ type TemplateExecutor interface {
 	ExecuteWithContext(ctx context.Context, tmpl template.Template, wr io.Writer, data any) error
 	LookupLayout(layoutNames []string) (template.Template, bool, error)
 }
-
-type ConverterRegistry interface {
-	Get(name string) Provider
+type ContentConvertProvider interface {
+	GetContentConvertProvider(name string) ConverterProvider
 }
 
-// Provider creates converters.
-type Provider interface {
+type ConverterRegistry interface {
+	Get(name string) ConverterProvider
+}
+
+// ConverterProvider creates converters.
+type ConverterProvider interface {
 	New(ctx DocumentContext) (Converter, error)
 	Name() string
 }
 
 // ProviderProvider creates converter providers.
 type ProviderProvider interface {
-	New() (Provider, error)
+	New() (ConverterProvider, error)
 }
 
 // DocumentContext holds contextual information about the document to convert.
@@ -75,24 +98,6 @@ type Result interface {
 // ContentProvider provides the content related values for a Page.
 type ContentProvider interface {
 	Content() (any, error)
-}
-
-// PagePerOutputProviders will be shifted out when rendering a given output format.
-type PagePerOutputProviders interface {
-	//TargetPather
-	ResourceLinksProvider
-}
-
-//type TargetPather interface {
-//	TargetPaths() valueobject.TargetPaths
-//}
-
-type ResourceLinksProvider interface {
-	// Permalink represents the absolute link to this resource.
-	Permalink() string
-
-	// RelPermalink represents the host relative link to this resource.
-	RelPermalink() string
 }
 
 // FileProvider provides the source file.
@@ -188,8 +193,3 @@ type PageMetaProvider interface {
 	// in front matter, but will fall back to the root section.
 	Type() string
 }
-
-// OutputFormatsProvider provides the OutputFormats of a Page.
-//type OutputFormatsProvider interface {
-//	OutputFormats() valueobject.OutputFormats
-//}

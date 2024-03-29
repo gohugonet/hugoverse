@@ -9,7 +9,6 @@ import (
 type pageOutput struct {
 	// These interface provides the functionality that is specific for this
 	// output format.
-	contenthub.PagePerOutputProviders
 	contenthub.ContentProvider
 
 	// May be nil.

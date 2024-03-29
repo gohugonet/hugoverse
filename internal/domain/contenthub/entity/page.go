@@ -1,14 +1,13 @@
 package entity
 
 import (
+	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/lazy"
 )
 
 var (
-	nopPageOutput = &pageOutput{
-		// TODO, simplify
-	}
+	nopPageOutput = &pageOutput{}
 )
 
 func newPageBase(metaProvider *pageMeta) (*pageState, error) {
@@ -26,12 +25,13 @@ func newPageBase(metaProvider *pageMeta) (*pageState, error) {
 	return ps, nil
 }
 
-func newPage(n *contentNode, kind string, sections ...string) *pageState {
+func newPage(ccp contenthub.ContentConvertProvider, n *contentNode, kind string, sections ...string) *pageState {
 	p, err := newPageFromMeta(
 		n,
 		&pageMeta{
-			kind:     kind,
-			sections: sections,
+			kind:                  kind,
+			sections:              sections,
+			contentCovertProvider: ccp,
 		})
 	if err != nil {
 		panic(err)
@@ -54,13 +54,8 @@ func newPageFromMeta(n *contentNode, metaProvider *pageMeta) (*pageState, error)
 	metaProvider.applyDefaultValues()
 
 	ps.init.Add(func() (any, error) {
-		makeOut := func() *pageOutput {
-			return newPageOutput()
-		}
-
-		ps.pageOutputs = make([]*pageOutput, 1)
-		po := makeOut()
-		ps.pageOutputs[0] = po
+		po := newPageOutput()
+		ps.pageOutput = po
 
 		contentProvider, err := newPageContentOutput(ps)
 		if err != nil {

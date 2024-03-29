@@ -1,4 +1,4 @@
-package entity
+package valueobject
 
 import (
 	"crypto/md5"
@@ -12,24 +12,24 @@ import (
 	"sync"
 )
 
-type fileInfo struct {
+type File struct {
 	contenthub.File
 }
 
-func newFileInfo(fi fsVO.FileMetaInfo) (*fileInfo, error) {
-	baseFi, err := NewFileInfo(fi)
+func NewFileInfo(fi fsVO.FileMetaInfo) (*File, error) {
+	baseFi, err := newFileInfo(fi)
 	if err != nil {
 		return nil, err
 	}
 
-	f := &fileInfo{
+	f := &File{
 		File: baseFi,
 	}
 
 	return f, nil
 }
 
-func NewFileInfo(fi fsVO.FileMetaInfo) (*FileInfo, error) {
+func newFileInfo(fi fsVO.FileMetaInfo) (*FileInfo, error) {
 	m := fi.Meta()
 
 	filename := m.Filename

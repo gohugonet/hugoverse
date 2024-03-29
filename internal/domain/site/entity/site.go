@@ -1,7 +1,6 @@
 package entity
 
 import (
-	"bytes"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
 	"github.com/gohugonet/hugoverse/internal/domain/site"
 	"github.com/gohugonet/hugoverse/internal/domain/site/valueobject"
@@ -28,7 +27,7 @@ type Site struct {
 
 	Publisher site.Publisher
 
-	ContentSpec site.ContentSpec
+	ContentHub contenthub.ContentHub
 }
 
 func (s *Site) Build() error {
@@ -55,27 +54,32 @@ func (s *Site) render() error {
 }
 
 func (s *Site) renderPages() error {
-	return s.ContentSpec.RenderPages(func(kind string, sec []string, dir, name string, buf *bytes.Buffer) error {
-		pp, err := valueobject.NewPagePaths(s.OutputFormatsConfig, kind, sec, dir, name)
-		if err != nil {
-			return err
-		}
+	for _, of := range s.RenderFormats {
+		td := valueobject.NewTemplateDescriptor(of.Name, of.MediaType.SubType)
 
-		for _, of := range s.RenderFormats {
+		err := s.ContentHub.RenderPages(td, func(info contenthub.PageInfo) error {
+			pp, err := valueobject.NewPagePaths(s.OutputFormatsConfig, info)
+			if err != nil {
+				return err
+			}
+
 			pd := site.Descriptor{
-				Src:          buf,
+				Src:          info.Buffer(),
 				TargetPath:   pp.TargetPaths[of.Name].Paths.TargetFilename,
 				OutputFormat: of,
 			}
 			return s.Publisher.Publish(pd)
-		}
+		})
 
-		return nil
-	})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (s *Site) preparePagesForRender() error {
-	return s.ContentSpec.PreparePages()
+	return s.ContentHub.PreparePages()
 }
 
 func (s *Site) initRenderFormats() {

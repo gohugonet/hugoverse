@@ -3,6 +3,7 @@ package entity
 import (
 	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
+	"github.com/gohugonet/hugoverse/internal/domain/contenthub/valueobject"
 	fsVO "github.com/gohugonet/hugoverse/internal/domain/fs/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/io"
 	"github.com/gohugonet/hugoverse/pkg/parser/pageparser"
@@ -18,6 +19,7 @@ type PageCollections struct {
 
 type PageMap struct {
 	*ContentMap
+	*ContentSpec
 }
 
 func (m *PageMap) Assemble() error {
@@ -78,7 +80,7 @@ func (m *PageMap) AssembleSections() error {
 		if n.fi != nil {
 			panic("assembleSections newPageFromContentNode not ready")
 		} else {
-			n.p = newPage(n, kind, sections...)
+			n.p = newPage(m.ContentSpec, n, kind, sections...)
 			fmt.Println(">>> assembleSections new page 999", sections, k, n.p)
 		}
 
@@ -93,7 +95,7 @@ func (m *PageMap) newPageFromContentNode(n *contentNode) (*pageState, error) {
 		panic("FileInfo must (currently) be set")
 	}
 
-	f, err := newFileInfo(n.fi)
+	f, err := valueobject.NewFileInfo(n.fi)
 	if err != nil {
 		return nil, err
 	}
@@ -106,8 +108,11 @@ func (m *PageMap) newPageFromContentNode(n *contentNode) (*pageState, error) {
 	sections := m.sectionsFromFile(f)
 	kind := m.kindFromFileInfoOrSections(f, sections)
 
-	// TODO, site in meta provider
-	metaProvider := &pageMeta{kind: kind, sections: sections, bundled: false, f: f}
+	metaProvider := &pageMeta{
+		kind: kind, sections: sections, bundled: false, f: f,
+		contentCovertProvider: m.ContentSpec,
+	}
+
 	ps, err := newPageBase(metaProvider)
 	if err != nil {
 		return nil, err
@@ -146,17 +151,8 @@ func (m *PageMap) newPageFromContentNode(n *contentNode) (*pageState, error) {
 	ps.init.Add(func() (any, error) {
 		fmt.Printf("TODO init page start : %+v\n", ps)
 
-		makeOut := func() *pageOutput {
-			return newPageOutput()
-		}
-
-		// Prepare output formats for all sites.
-		// We do this even if this page does not get rendered on
-		// its own. It may be referenced via .Site.GetPage and
-		// it will then need an output format.
-		ps.pageOutputs = make([]*pageOutput, 1)
-		po := makeOut()
-		ps.pageOutputs[0] = po
+		po := newPageOutput()
+		ps.pageOutput = po
 
 		contentProvider, err := newPageContentOutput(ps)
 		if err != nil {
@@ -179,7 +175,7 @@ func (m *PageMap) sectionsFromFile(fi contenthub.File) []string {
 	}
 	parts := strings.Split(dirname, paths.FilePathSeparator)
 
-	if fii, ok := fi.(*fileInfo); ok {
+	if fii, ok := fi.(*valueobject.File); ok {
 		if len(parts) > 0 && fii.FileInfo().Meta().Classifier == fsVO.ContentClassLeaf {
 			// my-section/mybundle/index.md => my-section
 			return parts[:len(parts)-1]
@@ -189,7 +185,7 @@ func (m *PageMap) sectionsFromFile(fi contenthub.File) []string {
 	return parts
 }
 
-func (m *PageMap) kindFromFileInfoOrSections(fi *fileInfo, sections []string) string {
+func (m *PageMap) kindFromFileInfoOrSections(fi *valueobject.File, sections []string) string {
 	if fi.TranslationBaseName() == "_index" {
 		if fi.Dir() == "" {
 			return contenthub.KindHome

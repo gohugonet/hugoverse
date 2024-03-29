@@ -1,12 +1,13 @@
 package factory
 
 import (
+	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
 	"github.com/gohugonet/hugoverse/internal/domain/site"
 	"github.com/gohugonet/hugoverse/internal/domain/site/entity"
 	"github.com/gohugonet/hugoverse/internal/domain/site/valueobject"
 )
 
-func New(fs site.Fs, cs site.ContentSpec) *entity.Site {
+func New(fs site.Fs, ch contenthub.ContentHub) *entity.Site {
 	mediaTypes := valueobject.DecodeTypes()
 	formats := valueobject.DecodeFormats(mediaTypes)
 	outputFormats := valueobject.CreateSiteOutputFormats(formats)
@@ -18,6 +19,6 @@ func New(fs site.Fs, cs site.ContentSpec) *entity.Site {
 
 		Publisher: &entity.DestinationPublisher{Fs: fs.Publish()},
 
-		ContentSpec: cs,
+		ContentHub: ch,
 	}
 }
