@@ -85,7 +85,7 @@ func (ch *render) pageRenderer(pages <-chan *pageState, results chan<- error, wg
 	}
 }
 
-func (ch *render) renderAndWritePage(p *pageState, templ template.Template) error {
+func (ch *render) renderAndWritePage(p *pageState, templ template.Preparer) error {
 	renderBuffer := bufferpool.GetBuffer()
 	defer bufferpool.PutBuffer(renderBuffer)
 
@@ -110,7 +110,7 @@ func (ch *render) renderAndWritePage(p *pageState, templ template.Template) erro
 	return ch.cb(valueobject.NewPageInfo(baseName, p.Kind(), dir, p.SectionsEntries(), renderBuffer))
 }
 
-func (ch *render) renderForTemplate(name string, d any, w io.Writer, templ template.Template) (err error) {
+func (ch *render) renderForTemplate(name string, d any, w io.Writer, templ template.Preparer) (err error) {
 	if templ == nil {
 		fmt.Println("templ is nil")
 		return nil
@@ -122,7 +122,7 @@ func (ch *render) renderForTemplate(name string, d any, w io.Writer, templ templ
 	return
 }
 
-func (ch *render) resolveTemplate(p *pageState) (template.Template, bool, error) {
+func (ch *render) resolveTemplate(p *pageState) (template.Preparer, bool, error) {
 	d := p.getLayoutDescriptor(ch.td)
 
 	lh := valueobject.NewLayoutHandler()
@@ -131,7 +131,13 @@ func (ch *render) resolveTemplate(p *pageState) (template.Template, bool, error)
 		return nil, false, err
 	}
 
-	return ch.templateExecutor.LookupLayout(names)
+	d.Baseof = true
+	bnames, err := lh.For(d)
+	if err != nil {
+		return nil, false, err
+	}
+
+	return ch.templateExecutor.LookupLayout(valueobject.NewLayoutLooker(names, bnames))
 }
 
 func (ch *render) errorCollator(results <-chan error, errs chan<- error) {

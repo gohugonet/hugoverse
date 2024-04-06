@@ -4,88 +4,88 @@ import (
 	"github.com/gohugonet/hugoverse/internal/domain/template"
 	"github.com/gohugonet/hugoverse/internal/domain/template/entity"
 	"github.com/gohugonet/hugoverse/internal/domain/template/valueobject"
-	"github.com/spf13/afero"
+	htmltemplate "github.com/gohugonet/hugoverse/pkg/template/htmltemplate"
+	texttemplate "github.com/gohugonet/hugoverse/pkg/template/texttemplate"
 	"reflect"
 )
 
-func NewTemplateExec(layout afero.Fs) (*entity.TemplateExec, error) {
-	exec, funcs := newTemplateExecutor()
+func New(fs template.Fs) (template.Template, error) {
+	exec, funcs := newExecutor()
 	funcMap := make(map[string]any)
 	for k, v := range funcs {
 		funcMap[k] = v.Interface()
 	}
 
-	h := &entity.TemplateHandler{
-		Main:     newTemplateNamespace(funcMap),
-		LayoutFs: layout,
+	t := &entity.Template{
+		Executor: &entity.Executor{
+			Executor: exec,
+		},
+		Lookup: &entity.Lookup{
+			Baseof:      make(map[string]valueobject.Info),
+			NeedsBaseof: make(map[string]valueobject.Info),
+		},
+		Ast: &entity.AstTransformer{
+			TransformNotFound: make(map[string]*valueobject.State),
+		},
+
+		Main: newNamespace(funcMap),
+		Fs:   fs,
 	}
 
-	if err := h.LoadTemplates(); err != nil {
+	if err := t.LoadTemplates(); err != nil {
 		return nil, err
 	}
 
-	e := &entity.TemplateExec{
-		Executor:        exec,
-		Funcs:           funcs,
-		TemplateHandler: h,
+	if err := t.PostTransform(); err != nil {
+		return nil, err
 	}
 
-	return e, nil
-}
-
-func newTemplateNamespace(funcs map[string]any) *entity.TemplateNamespace {
-	return &entity.TemplateNamespace{
-		PrototypeHTML: newHtmlTemplate("").Funcs(funcs),
-		PrototypeText: newTextTemplate("").Funcs(funcs),
-		TemplateStateMap: &entity.TemplateStateMap{
-			Templates: make(map[string]*entity.TemplateState),
-		},
+	if err := t.Main.MarkReady(); err != nil {
+		return nil, err
 	}
+	t.Lookup.Main = t.Main
+
+	return t, nil
 }
 
-// New allocates a new HTML template with the given name.
-func newHtmlTemplate(name string) *entity.HtmlTemplate {
-	tmpl := &entity.HtmlTemplate{
-		Text:      newTextTemplate(name),
-		NameSpace: &entity.NameSpace{Set: map[string]*entity.HtmlTemplate{}},
-	}
-	tmpl.Set[name] = tmpl
-	return tmpl
-}
+func newExecutor() (texttemplate.Executor, map[string]reflect.Value) {
+	funcs := createFuncMap()
+	funcsv := make(map[string]reflect.Value)
 
-// New allocates a new, undefined template with the given name.
-func newTextTemplate(name string) *entity.TextTemplate {
-	t := &entity.TextTemplate{
-		Name: name,
-	}
-	t = t.New(name)
-
-	return t
-}
-
-func newTemplateExecutor() (template.Executor, map[string]reflect.Value) {
-	functions := createFuncMap()
-	fsv := make(map[string]reflect.Value)
-	for k, v := range functions {
+	for k, v := range funcs {
 		vv := reflect.ValueOf(v)
-		fsv[k] = vv
+		funcsv[k] = vv
 	}
 
-	// Simplify
 	// Duplicate Go's internal funcs here for faster lookups.
-	// Build in functions
-
-	exeHelper := &entity.ExecHelper{
-		Funcs: fsv,
+	for k, v := range htmltemplate.GoFuncs {
+		if _, exists := funcsv[k]; !exists {
+			vv, ok := v.(reflect.Value)
+			if !ok {
+				vv = reflect.ValueOf(v)
+			}
+			funcsv[k] = vv
+		}
 	}
 
-	return &entity.Executor{Helper: exeHelper}, fsv
+	for k, v := range texttemplate.GoFuncs {
+		if _, exists := funcsv[k]; !exists {
+			funcsv[k] = v
+		}
+	}
+
+	cb := &entity.GoTemplateCallback{
+		Funcs: funcsv,
+	}
+
+	return texttemplate.NewExecuter(cb), funcsv
 }
 
 func createFuncMap() map[string]any {
-	funcMap := template.FuncMap{}
+	valueobject.RegisterNamespaces()
 
-	valueobject.SetupRegistry()
+	funcMap := htmltemplate.FuncMap{}
+
 	// Merge the namespace funcs
 	for _, nsf := range valueobject.TemplateFuncsNamespaceRegistry {
 		ns := nsf()
@@ -104,4 +104,14 @@ func createFuncMap() map[string]any {
 	}
 
 	return funcMap
+}
+
+func newNamespace(funcs map[string]any) *entity.Namespace {
+	return &entity.Namespace{
+		PrototypeHTML: htmltemplate.New("").Funcs(funcs),
+		PrototypeText: texttemplate.New("").Funcs(funcs),
+		StateMap: &valueobject.StateMap{
+			Templates: make(map[string]*valueobject.State),
+		},
+	}
 }

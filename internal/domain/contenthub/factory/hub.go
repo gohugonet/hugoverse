@@ -14,7 +14,7 @@ func New(fs contenthub.Fs) (contenthub.ContentHub, error) {
 		return nil, err
 	}
 
-	exec, err := tpFact.NewTemplateExec(fs.LayoutFs())
+	exec, err := tpFact.New(fs)
 	if err != nil {
 		return nil, err
 	}

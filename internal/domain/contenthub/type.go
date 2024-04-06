@@ -42,9 +42,10 @@ type Fs interface {
 }
 
 type TemplateExecutor interface {
-	ExecuteWithContext(ctx context.Context, tmpl template.Template, wr io.Writer, data any) error
-	LookupLayout(layoutNames []string) (template.Template, bool, error)
+	ExecuteWithContext(ctx context.Context, tmpl template.Preparer, wr io.Writer, data any) error
+	LookupLayout(d template.LayoutDescriptor) (template.Preparer, bool, error)
 }
+
 type ContentConvertProvider interface {
 	GetContentConvertProvider(name string) ConverterProvider
 }

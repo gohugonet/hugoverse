@@ -1,89 +1,141 @@
 package entity
 
 import (
-	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/template"
-	"github.com/spf13/afero"
+	"github.com/gohugonet/hugoverse/internal/domain/template/valueobject"
+	htmltemplate "github.com/gohugonet/hugoverse/pkg/template/htmltemplate"
+	texttemplate "github.com/gohugonet/hugoverse/pkg/template/texttemplate"
 	"sync"
 )
 
-type TemplateNamespace struct {
-	PrototypeText *TextTemplate
-	PrototypeHTML *HtmlTemplate
+type Namespace struct {
+	PrototypeText *texttemplate.Template
+	PrototypeHTML *htmltemplate.Template
 
-	*TemplateStateMap
+	readyInit          sync.Once
+	prototypeTextClone *texttemplate.Template
+	prototypeHTMLClone *htmltemplate.Template
+
+	*valueobject.StateMap
 }
 
-func (t *TemplateNamespace) Lookup(name string) (template.Template, bool) {
-	tmpl, found := t.Templates[name]
-	if !found {
-		return nil, false
+func (t *Namespace) parse(info valueobject.Info) (*valueobject.State, error) {
+	t.Mu.Lock()
+	defer t.Mu.Unlock()
+
+	if info.IsText {
+		panic("implement me")
 	}
 
-	return tmpl, found
-}
-
-func (t *TemplateNamespace) parse(info templateInfo) (*TemplateState, error) {
 	prototype := t.PrototypeHTML
 
-	tmpl, err := prototype.New(info.name).Parse(info.template)
+	templ, err := prototype.New(info.Name).Parse(info.Template)
 	if err != nil {
 		return nil, err
 	}
 
-	ts := newTemplateState(tmpl, info)
+	ts := newTemplateState(templ, info, nil)
 
-	t.Templates[info.name] = ts
+	t.Templates[info.Name] = ts
 
 	return ts, nil
 }
 
-func newTemplateState(tmpl template.Template, info templateInfo) *TemplateState {
-	return &TemplateState{
-		info:     info,
-		Template: tmpl,
+func newTemplateState(templ template.Preparer, info valueobject.Info, id template.Identity) *valueobject.State {
+	if id == nil {
+		id = info
+	}
+
+	return &valueobject.State{
+		Info:     info,
+		Typ:      info.ResolveType(),
+		Preparer: templ,
+		PInfo:    valueobject.DefaultParseInfo,
+		Id:       id,
 	}
 }
 
-type TemplateStateMap struct {
-	mu        sync.RWMutex
-	Templates map[string]*TemplateState
+func (t *Namespace) newTemplateLookup(in *valueobject.State) func(name string) *valueobject.State {
+	return func(name string) *valueobject.State {
+		if templ, found := t.Templates[name]; found {
+			if templ.IsText() != in.IsText() {
+				return nil
+			}
+			return templ
+		}
+		if templ, found := findTemplateIn(name, in); found {
+			return newTemplateState(templ, valueobject.Info{Name: templ.Name()}, nil)
+		}
+		return nil
+	}
 }
 
-type TemplateState struct {
-	template.Template
-
-	parseInfo ParseInfo
-
-	info templateInfo
+func findTemplateIn(name string, in template.Preparer) (template.Preparer, bool) {
+	in = unwrap(in)
+	if text, ok := in.(*texttemplate.Template); ok {
+		if templ := text.Lookup(name); templ != nil {
+			return templ, true
+		}
+		return nil, false
+	}
+	if templ := in.(*htmltemplate.Template).Lookup(name); templ != nil {
+		return templ, true
+	}
+	return nil, false
 }
 
-type templateInfo struct {
-	name     string
-	template string
-
-	// Used to create some error context in error situations
-	fs afero.Fs
-
-	// The filename relative to the fs above.
-	filename string
+func unwrap(templ template.Preparer) template.Preparer {
+	if ts, ok := templ.(*valueobject.State); ok {
+		return ts.Preparer
+	}
+	return templ
 }
 
-func (t templateInfo) errWithFileContext(what string, err error) error {
-	return fmt.Errorf(what+": %w", err)
+func (t *Namespace) add(tmpl template.Preparer, state *valueobject.State) error {
+	t.Mu.RLock()
+	_, found := t.Templates[tmpl.Name()]
+	t.Mu.RUnlock()
+
+	if !found {
+		t.Mu.Lock()
+		// This is a template defined inline.
+		_, err := valueobject.ApplyTemplateTransformers(state, t.newTemplateLookup(state))
+		if err != nil {
+			t.Mu.Unlock()
+			return err
+		}
+		t.Templates[tmpl.Name()] = state
+		t.Mu.Unlock()
+	}
+
+	return nil
 }
 
-type ParseInfo struct {
-	// Set for shortcode Templates with any {{ .Inner }}
-	IsInner bool
+func (t *Namespace) Lookup(name string) (template.Preparer, bool) {
+	t.Mu.RLock()
+	defer t.Mu.RUnlock()
 
-	// Set for partials with a return statement.
-	HasReturn bool
+	templ, found := t.Templates[name]
+	if !found {
+		return nil, false
+	}
 
-	// Config extracted from template.
-	Config ParseConfig
+	return templ, found
 }
 
-type ParseConfig struct {
-	Version int
+func (t *Namespace) MarkReady() error {
+	var err error
+	t.readyInit.Do(func() {
+		// We only need the clones if base templates are in use.
+		err = t.createPrototypes()
+	})
+
+	return err
+}
+
+func (t *Namespace) createPrototypes() error {
+	t.prototypeTextClone = texttemplate.Must(t.PrototypeText.Clone())
+	t.prototypeHTMLClone = htmltemplate.Must(t.PrototypeHTML.Clone())
+
+	return nil
 }
