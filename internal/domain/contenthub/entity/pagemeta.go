@@ -3,6 +3,7 @@ package entity
 import (
 	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
+	"github.com/gohugonet/hugoverse/pkg/markup/converter"
 	"sync"
 )
 
@@ -87,7 +88,7 @@ func (p *pageMeta) newContentConverter(ps *pageState, markup string) (contenthub
 	}
 
 	cpp, err := cp.New(
-		contenthub.DocumentContext{
+		converter.DocumentContext{
 			Document:     nil, //TODO
 			DocumentID:   id,
 			DocumentName: path,

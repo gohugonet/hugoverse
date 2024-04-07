@@ -5,6 +5,8 @@ import (
 	"context"
 	fsVO "github.com/gohugonet/hugoverse/internal/domain/fs/valueobject"
 	"github.com/gohugonet/hugoverse/internal/domain/template"
+	"github.com/gohugonet/hugoverse/pkg/markup/converter"
+	"github.com/gohugonet/hugoverse/pkg/markup/tableofcontents"
 	"github.com/spf13/afero"
 	"io"
 )
@@ -56,7 +58,7 @@ type ConverterRegistry interface {
 
 // ConverterProvider creates converters.
 type ConverterProvider interface {
-	New(ctx DocumentContext) (Converter, error)
+	New(ctx converter.DocumentContext) (Converter, error)
 	Name() string
 }
 
@@ -65,35 +67,21 @@ type ProviderProvider interface {
 	New() (ConverterProvider, error)
 }
 
-// DocumentContext holds contextual information about the document to convert.
-type DocumentContext struct {
-	Document     any // May be nil. Usually a page.Page
-	DocumentID   string
-	DocumentName string
-	Filename     string
-}
-
 // Converter wraps the Convert method that converts some markup into
 // another format, e.g. Markdown to HTML.
 type Converter interface {
-	Convert(ctx RenderContext) (Result, error)
-}
-
-// RenderContext holds contextual information about the content to render.
-type RenderContext struct {
-	// Src is the content to render.
-	Src []byte
-
-	// Whether to render TableOfContents.
-	RenderTOC bool
-
-	// GerRenderer provides hook renderers on demand.
-	//GetRenderer hooks.GetRendererFunc
+	Convert(ctx converter.RenderContext) (Result, error)
 }
 
 // Result represents the minimum returned from Convert.
 type Result interface {
 	Bytes() []byte
+}
+
+// ResultParse represents the minimum returned from Parse.
+type ResultParse interface {
+	Doc() any
+	TableOfContents() *tableofcontents.Fragments
 }
 
 // ContentProvider provides the content related values for a Page.

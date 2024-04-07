@@ -5,9 +5,12 @@ import (
 	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
 	"github.com/gohugonet/hugoverse/pkg/lazy"
+	"github.com/gohugonet/hugoverse/pkg/markup/converter"
+	"github.com/gohugonet/hugoverse/pkg/markup/converter/hooks"
 	"html/template"
 	"runtime/debug"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -15,7 +18,8 @@ func newPageContentOutput(p *pageState) (*pageContentOutput, error) {
 	parent := p.init
 
 	cp := &pageContentOutput{
-		p: p,
+		p:           p,
+		renderHooks: &renderHooks{},
 	}
 
 	initContent := func() (err error) {
@@ -24,7 +28,7 @@ func newPageContentOutput(p *pageState) (*pageContentOutput, error) {
 			return nil
 		}
 		defer func() {
-			// See https://github.com/gohugoio/hugo/issues/6210
+			// See https://github.com/gohugonet/hugoverse/pkgissues/6210
 			if r := recover(); r != nil {
 				err = fmt.Errorf("%s", r)
 				fmt.Printf("[BUG] Got panic:\n%s\n%s", r, string(debug.Stack()))
@@ -80,11 +84,38 @@ type pageContentOutput struct {
 
 	plainWords []string
 	plain      string
+
+	// Renders Markdown hooks.
+	renderHooks *renderHooks
+}
+
+type renderHooks struct {
+	getRenderer hooks.GetRendererFunc
+	init        sync.Once
 }
 
 func (cp *pageContentOutput) renderContent(content []byte, renderTOC bool) (contenthub.Result, error) {
+	if err := cp.initRenderHooks(); err != nil {
+		return nil, err
+	}
+
 	c := cp.p.getContentConverter()
 	return cp.renderContentWithConverter(c, content, renderTOC)
+}
+
+func (cp *pageContentOutput) initRenderHooks() error {
+	if cp == nil {
+		return nil
+	}
+
+	cp.renderHooks.init.Do(func() {
+		cp.renderHooks.getRenderer = func(tp hooks.RendererType, id any) any {
+			// TODO customize rendering with template
+			return nil
+		}
+	})
+
+	return nil
 }
 
 func (cp *pageContentOutput) renderContentWithConverter(
@@ -93,9 +124,11 @@ func (cp *pageContentOutput) renderContentWithConverter(
 	fmt.Println("renderContentWithConverter", string(content), renderTOC)
 
 	r, err := c.Convert(
-		contenthub.RenderContext{
-			Src:       content,
-			RenderTOC: renderTOC,
+		converter.RenderContext{
+			Ctx:         context.Background(),
+			Src:         content,
+			RenderTOC:   renderTOC,
+			GetRenderer: cp.renderHooks.getRenderer,
 		})
 
 	return r, err

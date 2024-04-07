@@ -100,7 +100,7 @@ func (t *Lookup) applyBaseTemplate(overlay, base valueobject.Info) (template.Pre
 
 	// The extra lookup is a workaround, see
 	// * https://github.com/golang/go/issues/16101
-	// * https://github.com/gohugoio/hugo/issues/2549
+	// * https://github.com/gohugonet/hugoverse/pkgissues/2549
 	templ = templ.Lookup(templ.Name())
 
 	return templ, err

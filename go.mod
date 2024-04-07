@@ -11,6 +11,7 @@ require (
 require (
 	github.com/BurntSushi/toml v1.3.2 // indirect
 	github.com/RoaringBitmap/roaring v0.4.23 // indirect
+	github.com/alecthomas/chroma/v2 v2.13.0 // indirect
 	github.com/bep/clocks v0.5.0 // indirect
 	github.com/bep/godartsass v1.2.0 // indirect
 	github.com/bep/godartsass/v2 v2.0.0 // indirect
@@ -27,6 +28,7 @@ require (
 	github.com/bradfitz/gomemcache v0.0.0-20230905024940-24af94b03874 // indirect
 	github.com/cli/safeexec v1.0.1 // indirect
 	github.com/couchbase/vellum v1.0.2 // indirect
+	github.com/dlclark/regexp2 v1.11.0 // indirect
 	github.com/glycerine/go-unsnap-stream v0.0.0-20181221182339-f9677308dec2 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
@@ -49,6 +51,7 @@ require (
 	github.com/tinylib/msgp v1.1.0 // indirect
 	github.com/willf/bitset v1.1.10 // indirect
 	github.com/yuin/goldmark v1.7.0 // indirect
+	github.com/yuin/goldmark-emoji v1.0.2 // indirect
 	go.etcd.io/bbolt v1.3.9 // indirect
 	golang.org/x/crypto v0.21.0 // indirect
 	golang.org/x/sync v0.6.0 // indirect
