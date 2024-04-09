@@ -2,14 +2,16 @@ package entity
 
 import "github.com/gohugonet/hugoverse/internal/domain/template/valueobject"
 
+type templateLookupFunc func(in *valueobject.State) func(name string) *valueobject.State
+
 type AstTransformer struct {
 	// Holds name and source of template definitions not found during the first
 	// AST transformation pass.
 	TransformNotFound map[string]*valueobject.State
 }
 
-func (t *AstTransformer) applyTemplateTransformers(ns *Namespace, ts *valueobject.State) (*valueobject.Context, error) {
-	c, err := valueobject.ApplyTemplateTransformers(ts, ns.newTemplateLookup(ts))
+func (t *AstTransformer) applyTemplateTransformers(lookup templateLookupFunc, ts *valueobject.State) (*Context, error) {
+	c, err := ApplyTemplateTransformers(ts, lookup(ts))
 	if err != nil {
 		return nil, err
 	}
@@ -21,12 +23,12 @@ func (t *AstTransformer) applyTemplateTransformers(ns *Namespace, ts *valueobjec
 	return c, err
 }
 
-func (t *AstTransformer) post(ns *Namespace) error {
+func (t *AstTransformer) post(lu templateLookupFunc) error {
 	for name, source := range t.TransformNotFound {
-		lookup := ns.newTemplateLookup(source)
+		lookup := lu(source)
 		templ := lookup(name)
 		if templ != nil {
-			_, err := valueobject.ApplyTemplateTransformers(templ, lookup)
+			_, err := ApplyTemplateTransformers(templ, lookup)
 			if err != nil {
 				return err
 			}

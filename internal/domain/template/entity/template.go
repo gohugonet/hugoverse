@@ -7,32 +7,23 @@ import (
 	"github.com/gohugonet/hugoverse/internal/domain/template"
 	"github.com/gohugonet/hugoverse/internal/domain/template/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/herrors"
-	htmltemplate "github.com/gohugonet/hugoverse/pkg/template/htmltemplate"
 	texttemplate "github.com/gohugonet/hugoverse/pkg/template/texttemplate"
-	"io"
 	"path/filepath"
-	"regexp"
 	"strings"
-	"unicode"
-	"unicode/utf8"
-)
-
-const (
-	baseFileBase = "baseof"
 )
 
 type Template struct {
 	*Executor
 	*Lookup
 
-	Ast *AstTransformer
+	Parser *Parser
 
 	Main *Namespace
 	Fs   template.Fs
 }
 
 func (t *Template) LookupLayout(d template.LayoutDescriptor) (template.Preparer, bool, error) {
-	p, found, err := t.Lookup.lookupLayout(d)
+	p, found, err := t.Lookup.lookupLayout(d, t.Main)
 	if err != nil {
 		return nil, false, err
 	}
@@ -41,17 +32,19 @@ func (t *Template) LookupLayout(d template.LayoutDescriptor) (template.Preparer,
 		return p, true, nil
 	}
 
-	ts, found, err := t.Lookup.findLayout(d)
+	overlay, base, found := t.Lookup.findLayoutInfo(d)
 	if found {
-		_, err = t.Ast.applyTemplateTransformers(t.Main, ts)
-		if err != nil {
-			fmt.Printf("LookupLayout 3 %+v, %v, %v--- ", ts, err, found)
-		}
+		ts, found, err := t.Parser.ParseOverlap(overlay, base)
+		if found {
+			if err = t.Parser.Transform(t.Main, ts); err != nil {
+				fmt.Printf("LookupLayout 3 %+v, %v, %v--- ", ts, err, found)
+			}
 
-		if err := t.extractPartials(ts.Preparer); err != nil {
-			return nil, false, err
+			if err := t.extractPartials(ts.Preparer); err != nil {
+				return nil, false, err
+			}
+			return ts.Preparer, found, nil
 		}
-		return ts.Preparer, found, nil
 	}
 
 	return nil, false, nil
@@ -91,59 +84,33 @@ func (t *Template) LoadTemplates() error {
 }
 
 func (t *Template) addTemplateFile(name string, fim fsVO.FileMetaInfo) error {
-	getTemplate := func(fim fsVO.FileMetaInfo) (valueobject.Info, error) {
-		meta := fim.Meta()
-		f, err := meta.Open()
-		if err != nil {
-			return valueobject.Info{Meta: meta}, err
-		}
-		defer f.Close()
-		b, err := io.ReadAll(f)
-		if err != nil {
-			return valueobject.Info{Meta: meta}, err
-		}
-
-		s := removeLeadingBOM(string(b))
-
-		return valueobject.Info{
-			Name:     name,
-			IsText:   false,
-			Template: s,
-			Meta:     meta,
-		}, nil
-	}
-
-	tinfo, err := getTemplate(fim)
+	tinfo, err := valueobject.LoadTemplate(name, fim)
 	if err != nil {
 		return err
 	}
 
-	if isBaseTemplatePath(name) {
-		// Store it for later.
-		t.Lookup.Baseof[name] = tinfo
+	if t.Lookup.BaseOf.IsBaseTemplatePath(name) {
+		t.Lookup.BaseOf.AddBaseOf(name, tinfo)
 		return nil
 	}
 
-	needsBaseof := !noBaseNeeded(name) && needsBaseTemplate(tinfo.Template)
-	if needsBaseof {
-		t.Lookup.NeedsBaseof[name] = tinfo
+	if t.Lookup.BaseOf.NeedsBaseOf(name, tinfo.Template) {
+		t.Lookup.BaseOf.AddNeedsBaseOf(name, tinfo)
 		return nil
 	}
 
-	state, err := t.addTemplateTo(tinfo, t.Main)
+	state, err := t.Parser.Parse(tinfo)
 	if err != nil {
 		return tinfo.ErrWithFileContext("parse failed", err)
 	}
-	_, err = t.Ast.applyTemplateTransformers(t.Main, state)
-	if err != nil {
+
+	t.Main.addTemplate(tinfo.Name, state)
+
+	if err := t.Parser.Transform(t.Main, state); err != nil {
 		fmt.Println(tinfo.ErrWithFileContext("ast transform parse failed", err))
 	}
 
 	return nil
-}
-
-func (t *Template) addTemplateTo(info valueobject.Info, to *Namespace) (*valueobject.State, error) {
-	return to.parse(info)
 }
 
 func isDotFile(path string) bool {
@@ -152,74 +119,6 @@ func isDotFile(path string) bool {
 
 func isBackupFile(path string) bool {
 	return path[len(path)-1] == '~'
-}
-
-func removeLeadingBOM(s string) string {
-	const bom = '\ufeff'
-
-	for i, r := range s {
-		if i == 0 && r != bom {
-			return s
-		}
-		if i > 0 {
-			return s[i:]
-		}
-	}
-
-	return s
-}
-
-func isBaseTemplatePath(path string) bool {
-	return strings.Contains(filepath.Base(path), baseFileBase)
-}
-
-func noBaseNeeded(name string) bool {
-	if strings.HasPrefix(name, "shortcodes/") || strings.HasPrefix(name, "partials/") {
-		return true
-	}
-	return strings.Contains(name, "_markup/")
-}
-
-var baseTemplateDefineRe = regexp.MustCompile(`^{{-?\s*define`)
-
-// needsBaseTemplate returns true if the first non-comment template block is a
-// define block.
-// If a base template does not exist, we will handle that when it's used.
-func needsBaseTemplate(templ string) bool {
-	idx := -1
-	inComment := false
-	for i := 0; i < len(templ); {
-		if !inComment && strings.HasPrefix(templ[i:], "{{/*") {
-			inComment = true
-			i += 4
-		} else if !inComment && strings.HasPrefix(templ[i:], "{{- /*") {
-			inComment = true
-			i += 6
-		} else if inComment && strings.HasPrefix(templ[i:], "*/}}") {
-			inComment = false
-			i += 4
-		} else if inComment && strings.HasPrefix(templ[i:], "*/ -}}") {
-			inComment = false
-			i += 6
-		} else {
-			r, size := utf8.DecodeRuneInString(templ[i:])
-			if !inComment {
-				if strings.HasPrefix(templ[i:], "{{") {
-					idx = i
-					break
-				} else if !unicode.IsSpace(r) {
-					break
-				}
-			}
-			i += size
-		}
-	}
-
-	if idx == -1 {
-		return false
-	}
-
-	return baseTemplateDefineRe.MatchString(templ[idx:])
 }
 
 func (t *Template) PostTransform() error {
@@ -253,7 +152,7 @@ func (t *Template) PostTransform() error {
 		}
 	}
 
-	if err := t.Ast.post(t.Main); err != nil {
+	if err := t.Parser.Ast.post(t.Main.newTemplateLookup); err != nil {
 		return err
 	}
 
@@ -266,37 +165,12 @@ func isText(templ template.Preparer) bool {
 }
 
 func (t *Template) extractPartials(templ template.Preparer) error {
-	templs := templates(templ)
-	for _, tmpl := range templs {
-		if tmpl.Name() == "" || !strings.HasPrefix(tmpl.Name(), "partials/") {
-			continue
-		}
-
-		ts := newTemplateState(tmpl, valueobject.Info{Name: tmpl.Name()}, nil)
-		ts.Typ = template.TypePartial
-
-		if err := t.Main.add(tmpl, ts); err != nil {
+	partials := t.Main.getUnregisteredPartials(templ)
+	for _, p := range partials {
+		if err := t.Parser.Transform(t.Main, p); err != nil {
 			return err
 		}
+		t.Main.addTemplate(p.Name(), p)
 	}
-
 	return nil
-}
-
-func templates(in template.Preparer) []template.Preparer {
-	var templs []template.Preparer
-	in = unwrap(in)
-	if textt, ok := in.(*texttemplate.Template); ok {
-		for _, t := range textt.Templates() {
-			templs = append(templs, t)
-		}
-	}
-
-	if htmlt, ok := in.(*htmltemplate.Template); ok {
-		for _, t := range htmlt.Templates() {
-			templs = append(templs, t)
-		}
-	}
-
-	return templs
 }

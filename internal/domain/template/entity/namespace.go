@@ -5,54 +5,25 @@ import (
 	"github.com/gohugonet/hugoverse/internal/domain/template/valueobject"
 	htmltemplate "github.com/gohugonet/hugoverse/pkg/template/htmltemplate"
 	texttemplate "github.com/gohugonet/hugoverse/pkg/template/texttemplate"
-	"sync"
+	"strings"
 )
 
 type Namespace struct {
-	PrototypeText *texttemplate.Template
-	PrototypeHTML *htmltemplate.Template
-
-	readyInit          sync.Once
-	prototypeTextClone *texttemplate.Template
-	prototypeHTMLClone *htmltemplate.Template
-
 	*valueobject.StateMap
 }
 
-func (t *Namespace) parse(info valueobject.Info) (*valueobject.State, error) {
+func (t *Namespace) addTemplate(name string, state *valueobject.State) {
 	t.Mu.Lock()
 	defer t.Mu.Unlock()
 
-	if info.IsText {
-		panic("implement me")
-	}
-
-	prototype := t.PrototypeHTML
-
-	templ, err := prototype.New(info.Name).Parse(info.Template)
-	if err != nil {
-		return nil, err
-	}
-
-	ts := newTemplateState(templ, info, nil)
-
-	t.Templates[info.Name] = ts
-
-	return ts, nil
+	t.Templates[name] = state
 }
 
-func newTemplateState(templ template.Preparer, info valueobject.Info, id template.Identity) *valueobject.State {
-	if id == nil {
-		id = info
-	}
-
-	return &valueobject.State{
-		Info:     info,
-		Typ:      info.ResolveType(),
-		Preparer: templ,
-		PInfo:    valueobject.DefaultParseInfo,
-		Id:       id,
-	}
+func (t *Namespace) findTemplate(name string) (*valueobject.State, bool) {
+	t.Mu.RLock()
+	defer t.Mu.RUnlock()
+	state, found := t.Templates[name]
+	return state, found
 }
 
 func (t *Namespace) newTemplateLookup(in *valueobject.State) func(name string) *valueobject.State {
@@ -64,7 +35,7 @@ func (t *Namespace) newTemplateLookup(in *valueobject.State) func(name string) *
 			return templ
 		}
 		if templ, found := findTemplateIn(name, in); found {
-			return newTemplateState(templ, valueobject.Info{Name: templ.Name()}, nil)
+			return valueobject.NewTemplateState(templ, valueobject.TemplateInfo{Name: templ.Name()}, nil)
 		}
 		return nil
 	}
@@ -84,33 +55,6 @@ func findTemplateIn(name string, in template.Preparer) (template.Preparer, bool)
 	return nil, false
 }
 
-func unwrap(templ template.Preparer) template.Preparer {
-	if ts, ok := templ.(*valueobject.State); ok {
-		return ts.Preparer
-	}
-	return templ
-}
-
-func (t *Namespace) add(tmpl template.Preparer, state *valueobject.State) error {
-	t.Mu.RLock()
-	_, found := t.Templates[tmpl.Name()]
-	t.Mu.RUnlock()
-
-	if !found {
-		t.Mu.Lock()
-		// This is a template defined inline.
-		_, err := valueobject.ApplyTemplateTransformers(state, t.newTemplateLookup(state))
-		if err != nil {
-			t.Mu.Unlock()
-			return err
-		}
-		t.Templates[tmpl.Name()] = state
-		t.Mu.Unlock()
-	}
-
-	return nil
-}
-
 func (t *Namespace) Lookup(name string) (template.Preparer, bool) {
 	t.Mu.RLock()
 	defer t.Mu.RUnlock()
@@ -123,19 +67,41 @@ func (t *Namespace) Lookup(name string) (template.Preparer, bool) {
 	return templ, found
 }
 
-func (t *Namespace) MarkReady() error {
-	var err error
-	t.readyInit.Do(func() {
-		// We only need the clones if base templates are in use.
-		err = t.createPrototypes()
-	})
+func (t *Namespace) getUnregisteredPartials(templ template.Preparer) []*valueobject.State {
+	var partials []*valueobject.State
 
-	return err
+	templs := templates(templ)
+	for _, tmpl := range templs {
+		if tmpl.Name() == "" || !strings.HasPrefix(tmpl.Name(), "partials/") {
+			continue
+		}
+
+		_, found := t.findTemplate(tmpl.Name())
+		if !found {
+			ts := valueobject.NewTemplateState(tmpl, valueobject.TemplateInfo{Name: tmpl.Name()}, nil)
+			ts.Typ = template.TypePartial
+
+			partials = append(partials, ts)
+		}
+	}
+
+	return partials
 }
 
-func (t *Namespace) createPrototypes() error {
-	t.prototypeTextClone = texttemplate.Must(t.PrototypeText.Clone())
-	t.prototypeHTMLClone = htmltemplate.Must(t.PrototypeHTML.Clone())
+func templates(in template.Preparer) []template.Preparer {
+	var templs []template.Preparer
+	in = unwrap(in)
+	if textt, ok := in.(*texttemplate.Template); ok {
+		for _, t := range textt.Templates() {
+			templs = append(templs, t)
+		}
+	}
 
-	return nil
+	if htmlt, ok := in.(*htmltemplate.Template); ok {
+		for _, t := range htmlt.Templates() {
+			templs = append(templs, t)
+		}
+	}
+
+	return templs
 }

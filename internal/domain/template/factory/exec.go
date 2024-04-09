@@ -21,14 +21,17 @@ func New(fs template.Fs) (template.Template, error) {
 			Executor: exec,
 		},
 		Lookup: &entity.Lookup{
-			Baseof:      make(map[string]valueobject.Info),
-			NeedsBaseof: make(map[string]valueobject.Info),
+			BaseOf: valueobject.NewBaseOf(),
 		},
-		Ast: &entity.AstTransformer{
-			TransformNotFound: make(map[string]*valueobject.State),
+		Parser: &entity.Parser{
+			PrototypeHTML: htmltemplate.New("").Funcs(funcMap),
+			PrototypeText: texttemplate.New("").Funcs(funcMap),
+			Ast: &entity.AstTransformer{
+				TransformNotFound: make(map[string]*valueobject.State),
+			},
 		},
 
-		Main: newNamespace(funcMap),
+		Main: newNamespace(),
 		Fs:   fs,
 	}
 
@@ -40,10 +43,9 @@ func New(fs template.Fs) (template.Template, error) {
 		return nil, err
 	}
 
-	if err := t.Main.MarkReady(); err != nil {
+	if err := t.Parser.MarkReady(); err != nil {
 		return nil, err
 	}
-	t.Lookup.Main = t.Main
 
 	return t, nil
 }
@@ -106,10 +108,8 @@ func createFuncMap() map[string]any {
 	return funcMap
 }
 
-func newNamespace(funcs map[string]any) *entity.Namespace {
+func newNamespace() *entity.Namespace {
 	return &entity.Namespace{
-		PrototypeHTML: htmltemplate.New("").Funcs(funcs),
-		PrototypeText: texttemplate.New("").Funcs(funcs),
 		StateMap: &valueobject.StateMap{
 			Templates: make(map[string]*valueobject.State),
 		},

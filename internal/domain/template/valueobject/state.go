@@ -18,8 +18,22 @@ type State struct {
 	PInfo ParseInfo
 	Id    template.Identity
 
-	Info     Info
-	BaseInfo Info // Set when a base template is used.
+	Info     TemplateInfo
+	BaseInfo TemplateInfo // Set when a base template is used.
+}
+
+func NewTemplateState(templ template.Preparer, info TemplateInfo, id template.Identity) *State {
+	if id == nil {
+		id = info
+	}
+
+	return &State{
+		Info:     info,
+		Typ:      info.ResolveType(),
+		Preparer: templ,
+		PInfo:    DefaultParseInfo,
+		Id:       id,
+	}
 }
 
 func (t *State) IsInternalTemplate() bool {

@@ -1,9 +1,10 @@
-package valueobject
+package entity
 
 import (
 	"errors"
 	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/template"
+	"github.com/gohugonet/hugoverse/internal/domain/template/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/maps"
 	htmltemplate "github.com/gohugonet/hugoverse/pkg/template/htmltemplate"
 	texttemplate "github.com/gohugonet/hugoverse/pkg/template/texttemplate"
@@ -14,7 +15,7 @@ import (
 type Context struct {
 	visited          map[string]bool
 	TemplateNotFound map[string]bool
-	lookupFn         func(name string) *State
+	lookupFn         func(name string) *valueobject.State
 
 	// The last error encountered.
 	err error
@@ -22,13 +23,13 @@ type Context struct {
 	// Set when we're done checking for config header.
 	configChecked bool
 
-	t *State
+	t *valueobject.State
 
 	// Store away the return node in partials.
 	returnNode *parse.CommandNode
 }
 
-func newTemplateContext(t *State, lookupFn func(name string) *State) *Context {
+func newTemplateContext(t *valueobject.State, lookupFn func(name string) *valueobject.State) *Context {
 	return &Context{
 		t:                t,
 		lookupFn:         lookupFn,
@@ -38,7 +39,7 @@ func newTemplateContext(t *State, lookupFn func(name string) *State) *Context {
 }
 
 func unwrap(templ template.Preparer) template.Preparer {
-	if ts, ok := templ.(*State); ok {
+	if ts, ok := templ.(*valueobject.State); ok {
 		return ts.Preparer
 	}
 	return templ
@@ -52,7 +53,7 @@ func getParseTree(templ template.Preparer) *parse.Tree {
 	return templ.(*htmltemplate.Template).Tree
 }
 
-func ApplyTemplateTransformers(t *State, lookupFn func(name string) *State) (*Context, error) {
+func ApplyTemplateTransformers(t *valueobject.State, lookupFn func(name string) *valueobject.State) (*Context, error) {
 	if t == nil {
 		return nil, errors.New("expected template, but none provided")
 	}
@@ -124,7 +125,7 @@ func (c *Context) applyTransformationsToNodes(nodes ...parse.Node) {
 	}
 }
 
-func (c Context) getIfNotVisited(name string) *State {
+func (c Context) getIfNotVisited(name string) *valueobject.State {
 	if c.visited[name] {
 		return nil
 	}
