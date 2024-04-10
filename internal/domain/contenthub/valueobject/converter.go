@@ -2,7 +2,7 @@ package valueobject
 
 import (
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
-	"github.com/gohugonet/hugoverse/pkg/markup/converter"
+	"github.com/gohugonet/hugoverse/internal/domain/markdown"
 	"strings"
 )
 
@@ -20,10 +20,10 @@ func (r *ConverterRegistry) Get(name string) contenthub.ConverterProvider {
 
 type ConverterProvider struct {
 	name   string
-	create func(ctx converter.DocumentContext) (contenthub.Converter, error)
+	create func(ctx markdown.DocumentContext) (contenthub.Converter, error)
 }
 
-func (n ConverterProvider) New(ctx converter.DocumentContext) (contenthub.Converter, error) {
+func (n ConverterProvider) New(ctx markdown.DocumentContext) (contenthub.Converter, error) {
 	return n.create(ctx)
 }
 

@@ -4,9 +4,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
+	"github.com/gohugonet/hugoverse/internal/domain/markdown"
 	"github.com/gohugonet/hugoverse/pkg/lazy"
-	"github.com/gohugonet/hugoverse/pkg/markup/converter"
-	"github.com/gohugonet/hugoverse/pkg/markup/converter/hooks"
 	"html/template"
 	"runtime/debug"
 	"strings"
@@ -90,7 +89,7 @@ type pageContentOutput struct {
 }
 
 type renderHooks struct {
-	getRenderer hooks.GetRendererFunc
+	getRenderer markdown.GetRendererFunc
 	init        sync.Once
 }
 
@@ -109,7 +108,7 @@ func (cp *pageContentOutput) initRenderHooks() error {
 	}
 
 	cp.renderHooks.init.Do(func() {
-		cp.renderHooks.getRenderer = func(tp hooks.RendererType, id any) any {
+		cp.renderHooks.getRenderer = func(tp markdown.RendererType, id any) any {
 			// TODO customize rendering with template
 			return nil
 		}
@@ -124,7 +123,7 @@ func (cp *pageContentOutput) renderContentWithConverter(
 	fmt.Println("renderContentWithConverter", string(content), renderTOC)
 
 	r, err := c.Convert(
-		converter.RenderContext{
+		markdown.RenderContext{
 			Ctx:         context.Background(),
 			Src:         content,
 			RenderTOC:   renderTOC,
