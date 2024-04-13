@@ -2,6 +2,7 @@ package valueobject
 
 import (
 	"errors"
+	"github.com/gohugonet/hugoverse/internal/domain/config"
 	"github.com/gohugonet/hugoverse/pkg/maps"
 	"github.com/mitchellh/mapstructure"
 )
@@ -30,7 +31,39 @@ type LanguageConfig struct {
 	Disabled bool
 }
 
-func DecodeLanguageConfig(m map[string]any) (map[string]LanguageConfig, error) {
+func DecodeLanguageConfig(p config.Provider) (map[string]LanguageConfig, error) {
+	var err error
+	m := p.GetStringMap("languages")
+	if len(m) == 1 {
+		// In v0.112.4 we moved this to the language config, but it's very commmon for mono language sites to have this at the top level.
+		var first maps.Params
+		var ok bool
+		for _, v := range m {
+			first, ok = v.(maps.Params)
+			if ok {
+				break
+			}
+		}
+		if first != nil {
+			if _, found := first["languagecode"]; !found {
+				code := p.GetString("languagecode")
+				if code == "" {
+					code = "en-US"
+				}
+				first["languagecode"] = code
+			}
+		}
+	}
+
+	languages, err := decodeLanguageConfig(m)
+	if err != nil {
+		return nil, err
+	}
+
+	return languages, nil
+}
+
+func decodeLanguageConfig(m map[string]any) (map[string]LanguageConfig, error) {
 	m = maps.CleanConfigStringMap(m)
 	var langs map[string]LanguageConfig
 

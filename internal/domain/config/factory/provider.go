@@ -2,6 +2,7 @@ package factory
 
 import (
 	"github.com/gohugonet/hugoverse/internal/domain/config"
+	"github.com/gohugonet/hugoverse/internal/domain/config/entity"
 	"github.com/gohugonet/hugoverse/internal/domain/config/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/loggers"
 	"github.com/gohugonet/hugoverse/pkg/maps"
@@ -43,12 +44,20 @@ func LoadConfig() (config.Config, error) {
 	}
 
 	defer l.deleteMergeStrategies()
-	if err := l.loadConfigMain(); err != nil {
+	p, err := l.loadConfigByDefault()
+	if err != nil {
 		return nil, err
 	}
 
-	c, err := l.loadConfigAggregator()
-	if err != nil {
+	c := &entity.Config{
+		Provider: p,
+
+		Root:     entity.Root{},
+		Module:   entity.Module{},
+		Language: entity.Language{},
+	}
+
+	if err := l.assembleConfig(c); err != nil {
 		return nil, err
 	}
 

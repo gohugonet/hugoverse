@@ -1,5 +1,10 @@
 package valueobject
 
+import (
+	"github.com/gohugonet/hugoverse/internal/domain/config"
+	"github.com/mitchellh/mapstructure"
+)
+
 // RootConfig holds all the top-level configuration options in Hugo
 type RootConfig struct {
 	// The base URL of the site.
@@ -182,9 +187,12 @@ type RootConfig struct {
 	CommonDirs `mapstructure:",squash"`
 }
 
-func (c RootConfig) DefaultTheme() string {
-	if len(c.Theme) > 0 {
-		return c.Theme[0]
+func DecodeRoot(provider config.Provider) (RootConfig, error) {
+	conf := RootConfig{}
+
+	if err := mapstructure.WeakDecode(provider.Get(""), &conf); err != nil {
+		return RootConfig{}, err
 	}
-	return ""
+
+	return conf, nil
 }

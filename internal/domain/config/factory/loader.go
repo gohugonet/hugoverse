@@ -15,7 +15,6 @@ import (
 	xmaps "golang.org/x/exp/maps"
 	"path/filepath"
 	"reflect"
-	"sort"
 )
 
 const noConfigFileErrInfo = "\"Unable to locate config file or config directory. \\n "
@@ -30,14 +29,13 @@ type ConfigLoader struct {
 	Logger loggers.Logger
 }
 
-func (cl *ConfigLoader) loadConfigMain() error {
+func (cl *ConfigLoader) loadConfigByDefault() (config.Provider, error) {
 	filename := cl.SourceDescriptor.Filename()
-	if err := cl.loadConfig(filename); err != nil {
-		fmt.Println(err)
-		return err
+	if err := cl.loadProvider(filename); err != nil {
+		return nil, err
 	}
 	if err := cl.applyDefaultConfig(); err != nil {
-		return err
+		return nil, err
 	}
 	cl.Cfg.SetDefaultMergeStrategy()
 
@@ -47,7 +45,7 @@ func (cl *ConfigLoader) loadConfigMain() error {
 		cl.Cfg.Set("languages", maps.Params{lang: maps.Params{}})
 	}
 
-	return nil
+	return cl.Cfg, nil
 }
 
 func (cl *ConfigLoader) deleteMergeStrategies() {
@@ -57,7 +55,7 @@ func (cl *ConfigLoader) deleteMergeStrategies() {
 	})
 }
 
-func (cl *ConfigLoader) loadConfig(configName string) error {
+func (cl *ConfigLoader) loadProvider(configName string) error {
 	baseDir := cl.BaseDirs.WorkingDir
 	var baseFilename string
 	if filepath.IsAbs(configName) {
@@ -72,7 +70,6 @@ func (cl *ConfigLoader) loadConfig(configName string) error {
 			filename = baseFilename
 		}
 	}
-	fmt.Println(configName, filename, cl.SourceDescriptor.Fs())
 
 	if filename == "" {
 		return errors.New(noConfigFileErrInfo)
@@ -163,17 +160,41 @@ func (cl *ConfigLoader) applyDefaultConfig() error {
 	return nil
 }
 
-func (cl *ConfigLoader) loadConfigAggregator() (*entity.Config, error) {
-	all := &valueobject.BaseConfig{}
-	if err := cl.decodeConfig(cl.Cfg, all, nil); err != nil {
-		return nil, err
-	}
+func (cl *ConfigLoader) assembleConfig(c *entity.Config) error {
+	return cl.decodeConfig(cl.Cfg, c)
+}
 
-	if err := all.CompileConfig(cl.Logger); err != nil {
-		return nil, err
+func (cl *ConfigLoader) decodeConfig(p config.Provider, target *entity.Config) error {
+	r, err := valueobject.DecodeRoot(p)
+	if err != nil {
+		return err
 	}
+	target.Root.RootConfig = r
 
-	langConfigMap := make(map[string]*valueobject.BaseConfig)
+	m, err := valueobject.DecodeModuleConfig(p)
+	if err != nil {
+		return err
+	}
+	target.Module.ModuleConfig = m
+
+	languages, err := valueobject.DecodeLanguageConfig(p)
+	if err != nil {
+		return err
+	}
+	// Validate defaultContentLanguage.
+	var found bool
+	for lang := range languages {
+		if lang == target.DefaultContentLanguage {
+			found = true
+			break
+		}
+	}
+	if !found {
+		return fmt.Errorf("config value %q for defaultContentLanguage does not match any language definition", target.DefaultContentLanguage)
+	}
+	target.Language.Configs = languages
+
+	langConfigMap := make(map[string]valueobject.RootConfig)
 	languagesConfig := cl.Cfg.GetStringMap("languages")
 
 	cfg := cl.Cfg
@@ -232,18 +253,13 @@ func (cl *ConfigLoader) loadConfigAggregator() (*entity.Config, error) {
 			differentRootKeys = helpers.UniqueStringsSorted(differentRootKeys)
 
 			if len(differentRootKeys) == 0 {
-				langConfigMap[k] = all
+				langConfigMap[k] = target.RootConfig
 				continue
 			}
 
-			// Create a copy of the complete config and replace the root keys with the language specific ones.
-			clone := all.CloneForLang()
-
-			if err := cl.decodeConfig(mergedConfig, clone, differentRootKeys); err != nil {
-				return nil, fmt.Errorf("failed to decode config for language %q: %w", k, err)
-			}
-			if err := clone.CompileConfig(cl.Logger); err != nil {
-				return nil, err
+			clone, err := valueobject.DecodeRoot(mergedConfig)
+			if err != nil {
+				return err
 			}
 
 			langConfigMap[k] = clone
@@ -254,54 +270,7 @@ func (cl *ConfigLoader) loadConfigAggregator() (*entity.Config, error) {
 
 		}
 	}
-	cm := &entity.Config{
-		Base:              all,
-		LanguageConfigMap: langConfigMap,
-	}
-
-	fmt.Printf("base: %+v\n", cm.Base)
-	fmt.Printf("LanguageConfigMap en: %+v\n", cm.LanguageConfigMap["en"])
-
-	return cm, nil
-}
-
-func (cl *ConfigLoader) decodeConfig(p config.Provider, target *valueobject.BaseConfig, keys []string) error {
-	var decoderSetups []valueobject.DecodeWeight
-
-	valueobject.LowerDecoderKey()
-	if len(keys) == 0 {
-		for _, v := range valueobject.AllDecoderSetups {
-			decoderSetups = append(decoderSetups, v)
-		}
-	} else {
-		for _, key := range keys {
-			if v, found := valueobject.AllDecoderSetups[key]; found {
-				decoderSetups = append(decoderSetups, v)
-			} else {
-				cl.Logger.Warnf("Skip unknown config key %q", key)
-			}
-		}
-	}
-
-	// Sort them to get the dependency order right.
-	sort.Slice(decoderSetups, func(i, j int) bool {
-		ki, kj := decoderSetups[i], decoderSetups[j]
-		if ki.Weight == kj.Weight {
-			return ki.Key < kj.Key
-		}
-		return ki.Weight < kj.Weight
-	})
-
-	for _, v := range decoderSetups {
-		p := valueobject.DecodeConfig{
-			Provider:   p,
-			BaseConfig: target,
-			Fs:         cl.SourceDescriptor.Fs(),
-		}
-		if err := v.Decode(v, p); err != nil {
-			return fmt.Errorf("failed to decode %q: %w", v.Key, err)
-		}
-	}
+	target.Language.RootConfigs = langConfigMap
 
 	return nil
 }

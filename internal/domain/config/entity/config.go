@@ -1,18 +1,25 @@
 package entity
 
-import "github.com/gohugonet/hugoverse/internal/domain/config/valueobject"
+import (
+	"github.com/gohugonet/hugoverse/internal/domain/config"
+)
 
 type Config struct {
-	Base              *valueobject.BaseConfig
-	LanguageConfigMap map[string]*valueobject.BaseConfig
+	Provider config.Provider
+
+	Root
+	Module
+	Language
 }
 
 func (c *Config) Theme() string {
-	return c.Base.DefaultTheme()
+	return c.Root.DefaultTheme()
 }
+
 func (c *Config) WorkingDir() string {
-	return c.Base.WorkingDir
+	return c.Root.WorkingDir
 }
+
 func (c *Config) PublishDir() string {
-	return c.Base.PublishDir
+	return c.Root.PublishDir
 }
