@@ -1,48 +1,44 @@
 package valueobject
 
-import "github.com/gohugonet/hugoverse/internal/domain/config"
+import (
+	"errors"
+	"github.com/gohugonet/hugoverse/pkg/maps"
+	"github.com/mitchellh/mapstructure"
+)
 
-// Language manages specific-language configuration.
-type Language struct {
-	Lang   string
-	Weight int // for sort
+// LanguageConfig holds the configuration for a single language.
+// This is what is read from the config file.
+type LanguageConfig struct {
+	// The language name, e.g. "English".
+	LanguageName string
 
-	// If set per language, this tells Hugo that all content files without any
-	// language indicator (e.g. my-page.en.md) is in this language.
-	// This is usually a pathspec relative to the working dir, but it can be an
-	// absolute directory reference. It is what we get.
-	// For internal use.
-	ContentDir string
+	// The language code, e.g. "en-US".
+	LanguageCode string
 
-	// Global config.
-	// For internal use.
-	Cfg config.Provider
+	// The language title. When set, this will
+	// override site.Title for this language.
+	Title string
 
-	// Language specific config.
-	// For internal use.
-	LocalCfg config.Provider
+	// The language direction, e.g. "ltr" or "rtl".
+	LanguageDirection string
 
-	// Composite config.
-	// For internal use.
-	config.Provider
+	// The language weight. When set to a non-zero value, this will
+	// be the main sort criteria for the language.
+	Weight int
+
+	// Set to true to disable this language.
+	Disabled bool
 }
 
-func (l *Language) Language() string {
-	return l.Lang
-}
+func DecodeLanguageConfig(m map[string]any) (map[string]LanguageConfig, error) {
+	m = maps.CleanConfigStringMap(m)
+	var langs map[string]LanguageConfig
 
-// Languages is a sortable list of language.
-type Languages []*Language
-
-func (l Languages) Len() int { return len(l) }
-func (l Languages) Less(i, j int) bool {
-	wi, wj := l[i].Weight, l[j].Weight
-
-	if wi == wj {
-		return l[i].Lang < l[j].Lang
+	if err := mapstructure.WeakDecode(m, &langs); err != nil {
+		return nil, err
 	}
-
-	return wj == 0 || wi < wj
+	if len(langs) == 0 {
+		return nil, errors.New("no languages configured")
+	}
+	return langs, nil
 }
-
-func (l Languages) Swap(i, j int) { l[i], l[j] = l[j], l[i] }

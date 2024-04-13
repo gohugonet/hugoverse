@@ -1,82 +1,130 @@
 package valueobject
 
 import (
-	"encoding/json"
-	"errors"
 	"fmt"
-	"github.com/gohugonet/hugoverse/internal/domain/config"
-	"html/template"
-	"reflect"
-	"strconv"
+	"github.com/gohugonet/hugoverse/pkg/maps"
+	"github.com/spf13/cast"
+	xmaps "golang.org/x/exp/maps"
 	"strings"
+	"sync"
 )
 
-// DefaultConfigProvider Provider接口实现对象
+// DefaultConfigProvider is a Provider backed by a map where all keys are lower case.
+// All methods are thread safe.
 type DefaultConfigProvider struct {
-	Root config.Params
+	mu   sync.RWMutex
+	Root maps.Params
+
+	keyCache sync.Map
 }
 
-// Get 按key获取值
-// 约定""键对应的是c.Root
-// 嵌套获取值
 func (c *DefaultConfigProvider) Get(k string) any {
 	if k == "" {
 		return c.Root
 	}
-	key, m := c.getNestedKeyAndMap(strings.ToLower(k))
+	c.mu.RLock()
+	key, m := c.getNestedKeyAndMap(strings.ToLower(k), false)
 	if m == nil {
+		c.mu.RUnlock()
 		return nil
 	}
 	v := m[key]
+	c.mu.RUnlock()
 	return v
+}
+
+func (c *DefaultConfigProvider) GetBool(k string) bool {
+	v := c.Get(k)
+	return cast.ToBool(v)
+}
+
+func (c *DefaultConfigProvider) GetInt(k string) int {
+	v := c.Get(k)
+	return cast.ToInt(v)
+}
+
+func (c *DefaultConfigProvider) IsSet(k string) bool {
+	var found bool
+	c.mu.RLock()
+	key, m := c.getNestedKeyAndMap(strings.ToLower(k), false)
+	if m != nil {
+		_, found = m[key]
+	}
+	c.mu.RUnlock()
+	return found
 }
 
 func (c *DefaultConfigProvider) GetString(k string) string {
 	v := c.Get(k)
-	s, _ := ToStringE(v)
-	return s
+	return cast.ToString(v)
 }
 
-// getNestedKeyAndMap 支持多级查询
-// 通过分隔符"."获取查询路径
-func (c *DefaultConfigProvider) getNestedKeyAndMap(key string) (string, config.Params) {
-	var parts []string
-	parts = strings.Split(key, ".")
-	current := c.Root
-	for i := 0; i < len(parts)-1; i++ {
-		next, found := current[parts[i]]
-		if !found {
-			return "", nil
-		}
-		var ok bool
-		current, ok = next.(config.Params)
-		if !ok {
-			return "", nil
-		}
+func (c *DefaultConfigProvider) GetParams(k string) maps.Params {
+	v := c.Get(k)
+	if v == nil {
+		return nil
 	}
-	return parts[len(parts)-1], current
+	return v.(maps.Params)
 }
 
-// Set 设置键值对
-// 统一key的格式为小写字母
-// 如果传入的值符合Params的要求，通过root进行设置
-// 如果为非Params类型，则直接赋值
+func (c *DefaultConfigProvider) GetStringMap(k string) map[string]any {
+	v := c.Get(k)
+	return maps.ToStringMap(v)
+}
+
+func (c *DefaultConfigProvider) GetStringMapString(k string) map[string]string {
+	v := c.Get(k)
+	return maps.ToStringMapString(v)
+}
+
+func (c *DefaultConfigProvider) GetStringSlice(k string) []string {
+	v := c.Get(k)
+	return cast.ToStringSlice(v)
+}
+
 func (c *DefaultConfigProvider) Set(k string, v any) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
 	k = strings.ToLower(k)
 
-	if p, ok := ToParamsAndPrepare(v); ok {
-		// Set the values directly in Root.
-		SetParams(c.Root, p)
-	} else {
-		c.Root[k] = v
+	if k == "" {
+		if p, err := maps.ToParamsAndPrepare(v); err == nil {
+			// Set the values directly in Root.
+			maps.SetParams(c.Root, p)
+		} else {
+			c.Root[k] = v
+		}
+
+		return
 	}
 
-	return
+	switch vv := v.(type) {
+	case map[string]any, map[any]any, map[string]string:
+		p := maps.MustToParamsAndPrepare(vv)
+		v = p
+	}
+
+	key, m := c.getNestedKeyAndMap(k, true)
+	if m == nil {
+		return
+	}
+
+	if existing, found := m[key]; found {
+		if p1, ok := existing.(maps.Params); ok {
+			if p2, ok := v.(maps.Params); ok {
+				maps.SetParams(p1, p2)
+				return
+			}
+		}
+	}
+
+	m[key] = v
 }
 
 // SetDefaults will set values from params if not already set.
-func (c *DefaultConfigProvider) SetDefaults(params config.Params) {
-	PrepareParams(params)
+func (c *DefaultConfigProvider) SetDefaults(params maps.Params) {
+	maps.PrepareParams(params)
 	for k, v := range params {
 		if _, found := c.Root[k]; !found {
 			c.Root[k] = v
@@ -84,171 +132,204 @@ func (c *DefaultConfigProvider) SetDefaults(params config.Params) {
 	}
 }
 
-func (c *DefaultConfigProvider) IsSet(k string) bool {
-	var found bool
-	key, m := c.getNestedKeyAndMap(strings.ToLower(k))
-	if m != nil {
-		_, found = m[key]
-	}
-	return found
-}
+func (c *DefaultConfigProvider) Merge(k string, v any) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	k = strings.ToLower(k)
 
-// ToParamsAndPrepare converts in to Params and prepares it for use.
-// If in is nil, an empty map is returned.
-// See PrepareParams.
-func ToParamsAndPrepare(in any) (config.Params, bool) {
-	if IsNil(in) {
-		return config.Params{}, true
-	}
-	m, err := ToStringMapE(in)
-	if err != nil {
-		return nil, false
-	}
-	PrepareParams(m)
-	return m, true
-}
-
-// IsNil reports whether v is nil.
-func IsNil(v any) bool {
-	if v == nil {
-		return true
-	}
-
-	value := reflect.ValueOf(v)
-	switch value.Kind() {
-	case reflect.Chan, reflect.Func,
-		reflect.Interface, reflect.Map,
-		reflect.Ptr, reflect.Slice:
-		return value.IsNil()
-	}
-
-	return false
-}
-
-// ToStringMapE converts in to map[string]interface{}.
-func ToStringMapE(in any) (map[string]any, error) {
-	switch vv := in.(type) {
-	case config.Params:
-		return vv, nil
-	case map[string]any:
-		var m = map[string]any{}
-		for k, v := range vv {
-			m[k] = v
+	if k == "" {
+		rs, f := c.Root.GetMergeStrategy()
+		if f && rs == maps.ParamsMergeStrategyNone {
+			// The user has set a "no merge" strategy on this,
+			// nothing more to do.
+			return
 		}
-		return m, nil
 
-	default:
-		return nil, errors.New("value type not supported yet")
-	}
-}
-
-// PrepareParams
-// * makes all the keys lower cased
-// * This will modify the map given.
-// * Any nested map[string]interface{}, map[string]string
-// * will be converted to Params.
-func PrepareParams(m config.Params) {
-	for k, v := range m {
-		var retyped bool
-		lKey := strings.ToLower(k)
-
-		switch vv := v.(type) {
-		case map[string]any:
-			var p config.Params = v.(map[string]any)
-			v = p
-			PrepareParams(p)
-			retyped = true
-		case map[string]string:
-			p := make(config.Params)
-			for k, v := range vv {
-				p[k] = v
+		if p, err := maps.ToParamsAndPrepare(v); err == nil {
+			// As there may be keys in p not in Root, we need to handle
+			// those as a special case.
+			var keysToDelete []string
+			for kk, vv := range p {
+				if pp, ok := vv.(maps.Params); ok {
+					if pppi, ok := c.Root[kk]; ok {
+						ppp := pppi.(maps.Params)
+						maps.MergeParamsWithStrategy("", ppp, pp)
+					} else {
+						// We need to use the default merge strategy for
+						// this key.
+						np := make(maps.Params)
+						strategy := c.determineMergeStrategy(maps.KeyParams{Key: "", Params: c.Root}, maps.KeyParams{Key: kk, Params: np})
+						np.SetMergeStrategy(strategy)
+						maps.MergeParamsWithStrategy("", np, pp)
+						c.Root[kk] = np
+						if np.IsZero() {
+							// Just keep it until merge is done.
+							keysToDelete = append(keysToDelete, kk)
+						}
+					}
+				}
 			}
-			v = p
-			PrepareParams(p)
-			retyped = true
+			// Merge the rest.
+			maps.MergeParams(c.Root, p)
+			for _, k := range keysToDelete {
+				delete(c.Root, k)
+			}
+		} else {
+			panic(fmt.Sprintf("unsupported type %T received in Merge", v))
 		}
 
-		if retyped || k != lKey {
-			delete(m, k)
-			m[lKey] = v
+		return
+	}
+
+	switch vv := v.(type) {
+	case map[string]any, map[any]any, map[string]string:
+		p := maps.MustToParamsAndPrepare(vv)
+		v = p
+	}
+
+	key, m := c.getNestedKeyAndMap(k, true)
+	if m == nil {
+		return
+	}
+
+	if existing, found := m[key]; found {
+		if p1, ok := existing.(maps.Params); ok {
+			if p2, ok := v.(maps.Params); ok {
+				maps.MergeParamsWithStrategy("", p1, p2)
+			}
 		}
+	} else {
+		m[key] = v
 	}
 }
 
-// ToStringE casts an interface to a string type.
-func ToStringE(i interface{}) (string, error) {
-	i = indirectToStringerOrError(i)
+func (c *DefaultConfigProvider) Keys() []string {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return xmaps.Keys(c.Root)
+}
 
-	switch s := i.(type) {
-	case string:
-		return s, nil
-	case bool:
-		return strconv.FormatBool(s), nil
-	case float64:
-		return strconv.FormatFloat(s, 'f', -1, 64), nil
-	case float32:
-		return strconv.FormatFloat(float64(s), 'f', -1, 32), nil
-	case int:
-		return strconv.Itoa(s), nil
-	case int64:
-		return strconv.FormatInt(s, 10), nil
-	case int32:
-		return strconv.Itoa(int(s)), nil
-	case int16:
-		return strconv.FormatInt(int64(s), 10), nil
-	case int8:
-		return strconv.FormatInt(int64(s), 10), nil
-	case uint:
-		return strconv.FormatUint(uint64(s), 10), nil
-	case uint64:
-		return strconv.FormatUint(s, 10), nil
-	case uint32:
-		return strconv.FormatUint(uint64(s), 10), nil
-	case uint16:
-		return strconv.FormatUint(uint64(s), 10), nil
-	case uint8:
-		return strconv.FormatUint(uint64(s), 10), nil
-	case json.Number:
-		return s.String(), nil
-	case []byte:
-		return string(s), nil
-	case template.HTML:
-		return string(s), nil
-	case template.URL:
-		return string(s), nil
-	case template.JS:
-		return string(s), nil
-	case template.CSS:
-		return string(s), nil
-	case template.HTMLAttr:
-		return string(s), nil
-	case nil:
-		return "", nil
-	case fmt.Stringer:
-		return s.String(), nil
-	case error:
-		return s.Error(), nil
+func (c *DefaultConfigProvider) WalkParams(walkFn func(params ...maps.KeyParams) bool) {
+	var walk func(params ...maps.KeyParams)
+	walk = func(params ...maps.KeyParams) {
+		if walkFn(params...) {
+			return
+		}
+		p1 := params[len(params)-1]
+		i := len(params)
+		for k, v := range p1.Params {
+			if p2, ok := v.(maps.Params); ok {
+				paramsplus1 := make([]maps.KeyParams, i+1)
+				copy(paramsplus1, params)
+				paramsplus1[i] = maps.KeyParams{Key: k, Params: p2}
+				walk(paramsplus1...)
+			}
+		}
+	}
+	walk(maps.KeyParams{Key: "", Params: c.Root})
+}
+
+func (c *DefaultConfigProvider) determineMergeStrategy(params ...maps.KeyParams) maps.ParamsMergeStrategy {
+	if len(params) == 0 {
+		return maps.ParamsMergeStrategyNone
+	}
+
+	var (
+		strategy   maps.ParamsMergeStrategy
+		prevIsRoot bool
+		curr       = params[len(params)-1]
+	)
+
+	if len(params) > 1 {
+		prev := params[len(params)-2]
+		prevIsRoot = prev.Key == ""
+
+		// Inherit from parent (but not from the Root unless it's set by user).
+		s, found := prev.Params.GetMergeStrategy()
+		if !prevIsRoot && !found {
+			panic("invalid state, merge strategy not set on parent")
+		}
+		if found || !prevIsRoot {
+			strategy = s
+		}
+	}
+
+	switch curr.Key {
+	case "":
+	// Don't set a merge strategy on the Root unless set by user.
+	// This will be handled as a special case.
+	case "params":
+		strategy = maps.ParamsMergeStrategyDeep
+	case "outputformats", "mediatypes":
+		if prevIsRoot {
+			strategy = maps.ParamsMergeStrategyShallow
+		}
+	case "menus":
+		isMenuKey := prevIsRoot
+		if !isMenuKey {
+			// Can also be set below languages.
+			// Root > languages > en > menus
+			if len(params) == 4 && params[1].Key == "languages" {
+				isMenuKey = true
+			}
+		}
+		if isMenuKey {
+			strategy = maps.ParamsMergeStrategyShallow
+		}
 	default:
-		return "", fmt.Errorf("unable to cast %#v of type %T to string", i, i)
+		if strategy == "" {
+			strategy = maps.ParamsMergeStrategyNone
+		}
 	}
+
+	return strategy
 }
 
-// From html/template/content.go
-// Copyright 2011 The Go Authors. All rights reserved.
-// indirectToStringerOrError returns the value, after dereferencing as many times
-// as necessary to reach the base type (or nil) or an implementation of fmt.Stringer
-// or error,
-func indirectToStringerOrError(a interface{}) interface{} {
-	if a == nil {
-		return nil
-	}
+func (c *DefaultConfigProvider) SetDefaultMergeStrategy() {
+	c.WalkParams(func(params ...maps.KeyParams) bool {
+		if len(params) == 0 {
+			return false
+		}
+		p := params[len(params)-1].Params
+		var found bool
+		if _, found = p.GetMergeStrategy(); found {
+			// Set by user.
+			return false
+		}
+		strategy := c.determineMergeStrategy(params...)
+		if strategy != "" {
+			p.SetMergeStrategy(strategy)
+		}
+		return false
+	})
+}
 
-	var errorType = reflect.TypeOf((*error)(nil)).Elem()
-	var fmtStringerType = reflect.TypeOf((*fmt.Stringer)(nil)).Elem()
-
-	v := reflect.ValueOf(a)
-	for !v.Type().Implements(fmtStringerType) && !v.Type().Implements(errorType) && v.Kind() == reflect.Ptr && !v.IsNil() {
-		v = v.Elem()
+func (c *DefaultConfigProvider) getNestedKeyAndMap(key string, create bool) (string, maps.Params) {
+	var parts []string
+	v, ok := c.keyCache.Load(key)
+	if ok {
+		parts = v.([]string)
+	} else {
+		parts = strings.Split(key, ".")
+		c.keyCache.Store(key, parts)
 	}
-	return v.Interface()
+	current := c.Root
+	for i := 0; i < len(parts)-1; i++ {
+		next, found := current[parts[i]]
+		if !found {
+			if create {
+				next = make(maps.Params)
+				current[parts[i]] = next
+			} else {
+				return "", nil
+			}
+		}
+		var ok bool
+		current, ok = next.(maps.Params)
+		if !ok {
+			// E.g. a string, not a map that we can store values in.
+			return "", nil
+		}
+	}
+	return parts[len(parts)-1], current
 }

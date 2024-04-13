@@ -2,72 +2,55 @@ package factory
 
 import (
 	"github.com/gohugonet/hugoverse/internal/domain/config"
-	"github.com/gohugonet/hugoverse/internal/domain/config/entity"
 	"github.com/gohugonet/hugoverse/internal/domain/config/valueobject"
+	"github.com/gohugonet/hugoverse/pkg/loggers"
+	"github.com/gohugonet/hugoverse/pkg/maps"
+	"github.com/gohugonet/hugoverse/pkg/paths"
+	"github.com/spf13/afero"
+	"os"
 	"path"
+	"path/filepath"
 )
 
-func New() *entity.Config {
-	return &entity.Config{
-		DefaultConfigProvider: valueobject.DefaultConfigProvider{
-			Root: make(config.Params),
-		}}
+const (
+	DefaultThemesDir  = "themes"
+	DefaultPublishDir = "public"
+)
+
+// NewDefaultProvider creates a Provider backed by an empty maps.Params.
+func NewDefaultProvider() config.Provider {
+	return &valueobject.DefaultConfigProvider{
+		Root: make(maps.Params),
+	}
 }
 
-func NewConfigFromPath(projPath string) (config.LanguageProvider, error) {
-	c := &entity.ConfigLoader{
-		Path: path.Join(projPath, "config.toml"),
+func LoadConfig() (config.Config, error) {
+	currentDir, _ := os.Getwd()
+	workingDir := filepath.Clean(currentDir)
+
+	l := &ConfigLoader{
+		SourceDescriptor: &sourceDescriptor{
+			fs:       &afero.OsFs{},
+			filename: path.Join(workingDir, "config.toml"),
+		},
+		Cfg: NewDefaultProvider(),
+		BaseDirs: valueobject.BaseDirs{
+			WorkingDir: workingDir,
+			ThemesDir:  paths.AbsPathify(workingDir, DefaultThemesDir),
+			PublishDir: paths.AbsPathify(workingDir, DefaultPublishDir),
+		},
+		Logger: loggers.NewDefault(),
 	}
 
-	m, err := c.LoadConfigFromDisk()
+	defer l.deleteMergeStrategies()
+	if err := l.loadConfigMain(); err != nil {
+		return nil, err
+	}
+
+	c, err := l.loadConfigAggregator()
 	if err != nil {
 		return nil, err
 	}
 
-	provider := New()
-	provider.SetRoot(m)
-	provider.Set("path", projPath)
-	provider.Set("workingDir", projPath)
-	provider.SetDefault()
-
-	provider.SetLanguages([]config.Language{NewDefaultLanguage(provider)})
-
-	return provider, nil
-}
-
-// NewDefaultLanguage creates the default language for a config.Provider.
-// If not otherwise specified the default is "en".
-func NewDefaultLanguage(cfg config.Provider) *valueobject.Language {
-	defaultLang := cfg.GetString("defaultContentLanguage")
-
-	if defaultLang == "" {
-		defaultLang = "en"
-	}
-
-	return NewLanguage(defaultLang, cfg)
-}
-
-// NewLanguage creates a new language.
-func NewLanguage(lang string, cfg config.Provider) *valueobject.Language {
-	localCfg := New()
-	compositeConfig := NewCompositeConfig(cfg, localCfg)
-
-	l := &valueobject.Language{
-		Lang:       lang,
-		ContentDir: cfg.GetString("contentDir"),
-		Cfg:        cfg,
-		LocalCfg:   localCfg,
-		Provider:   compositeConfig,
-	}
-
-	return l
-}
-
-// NewCompositeConfig creates a new composite Provider with a read-only base
-// and a writeable layer.
-func NewCompositeConfig(base, layer config.Provider) config.Provider {
-	return &valueobject.CompositeConfig{
-		Base:  base,
-		Layer: layer,
-	}
+	return c, nil
 }

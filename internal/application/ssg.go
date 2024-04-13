@@ -9,19 +9,19 @@ import (
 )
 
 func GenerateStaticSite(projPath string) error {
-	c, err := cfFact.NewConfigFromPath(projPath)
+	c, err := cfFact.LoadConfig()
 	if err != nil {
 		return err
 	}
 
-	mods, err := mdFact.New(c.GetString("theme"))
+	mods, err := mdFact.New(c.Theme())
 	if err != nil {
 		return err
 	}
 
 	fs, err := fsFact.New(&fsDir{
-		workingDir: c.GetString("workingDir"),
-		publishDir: c.GetString("publishDir"),
+		workingDir: c.WorkingDir(),
+		publishDir: c.PublishDir(),
 	}, mods)
 
 	ch, err := chFact.New(fs)
