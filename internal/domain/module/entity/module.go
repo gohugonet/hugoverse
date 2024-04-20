@@ -2,68 +2,207 @@ package entity
 
 import (
 	"fmt"
+	"github.com/bep/debounce"
+	"github.com/gohugonet/hugoverse/internal/domain/fs"
 	"github.com/gohugonet/hugoverse/internal/domain/module"
 	"github.com/gohugonet/hugoverse/internal/domain/module/valueobject"
-	"github.com/gohugonet/hugoverse/pkg/log"
+	"github.com/gohugonet/hugoverse/pkg/loggers"
+	"github.com/spf13/afero"
+	"strings"
+	"time"
 )
 
 type Module struct {
-	Theme   string
-	modules []module.Module
-	log     log.Logger
+	Fs            afero.Fs
+	WorkingDir    string
+	ModuleImports []string
+
+	Logger loggers.Logger
+
+	GoClient *valueobject.GoClient
+
+	PathService module.Paths
+	DirService  module.Workspace
+
+	projMod *valueobject.ProjectModule
+	modules []*valueobject.Module
+
+	collector *valueobject.Collector
 }
 
 func (m *Module) Proj() module.Module {
-	return m.modules[0]
+	return m.projMod
 }
 
 func (m *Module) All() []module.Module {
-	return m.modules
-}
-
-func (m *Module) SetupLog() {
-	m.log = log.NewStdLogger()
+	var modules []module.Module
+	for _, mod := range m.modules {
+		modules = append(modules, mod)
+	}
+	return modules
 }
 
 func (m *Module) Load() error {
-	if m.Theme != "" {
-		ms, err := m.loadModules(m.Theme)
-		if err != nil {
-			m.log.Errorf("load modules: %w", err)
-			return err
-		}
-		m.modules = ms
-		return nil
+	defer m.Logger.PrintTimerIfDelayed(time.Now(), "hugoverse: collected modules")
+	d := debounce.New(2 * time.Second)
+	d(func() {
+		m.Logger.Println("hugoverse: downloading modules …")
+	})
+	defer d(func() {})
+
+	m.collector = valueobject.NewCollector(m.GoClient)
+	if err := m.collect(); err != nil {
+		return err
 	}
 
-	m.log.Errorf("empty theme")
-	return fmt.Errorf("empty theme")
+	return nil
 }
 
-func (m *Module) loadModules(theme string) ([]module.Module, error) {
-	// project module config
-	projModuleConfig := module.ModuleConfig{}
-	imports := []string{theme}
-	for _, imp := range imports {
-		projModuleConfig.Imports = append(
-			projModuleConfig.Imports, module.Import{
-				Path: imp,
-			})
+func (m *Module) collect() error {
+	if err := m.collector.CollectGoModules(); err != nil {
+		return err
+	}
+	m.projMod = &valueobject.ProjectModule{
+		Module: &valueobject.Module{
+			Fs:        m.Fs,
+			Dir:       m.WorkingDir,
+			GoModule:  m.collector.GetMain(),
+			Parent:    nil,
+			MountDirs: make([]valueobject.Mount, 0),
+		}}
+	if err := m.applyProjMounts(); err != nil {
+		return err
+	}
+	m.modules = append(m.modules, m.projMod.Module)
+
+	if err := m.addAndRecurse(m.projMod.Module, m.ModuleImports); err != nil {
+		return err
 	}
 
-	mc := valueobject.NewModuleCollector(m.log)
-	// Need to run these after the modules are loaded, but before
-	// they are finalized.
-	collectHook := func(mods []module.Module) {
-		// Apply default project mounts.
-		// Default folder structure for hugo project
-		for _, mod := range mods {
-			if mod.IsProj() {
-				valueobject.ApplyProjectConfigDefaults(mod)
+	return nil
+}
+
+func (m *Module) applyProjMounts() error {
+
+	projDirs, err := m.DirService.GetDefaultDirs(module.ComponentFolders)
+	if err != nil {
+		return err
+	}
+	otherContentDirs, err := m.DirService.GetOtherLanguagesContentDirs(module.ComponentFolderContent)
+	if err != nil {
+		return err
+	}
+
+	dirs := append(projDirs, otherContentDirs...)
+	m.projMod.ApplyComponentsMounts(dirs)
+
+	return nil
+}
+
+func (m *Module) addAndRecurse(owner *valueobject.Module, moduleImports []string) error {
+	for _, moduleImport := range moduleImports {
+		if !m.collector.IsSeen(moduleImport) {
+			tc, mi, err := m.add(owner, moduleImport)
+			if err != nil {
+				return err
+			}
+			if tc == nil {
+				continue
+			}
+			if err := m.addAndRecurse(tc, mi); err != nil {
+				return err
 			}
 		}
 	}
-	mc.CollectModules(projModuleConfig, collectHook)
+	return nil
+}
 
-	return mc.Modules, nil
+func (m *Module) add(owner *valueobject.Module, moduleImport string) (*valueobject.Module, []string, error) {
+	moduleDir, err := m.getImportModuleDir(moduleImport)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	mod := m.collector.GetGoModule(moduleImport)
+	if mod == nil {
+		return nil, nil, fmt.Errorf("module %s not found", moduleImport)
+	}
+
+	mo := &valueobject.Module{
+		Fs:       m.Fs,
+		Dir:      moduleDir,
+		Path:     moduleImport,
+		GoModule: mod,
+		Parent:   owner,
+	}
+
+	moImportPaths, err := m.PathService.GetImports(mo.Dir)
+
+	if err := mo.ApplyMounts(valueobject.Import{Path: moduleImport}); err != nil {
+		return nil, nil, err
+	}
+
+	m.modules = append(m.modules, mo)
+	return mo, moImportPaths, nil
+}
+
+// Get runs "go get" with the supplied arguments.
+func (m *Module) Get(args ...string) error {
+	return m.GoClient.Get(args...)
+}
+
+func (m *Module) getImportModuleDir(modulePath string) (string, error) {
+	var (
+		moduleDir string
+		mod       *valueobject.GoModule
+	)
+
+	if moduleDir == "" {
+		var versionQuery string
+		mod = m.collector.GetGoModule(modulePath)
+		if mod != nil {
+			moduleDir = mod.Dir
+			versionQuery = mod.Version
+		}
+
+		if moduleDir == "" {
+			if valueobject.IsProbablyModule(modulePath) {
+				if versionQuery == "" {
+					// See https://golang.org/ref/mod#version-queries
+					// This will select the latest release-version (not beta etc.).
+					versionQuery = "upgrade"
+				}
+
+				m.Logger.Println("hugoverse: get module from", modulePath)
+				if err := m.Get(fmt.Sprintf("%s@%s", modulePath, versionQuery)); err != nil {
+					return "", err
+				}
+				if err := m.collector.CollectGoModules(); err != nil {
+					return "", err
+				}
+
+				mod = m.collector.GetGoModule(modulePath)
+				if mod != nil {
+					moduleDir = mod.Dir
+				}
+			}
+
+			// Fall back to project/themes/<mymodule>
+			if moduleDir == "" {
+				return "", m.GoClient.WrapModuleNotFound(fmt.Errorf(
+					`module %q not found; only support go module to load theme at this moment`, modulePath))
+			}
+		}
+	}
+
+	if found, _ := afero.Exists(m.Fs, moduleDir); !found {
+		err := m.GoClient.WrapModuleNotFound(fmt.Errorf("%q not found", moduleDir))
+		return "", err
+	}
+
+	if !strings.HasSuffix(moduleDir, fs.FilepathSeparator) {
+		moduleDir += fs.FilepathSeparator
+	}
+
+	return moduleDir, nil
 }

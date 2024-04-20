@@ -1,20 +1,19 @@
 package application
 
 import (
-	cfFact "github.com/gohugonet/hugoverse/internal/domain/config/factory"
-	chFact "github.com/gohugonet/hugoverse/internal/domain/contenthub/factory"
+	"fmt"
+	configFact "github.com/gohugonet/hugoverse/internal/domain/config/factory"
 	fsFact "github.com/gohugonet/hugoverse/internal/domain/fs/factory"
-	mdFact "github.com/gohugonet/hugoverse/internal/domain/module/factory"
-	stFact "github.com/gohugonet/hugoverse/internal/domain/site/factory"
+	moduleFact "github.com/gohugonet/hugoverse/internal/domain/module/factory"
 )
 
-func GenerateStaticSite(projPath string) error {
-	c, err := cfFact.LoadConfig()
+func GenerateStaticSite() error {
+	c, err := configFact.LoadConfig()
 	if err != nil {
 		return err
 	}
 
-	mods, err := mdFact.New(c.Theme())
+	mods, err := moduleFact.New(c)
 	if err != nil {
 		return err
 	}
@@ -24,21 +23,24 @@ func GenerateStaticSite(projPath string) error {
 		publishDir: c.PublishDir(),
 	}, mods)
 
-	ch, err := chFact.New(fs)
-	if err != nil {
-		return err
-	}
-
-	if err := ch.CollectPages(); err != nil {
-		return err
-	}
-
-	site := stFact.New(fs, ch)
-	if err := site.Build(); err != nil {
-		return err
-	}
-
+	fmt.Println(fs)
 	return nil
+
+	//ch, err := chFact.New(fs)
+	//if err != nil {
+	//	return err
+	//}
+	//
+	//if err := ch.CollectPages(); err != nil {
+	//	return err
+	//}
+	//
+	//site := stFact.New(fs, ch)
+	//if err := site.Build(); err != nil {
+	//	return err
+	//}
+	//
+	//return nil
 }
 
 type fsDir struct {

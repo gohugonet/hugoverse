@@ -73,19 +73,21 @@ func (b *sourceFilesystemsBuilder) createOverlayFs(collector *valueobject.Filesy
 			fromToContent []valueobject.RootMapping
 		)
 
+		fmt.Println("=== owner: ", md.Owner())
 		for _, mount := range md.Mounts() {
+			fmt.Println("--- mount: ", mount.Source(), mount.Target(), mount.Lang())
 			rm := valueobject.RootMapping{
-				From: mount.Target, // content
-				To:   mount.Source, // mycontent
+				From: mount.Target(), // content
+				To:   mount.Source(), // mycontent
 				Meta: &valueobject.FileMeta{
 					Classifier: valueobject.ContentClassContent,
 				},
 			}
 
-			isContentMount := b.isContentMount(mount.Target)
+			isContentMount := b.isContentMount(mount.Target())
 			if isContentMount {
 				fromToContent = append(fromToContent, rm)
-			} else if b.isStaticMount(mount.Target) {
+			} else if b.isStaticMount(mount.Target()) {
 				continue
 			} else {
 				fromTo = append(fromTo, rm)

@@ -1,63 +1,69 @@
 package valueobject
 
 import (
-	"github.com/gohugonet/hugoverse/internal/domain/module"
-	"github.com/gohugonet/hugoverse/pkg/log"
+	"strings"
 )
 
-type ModuleCollector struct {
-	Modules []module.Module
-	log     log.Logger
+type Collector struct {
+	*GoClient
+
+	// Pick the first and prevent circular loops.
+	seen map[string]bool
+
+	// Set if a Go modules enabled project.
+	goModules GoModules
+
+	// Ordered list of collected modules, including Go Modules and theme
+	// components stored below /themes.
+	modules Modules
 }
 
-func NewModuleCollector(log log.Logger) *ModuleCollector {
-	return &ModuleCollector{
-		Modules: []module.Module{},
-		log:     log,
+func NewCollector(c *GoClient) *Collector {
+	return &Collector{
+		GoClient:  c,
+		goModules: GoModules{},
+		modules:   Modules{},
+		seen:      make(map[string]bool),
 	}
 }
 
-func (mc *ModuleCollector) CollectModules(modConfig module.ModuleConfig, hookBeforeFinalize func(m []module.Module)) {
-	projectMod := &moduleAdapter{
-		projectMod: true,
-		config:     modConfig,
+func (c *Collector) CollectGoModules() error {
+	modules, err := c.listGoMods()
+	if err != nil {
+		return err
 	}
-
-	// module structure, [project, others...]
-	mc.addAndRecurse(projectMod)
-
-	// Add the project mod on top.
-	mc.Modules = append([]module.Module{projectMod}, mc.Modules...)
-
-	if hookBeforeFinalize != nil {
-		hookBeforeFinalize(mc.Modules)
-	}
+	c.goModules = modules
+	return nil
 }
 
-// addAndRecurse Project Imports -> Import imports
-func (mc *ModuleCollector) addAndRecurse(owner *moduleAdapter) {
-	moduleConfig := owner.Config()
-
-	// theme may depend on other theme
-	for _, moduleImport := range moduleConfig.Imports {
-		tc := mc.add(owner, moduleImport)
-		if tc == nil {
-			continue
+func (c *Collector) GetMain() *GoModule {
+	for _, m := range c.goModules {
+		if m.Main {
+			return m
 		}
-		// tc is mytheme with no config file
-		mc.addAndRecurse(tc)
 	}
+
+	return nil
 }
 
-func (mc *ModuleCollector) add(owner *moduleAdapter, moduleImport module.Import) *moduleAdapter {
-	mc.log.Printf("--- start to create `%s` module", moduleImport.Path)
-
-	ma := &moduleAdapter{
-		owner: owner,
-		// In the example, "mytheme" has no other import
-		// In the real world, we need to parse the theme config and download the theme repo
-		config: module.ModuleConfig{},
+func (c *Collector) GetGoModule(path string) *GoModule {
+	if c.goModules == nil {
+		return nil
 	}
-	mc.Modules = append(mc.Modules, ma)
-	return ma
+
+	for _, m := range c.goModules {
+		if strings.EqualFold(path, m.Path) {
+			return m
+		}
+	}
+	return nil
+}
+
+func (c *Collector) IsSeen(path string) bool {
+	key := pathKey(path)
+	if c.seen[key] {
+		return true
+	}
+	c.seen[key] = true
+	return false
 }

@@ -9,7 +9,6 @@ import (
 	"github.com/gohugonet/hugoverse/pkg/helpers"
 	"github.com/gohugonet/hugoverse/pkg/loggers"
 	"github.com/gohugonet/hugoverse/pkg/maps"
-	"github.com/gohugonet/hugoverse/pkg/parser/metadecoders"
 	"github.com/gohugonet/hugoverse/pkg/paths"
 	"github.com/spf13/afero"
 	xmaps "golang.org/x/exp/maps"
@@ -75,7 +74,7 @@ func (cl *ConfigLoader) loadProvider(configName string) error {
 		return errors.New(noConfigFileErrInfo)
 	}
 
-	m, err := cl.loadConfigFromFile(cl.SourceDescriptor.Fs(), filename)
+	m, err := valueobject.LoadConfigFromFile(cl.SourceDescriptor.Fs(), filename)
 	if err != nil {
 		return err
 	}
@@ -84,14 +83,6 @@ func (cl *ConfigLoader) loadProvider(configName string) error {
 	cl.Cfg.Set("", m)
 
 	return nil
-}
-
-func (cl *ConfigLoader) loadConfigFromFile(fs afero.Fs, filename string) (map[string]any, error) {
-	m, err := metadecoders.Default.UnmarshalFileToMap(fs, filename)
-	if err != nil {
-		return nil, err
-	}
-	return m, nil
 }
 
 func (cl *ConfigLoader) applyDefaultConfig() error {
@@ -161,6 +152,8 @@ func (cl *ConfigLoader) applyDefaultConfig() error {
 }
 
 func (cl *ConfigLoader) assembleConfig(c *entity.Config) error {
+	c.Language.Default = cl.Cfg.GetString("defaultContentLanguage")
+
 	return cl.decodeConfig(cl.Cfg, c)
 }
 
@@ -170,6 +163,7 @@ func (cl *ConfigLoader) decodeConfig(p config.Provider, target *entity.Config) e
 		return err
 	}
 	target.Root.RootConfig = r
+	target.Root.RootConfig.BaseDirs = cl.BaseDirs
 
 	m, err := valueobject.DecodeModuleConfig(p)
 	if err != nil {
@@ -181,25 +175,17 @@ func (cl *ConfigLoader) decodeConfig(p config.Provider, target *entity.Config) e
 	if err != nil {
 		return err
 	}
-	// Validate defaultContentLanguage.
-	var found bool
-	for lang := range languages {
-		if lang == target.DefaultContentLanguage {
-			found = true
-			break
-		}
-	}
-	if !found {
-		return fmt.Errorf("config value %q for defaultContentLanguage does not match any language definition", target.DefaultContentLanguage)
-	}
 	target.Language.Configs = languages
+	if err := target.Validate(); err != nil {
+		return err
+	}
 
 	langConfigMap := make(map[string]valueobject.RootConfig)
 	languagesConfig := cl.Cfg.GetStringMap("languages")
 
 	cfg := cl.Cfg
 	for k, v := range languagesConfig {
-		mergedConfig := NewDefaultProvider()
+		mergedConfig := valueobject.NewDefaultProvider()
 		var differentRootKeys []string
 		switch x := v.(type) {
 		case maps.Params:
@@ -233,7 +219,6 @@ func (cl *ConfigLoader) decodeConfig(p config.Provider, target *entity.Config) e
 							// Merge in the root value.
 							maps.MergeParams(mergedConfigEntry, rootv.(maps.Params))
 
-							fmt.Println(456, kk, mergedConfigEntry)
 							mergedConfig.Set(kk, mergedConfigEntry)
 						default:
 							// Apply new values to the root.
@@ -258,6 +243,7 @@ func (cl *ConfigLoader) decodeConfig(p config.Provider, target *entity.Config) e
 			}
 
 			clone, err := valueobject.DecodeRoot(mergedConfig)
+			cl.Logger.Printf("hugoverse: merging config for language `%s`, %+v", k, clone)
 			if err != nil {
 				return err
 			}

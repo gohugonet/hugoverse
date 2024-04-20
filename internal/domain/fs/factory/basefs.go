@@ -7,7 +7,6 @@ import (
 	"github.com/gohugonet/hugoverse/internal/domain/module"
 )
 
-// NewBaseFS builds the filesystems used by Hugo given the paths and options provided.NewBase
 func NewBaseFS(dir fs.Dir, ofs fs.OriginFs, mods module.Modules) (*valueobject.BaseFs, error) {
 	//publishFs := NewBaseFileDecorator(ofs.Publish())
 	//sourceFs := NewBaseFileDecorator(afero.NewBasePathFs(ofs.Origin(), dir.WorkingDir()))

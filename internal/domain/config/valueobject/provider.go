@@ -2,6 +2,7 @@ package valueobject
 
 import (
 	"fmt"
+	"github.com/gohugonet/hugoverse/internal/domain/config"
 	"github.com/gohugonet/hugoverse/pkg/maps"
 	"github.com/spf13/cast"
 	xmaps "golang.org/x/exp/maps"
@@ -16,6 +17,21 @@ type DefaultConfigProvider struct {
 	Root maps.Params
 
 	keyCache sync.Map
+}
+
+// NewFrom creates a Provider backed by params.
+func NewFrom(params maps.Params) config.Provider {
+	maps.PrepareParams(params)
+	return &DefaultConfigProvider{
+		Root: params,
+	}
+}
+
+// NewDefaultProvider creates a Provider backed by an empty maps.Params.
+func NewDefaultProvider() config.Provider {
+	return &DefaultConfigProvider{
+		Root: make(maps.Params),
+	}
 }
 
 func (c *DefaultConfigProvider) Get(k string) any {

@@ -14,16 +14,21 @@ const (
 	TOML Format = "toml"
 )
 
+type ConfName string
+
+const (
+	Config ConfName = "config"
+)
+
+var (
+	DefaultConfigNames        = []ConfName{Config}
+	ValidConfigFileExtensions = []Format{TOML}
+)
+
 const (
 	EnvironmentDevelopment = "development"
 	EnvironmentProduction  = "production"
 )
-
-type Config interface {
-	Theme() string
-	WorkingDir() string
-	PublishDir() string
-}
 
 // Provider provides the configuration settings for Hugo.
 type Provider interface {

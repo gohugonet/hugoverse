@@ -1,11 +1,9 @@
 package factory
 
 import (
-	"github.com/gohugonet/hugoverse/internal/domain/config"
 	"github.com/gohugonet/hugoverse/internal/domain/config/entity"
 	"github.com/gohugonet/hugoverse/internal/domain/config/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/loggers"
-	"github.com/gohugonet/hugoverse/pkg/maps"
 	"github.com/gohugonet/hugoverse/pkg/paths"
 	"github.com/spf13/afero"
 	"os"
@@ -18,14 +16,7 @@ const (
 	DefaultPublishDir = "public"
 )
 
-// NewDefaultProvider creates a Provider backed by an empty maps.Params.
-func NewDefaultProvider() config.Provider {
-	return &valueobject.DefaultConfigProvider{
-		Root: make(maps.Params),
-	}
-}
-
-func LoadConfig() (config.Config, error) {
+func LoadConfig() (*entity.Config, error) {
 	currentDir, _ := os.Getwd()
 	workingDir := filepath.Clean(currentDir)
 
@@ -34,7 +25,7 @@ func LoadConfig() (config.Config, error) {
 			fs:       &afero.OsFs{},
 			filename: path.Join(workingDir, "config.toml"),
 		},
-		Cfg: NewDefaultProvider(),
+		Cfg: valueobject.NewDefaultProvider(),
 		BaseDirs: valueobject.BaseDirs{
 			WorkingDir: workingDir,
 			ThemesDir:  paths.AbsPathify(workingDir, DefaultThemesDir),
@@ -50,6 +41,7 @@ func LoadConfig() (config.Config, error) {
 	}
 
 	c := &entity.Config{
+		SourceFs: l.SourceDescriptor.Fs(),
 		Provider: p,
 
 		Root:     entity.Root{},

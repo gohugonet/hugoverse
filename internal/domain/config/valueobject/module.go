@@ -2,7 +2,6 @@ package valueobject
 
 import (
 	"github.com/gohugonet/hugoverse/internal/domain/config"
-	"github.com/gohugonet/hugoverse/pkg/types"
 	"github.com/mitchellh/mapstructure"
 	"path/filepath"
 )
@@ -27,9 +26,7 @@ func decodeConfig(cfg config.Provider) (ModuleConfig, error) {
 		return c, nil
 	}
 
-	themeSet := cfg.IsSet("theme")
 	moduleSet := cfg.IsSet("module")
-
 	if moduleSet {
 		m := cfg.GetStringMap("module")
 		if err := mapstructure.WeakDecode(m, &c); err != nil {
@@ -43,17 +40,22 @@ func decodeConfig(cfg config.Provider) (ModuleConfig, error) {
 		}
 	}
 
-	if themeSet {
-		sd := cfg.Get("theme")
-		imports := types.ToStringSlicePreserveString(sd)
-		for _, imp := range imports {
-			c.Imports = append(c.Imports, Import{
-				Path: imp,
-			})
-		}
-	}
+	// Module support only
+	//themeSet := cfg.IsSet("theme")
+	//if themeSet {
+	//	sd := cfg.Get("theme")
+	//	imports := types.ToStringSlicePreserveString(sd)
+	//	for _, imp := range imports {
+	//		c.Imports = append(c.Imports, Import{
+	//			Path: imp,
+	//		})
+	//	}
+	//}
 
 	return c, nil
 }
 
-var DefaultModuleConfig = ModuleConfig{}
+var DefaultModuleConfig = ModuleConfig{
+	Mounts:  make([]Mount, 0),
+	Imports: make([]Import, 0),
+}
