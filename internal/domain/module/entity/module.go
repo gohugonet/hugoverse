@@ -35,7 +35,8 @@ func (m *Module) Proj() module.Module {
 }
 
 func (m *Module) All() []module.Module {
-	var modules []module.Module
+	modules := []module.Module{m.projMod.Module}
+
 	for _, mod := range m.modules {
 		modules = append(modules, mod)
 	}
@@ -73,7 +74,6 @@ func (m *Module) collect() error {
 	if err := m.applyProjMounts(); err != nil {
 		return err
 	}
-	m.modules = append(m.modules, m.projMod.Module)
 
 	if err := m.addAndRecurse(m.projMod.Module, m.ModuleImports); err != nil {
 		return err
