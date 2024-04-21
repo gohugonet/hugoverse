@@ -9,8 +9,8 @@ import (
 type Modules []*Module
 
 type Module struct {
-	Dir string
-	Fs  afero.Fs
+	AbsDir string
+	Fs     afero.Fs
 
 	Path   string
 	Parent *Module
@@ -26,7 +26,7 @@ func (m *Module) ApplyMounts(moduleImport Import) error {
 
 	if len(mounts) == 0 {
 		for _, componentFolder := range module.ComponentFolders {
-			sourceDir := filepath.Join(m.Dir, componentFolder)
+			sourceDir := filepath.Join(m.AbsDir, componentFolder)
 			_, err := m.Fs.Stat(sourceDir)
 			if err == nil {
 				mounts = append(mounts, Mount{
@@ -51,4 +51,8 @@ func (m *Module) Mounts() []module.Mount {
 		mounts = append(mounts, mount)
 	}
 	return mounts
+}
+
+func (m *Module) Dir() string {
+	return m.AbsDir
 }

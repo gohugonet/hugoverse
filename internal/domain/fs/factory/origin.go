@@ -19,7 +19,7 @@ func NewOriginFs(dir fs.Dir) *entity.OriginFs {
 	pubFs := afero.NewBasePathFs(workingFs, dir.PublishDir())
 
 	return &entity.OriginFs{
-		Source:             workingFs,
+		Source:             afs,
 		PublishDir:         pubFs,
 		WorkingDirReadOnly: getWorkingDirFsReadOnly(workingFs, dir.WorkingDir()),
 	}

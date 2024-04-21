@@ -66,7 +66,7 @@ func (m *Module) collect() error {
 	m.projMod = &valueobject.ProjectModule{
 		Module: &valueobject.Module{
 			Fs:        m.Fs,
-			Dir:       m.WorkingDir,
+			AbsDir:    m.WorkingDir,
 			GoModule:  m.collector.GetMain(),
 			Parent:    nil,
 			MountDirs: make([]valueobject.Mount, 0),
@@ -130,13 +130,13 @@ func (m *Module) add(owner *valueobject.Module, moduleImport string) (*valueobje
 
 	mo := &valueobject.Module{
 		Fs:       m.Fs,
-		Dir:      moduleDir,
+		AbsDir:   moduleDir,
 		Path:     moduleImport,
 		GoModule: mod,
 		Parent:   owner,
 	}
 
-	moImportPaths, err := m.PathService.GetImports(mo.Dir)
+	moImportPaths, err := m.PathService.GetImports(mo.AbsDir)
 
 	if err := mo.ApplyMounts(valueobject.Import{Path: moduleImport}); err != nil {
 		return nil, nil, err

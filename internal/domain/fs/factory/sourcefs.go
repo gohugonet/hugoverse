@@ -5,23 +5,18 @@ import (
 	"github.com/gohugonet/hugoverse/internal/domain/fs/valueobject"
 	"github.com/gohugonet/hugoverse/internal/domain/module"
 	"github.com/gohugonet/hugoverse/pkg/overlayfs"
+	"github.com/gohugonet/hugoverse/pkg/paths"
 	"github.com/spf13/afero"
+	"path/filepath"
 	"strings"
 )
 
 func newSourceFilesystem(name string, fs afero.Fs, dirs []valueobject.FileMetaInfo) *valueobject.SourceFilesystem {
-	sf := &valueobject.SourceFilesystem{
+	return &valueobject.SourceFilesystem{
 		Name: name,
 		Fs:   fs,
 		Dirs: dirs,
 	}
-
-	info, _, err := valueobject.LstatIfPossible(fs, "")
-	if err != nil {
-		fmt.Println("0000111", info, err)
-	}
-
-	return sf
 }
 
 type sourceFilesystemsBuilder struct {
@@ -44,6 +39,7 @@ func (b *sourceFilesystemsBuilder) Build() (*valueobject.SourceFilesystems, erro
 
 	createView := func(componentID string, ofs *overlayfs.OverlayFs) *valueobject.SourceFilesystem {
 		dirs := b.theBigFs.OverlayDirs[componentID]
+		log.Printf("create view for %s with dirs: %v", componentID, dirs)
 		return newSourceFilesystem(componentID, afero.NewBasePathFs(ofs, componentID), dirs)
 	}
 
@@ -73,12 +69,19 @@ func (b *sourceFilesystemsBuilder) createOverlayFs(collector *valueobject.Filesy
 			fromToContent []valueobject.RootMapping
 		)
 
-		fmt.Println("=== owner: ", md.Owner())
+		absPathify := func(path string) string {
+			if filepath.IsAbs(path) {
+				return path
+			}
+			return paths.AbsPathify(md.Dir(), path)
+		}
+
+		log.Println("=== module: ", md)
 		for _, mount := range md.Mounts() {
-			fmt.Println("--- mount: ", mount.Source(), mount.Target(), mount.Lang())
+			log.Println("--- module mount --> ", "source", mount.Source(), "target", mount.Target(), "lang", mount.Lang())
 			rm := valueobject.RootMapping{
-				From: mount.Target(), // content
-				To:   mount.Source(), // mycontent
+				From: mount.Target(),             // content
+				To:   absPathify(mount.Source()), // mycontent
 				Meta: &valueobject.FileMeta{
 					Classifier: valueobject.ContentClassContent,
 				},
@@ -94,6 +97,7 @@ func (b *sourceFilesystemsBuilder) createOverlayFs(collector *valueobject.Filesy
 			}
 		}
 
+		// Module Fs is not find in collector
 		rmfs := newRootMappingFs(collector.SourceProject, fromTo...)
 		rmfsContent := newRootMappingFs(collector.SourceProject, fromToContent...)
 

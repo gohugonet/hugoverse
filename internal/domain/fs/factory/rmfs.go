@@ -20,12 +20,14 @@ func newRootMappingFs(afs afero.Fs, rms ...valueobject.RootMapping) *valueobject
 
 	for _, rm := range rms {
 		fi, err := afs.Stat(rm.To)
+		log.Println("stat: ", rm.To, " -> ", fi)
 		if err != nil {
 			if os.IsNotExist(err) {
 				continue
 			}
 			return nil
 		}
+
 		meta := rm.Meta.Copy()
 		if !fi.IsDir() {
 			_, name := filepath.Split(rm.From)
@@ -39,9 +41,12 @@ func newRootMappingFs(afs afero.Fs, rms ...valueobject.RootMapping) *valueobject
 		mappings = append(mappings, rm)
 		t.Insert(key, mappings)
 
+		log.Printf("key: %s, mappings: %+v\n", key, mappings)
+
 		virtualRoots = append(virtualRoots, rm)
 	}
 
+	// Searching from root
 	t.Insert(fs.FilepathSeparator, virtualRoots)
 
 	return &valueobject.RootMappingFs{

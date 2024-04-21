@@ -2,7 +2,6 @@ package factory
 
 import (
 	"github.com/gohugonet/hugoverse/internal/domain/fs/valueobject"
-	"github.com/gohugonet/hugoverse/pkg/log"
 	"github.com/spf13/afero"
 )
 
@@ -13,6 +12,6 @@ func NewWalkway(fs afero.Fs, root string, walker valueobject.WalkFunc) *valueobj
 		WalkFn: walker,
 		Seen:   make(map[string]bool),
 
-		Log: log.NewStdLogger(),
+		Log: log,
 	}
 }

@@ -4,7 +4,10 @@ import (
 	"github.com/gohugonet/hugoverse/internal/domain/fs"
 	"github.com/gohugonet/hugoverse/internal/domain/fs/entity"
 	"github.com/gohugonet/hugoverse/internal/domain/module"
+	"github.com/gohugonet/hugoverse/pkg/loggers"
 )
+
+var log = loggers.NewDefault()
 
 func New(dir fs.Dir, mods module.Modules) (fs.Fs, error) {
 	f := &entity.Fs{

@@ -3,7 +3,7 @@ package valueobject
 import (
 	"errors"
 	"fmt"
-	"github.com/gohugonet/hugoverse/pkg/log"
+	"github.com/gohugonet/hugoverse/pkg/loggers"
 	"github.com/spf13/afero"
 	"os"
 	"path/filepath"
@@ -28,7 +28,7 @@ type Walkway struct {
 	// We may traverse symbolic links and bite ourself.
 	Seen map[string]bool
 
-	Log log.Logger
+	Log loggers.Logger
 }
 
 func (w *Walkway) Walk() error {

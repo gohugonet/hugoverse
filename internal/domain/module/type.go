@@ -33,6 +33,7 @@ type Modules interface {
 type Module interface {
 	Owner() Module
 	Mounts() []Mount
+	Dir() string
 }
 
 type Mount interface {
