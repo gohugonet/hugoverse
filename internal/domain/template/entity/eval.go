@@ -55,8 +55,6 @@ func (t *GoTemplateCallback) GetMapValue(ctx context.Context, tmpl texttemplate.
 	return v, v.IsValid()
 }
 
-var typeParams = reflect.TypeOf(maps.Params{})
-
 func (t *GoTemplateCallback) GetMethod(ctx context.Context, tmpl texttemplate.Preparer, receiver reflect.Value, name string) (method reflect.Value, firstArg reflect.Value) {
 	fn := hreflect.GetMethodByName(receiver, name)
 	if !fn.IsValid() {

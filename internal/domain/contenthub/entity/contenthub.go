@@ -16,6 +16,10 @@ type ContentHub struct {
 	*render
 }
 
+func (ch *ContentHub) SetTemplateExecutor(exec contenthub.TemplateExecutor) {
+	ch.TemplateExecutor = exec
+}
+
 func (ch *ContentHub) CollectPages() error {
 	if err := ch.process(); err != nil {
 		return fmt.Errorf("process: %w", err)

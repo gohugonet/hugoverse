@@ -2,6 +2,7 @@ package template
 
 import (
 	"context"
+	"github.com/gohugonet/hugoverse/pkg/template/funcs/transform"
 	template "github.com/gohugonet/hugoverse/pkg/template/texttemplate"
 	"github.com/spf13/afero"
 	"io"
@@ -17,6 +18,10 @@ const (
 
 type Fs interface {
 	LayoutFs() afero.Fs
+}
+
+type Service interface {
+	Execute(ctx context.Context, name string, data any) (tmpl string, res string, err error)
 }
 
 type Template interface {
@@ -44,4 +49,16 @@ type Preparer interface {
 
 type Identity interface {
 	IdentifierBase() string
+}
+
+type Info interface {
+	ParseInfo() ParseInfo
+}
+
+type ParseInfo interface {
+	Return() bool
+}
+
+type CustomizedFunctions interface {
+	transform.Markdown
 }

@@ -5,10 +5,6 @@ import (
 	"github.com/gohugonet/hugoverse/pkg/template/funcs/cast"
 )
 
-func RegisterNamespaces() {
-	registerCast()
-}
-
 func registerCast() {
 	f := func() *TemplateFuncsNamespace {
 		ctx := cast.New()

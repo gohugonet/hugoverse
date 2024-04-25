@@ -1,4 +1,6 @@
-package valueobject
+package media
+
+import "strings"
 
 // Type (also known as MIME type and content type) is a two-part identifier for
 // file formats and format contents transmitted on the Internet.
@@ -10,6 +12,11 @@ type Type struct {
 	MainType  string `json:"mainType"`  // i.e. text
 	SubType   string `json:"subType"`   // i.e. html
 	Delimiter string `json:"delimiter"` // e.g. "."
+
+	// E.g. "jpg,jpeg"
+	// Stored as a string to make Type comparable.
+	// For internal use only.
+	SuffixesCSV string `json:"-"`
 }
 
 // Type returns a string representing the main- and sub-type of a media type, e.g. "text/css".
@@ -26,6 +33,15 @@ func (m Type) Type() string {
 
 func (m Type) FullSuffix() string {
 	return m.Delimiter + m.SubType
+}
+
+// Suffixes returns all valid file suffixes for this type.
+func (m Type) Suffixes() []string {
+	if m.SuffixesCSV == "" {
+		return nil
+	}
+
+	return strings.Split(m.SuffixesCSV, ",")
 }
 
 // Types is a slice of media types.

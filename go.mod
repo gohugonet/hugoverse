@@ -17,6 +17,7 @@ require (
 	github.com/bep/godartsass v1.2.0 // indirect
 	github.com/bep/godartsass/v2 v2.0.0 // indirect
 	github.com/bep/golibsass v1.1.1 // indirect
+	github.com/bep/lazycache v0.4.0 // indirect
 	github.com/bep/logg v0.4.0 // indirect
 	github.com/blevesearch/go-porterstemmer v1.0.3 // indirect
 	github.com/blevesearch/mmap-go v1.0.2 // indirect
@@ -35,9 +36,14 @@ require (
 	github.com/fatih/color v1.16.0 // indirect
 	github.com/glycerine/go-unsnap-stream v0.0.0-20181221182339-f9677308dec2 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
+	github.com/gohugoio/locales v0.14.0 // indirect
+	github.com/gohugoio/localescompressed v1.0.1 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/gorilla/schema v1.2.1 // indirect
+	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
+	github.com/jdkato/prose v1.2.1 // indirect
+	github.com/kyokomi/emoji/v2 v2.2.12 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mitchellh/hashstructure v1.1.0 // indirect

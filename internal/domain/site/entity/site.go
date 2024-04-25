@@ -4,6 +4,7 @@ import (
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
 	"github.com/gohugonet/hugoverse/internal/domain/site"
 	"github.com/gohugonet/hugoverse/internal/domain/site/valueobject"
+	"github.com/gohugonet/hugoverse/pkg/media"
 	"sort"
 )
 
@@ -23,7 +24,7 @@ type Site struct {
 	// These values will be merged from the Hugo defaults, the site config and,
 	// finally, the language settings.
 	OutputFormatsConfig valueobject.Formats
-	MediaTypesConfig    valueobject.Types
+	MediaTypesConfig    media.Types
 
 	Publisher site.Publisher
 

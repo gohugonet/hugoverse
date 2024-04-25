@@ -4,7 +4,6 @@ import (
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub/entity"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub/valueobject"
-	tpFact "github.com/gohugonet/hugoverse/internal/domain/template/factory"
 	"github.com/gohugonet/hugoverse/pkg/radixtree"
 )
 
@@ -14,14 +13,9 @@ func New(fs contenthub.Fs) (contenthub.ContentHub, error) {
 		return nil, err
 	}
 
-	exec, err := tpFact.New(fs)
-	if err != nil {
-		return nil, err
-	}
-
 	ch := &entity.ContentHub{
 		Fs:               fs,
-		TemplateExecutor: exec,
+		TemplateExecutor: nil,
 		PageCollections: newPageCollections(
 			&entity.PageMap{
 				ContentMap:  newContentMap(),

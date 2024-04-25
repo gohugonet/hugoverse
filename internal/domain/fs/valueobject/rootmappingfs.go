@@ -152,8 +152,6 @@ func (m *RootMappingFs) getRoots(key string) (string, []RootMapping) {
 func (m *RootMappingFs) statRoot(root RootMapping, name string) (FileMetaInfo, bool, error) {
 	filename := root.Filename(name)
 
-	fmt.Println(">>> RootMappingFs.statRoot", root, name, filename)
-
 	fi, b, err := LstatIfPossible(m.Fs, filename) // source fs
 	if err != nil {
 		return nil, b, err
@@ -161,7 +159,6 @@ func (m *RootMappingFs) statRoot(root RootMapping, name string) (FileMetaInfo, b
 
 	var opener func() (afero.File, error)
 	if fi.IsDir() {
-		fmt.Println(">>> RootMappingFs.statRoot dir", fi, filename, root.Meta)
 		// Make sure metadata gets applied in Readdir.
 		opener = m.realDirOpener(filename, root.Meta)
 	} else {

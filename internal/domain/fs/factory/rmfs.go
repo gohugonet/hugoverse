@@ -20,7 +20,6 @@ func newRootMappingFs(afs afero.Fs, rms ...valueobject.RootMapping) *valueobject
 
 	for _, rm := range rms {
 		fi, err := afs.Stat(rm.To)
-		log.Println("stat: ", rm.To, " -> ", fi)
 		if err != nil {
 			if os.IsNotExist(err) {
 				continue

@@ -12,6 +12,7 @@ import (
 
 type Markdown struct {
 	GoldMark goldmark.Markdown
+	markdown.Highlighter
 }
 
 func (md *Markdown) Render(rctx markdown.RenderContext, dctx markdown.DocumentContext) (markdown.Result, error) {

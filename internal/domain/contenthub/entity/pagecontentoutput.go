@@ -108,10 +108,8 @@ func (cp *pageContentOutput) initRenderHooks() error {
 	}
 
 	cp.renderHooks.init.Do(func() {
-		cp.renderHooks.getRenderer = func(tp markdown.RendererType, id any) any {
-			// TODO customize rendering with template
-			return nil
-		}
+		// TODO, no template based rendering, use markdown default render
+		cp.renderHooks.getRenderer = markdown.DefaultRendererFunc
 	})
 
 	return nil

@@ -79,3 +79,13 @@ func isLowerIndexThan(first int, others ...int) bool {
 
 	return true
 }
+
+// FormatFromStrings returns the first non-empty Format from the given strings.
+func FormatFromStrings(ss ...string) Format {
+	for _, s := range ss {
+		if f := FormatFromString(s); f != "" {
+			return f
+		}
+	}
+	return ""
+}

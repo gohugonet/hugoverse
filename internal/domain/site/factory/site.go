@@ -5,10 +5,11 @@ import (
 	"github.com/gohugonet/hugoverse/internal/domain/site"
 	"github.com/gohugonet/hugoverse/internal/domain/site/entity"
 	"github.com/gohugonet/hugoverse/internal/domain/site/valueobject"
+	"github.com/gohugonet/hugoverse/pkg/media"
 )
 
 func New(fs site.Fs, ch contenthub.ContentHub) *entity.Site {
-	mediaTypes := valueobject.DecodeTypes()
+	mediaTypes := media.DecodeTypes()
 	formats := valueobject.DecodeFormats(mediaTypes)
 	outputFormats := valueobject.CreateSiteOutputFormats(formats)
 

@@ -11,6 +11,8 @@ import (
 
 type Markdown interface {
 	Render(rctx RenderContext, dctx DocumentContext) (Result, error)
+
+	Highlighter
 }
 
 // Result represents the minimum returned from Convert.
@@ -74,6 +76,8 @@ const (
 )
 
 type GetRendererFunc func(t RendererType, id any) any
+
+var DefaultRendererFunc = func(t RendererType, id any) any { return nil }
 
 // ResultParse represents the minimum returned from Parse.
 type ResultParse interface {

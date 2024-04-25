@@ -7,6 +7,7 @@ import (
 	"github.com/gohugonet/hugoverse/internal/domain/markdown"
 	"github.com/gohugonet/hugoverse/internal/domain/template"
 	"github.com/spf13/afero"
+	goTmpl "html/template"
 	"io"
 )
 
@@ -14,6 +15,10 @@ type ContentHub interface {
 	CollectPages() error
 	PreparePages() error
 	RenderPages(td TemplateDescriptor, cb func(info PageInfo) error) error
+
+	RenderString(ctx context.Context, args ...any) (goTmpl.HTML, error)
+
+	SetTemplateExecutor(exec TemplateExecutor)
 }
 
 type TemplateDescriptor interface {

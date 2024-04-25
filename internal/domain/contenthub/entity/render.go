@@ -2,13 +2,17 @@ package entity
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub/valueobject"
 	"github.com/gohugonet/hugoverse/internal/domain/template"
 	"github.com/gohugonet/hugoverse/pkg/bufferpool"
+	"github.com/gohugonet/hugoverse/pkg/types/hstring"
 	"io"
 	"sync"
+
+	goTmpl "html/template"
 )
 
 type render struct {
@@ -16,6 +20,8 @@ type render struct {
 	templateExecutor contenthub.TemplateExecutor
 	td               contenthub.TemplateDescriptor
 	cb               func(info contenthub.PageInfo) error
+
+	currentRenderingPage *pageState
 }
 
 // renderPages renders pages each corresponding to a markdown file.
@@ -40,7 +46,6 @@ func (ch *render) renderPages() error {
 		select {
 		default:
 			count++
-			fmt.Println("777 count: ", count, ss, n, n.p)
 			pages <- n.p
 		}
 
@@ -64,6 +69,7 @@ func (ch *render) pageRenderer(pages <-chan *pageState, results chan<- error, wg
 	defer wg.Done()
 
 	for p := range pages {
+		ch.currentRenderingPage = p
 		fmt.Printf(">>>> page: %#+v\n", p)
 
 		templ, found, err := ch.resolveTemplate(p)
@@ -151,4 +157,32 @@ func (ch *render) errorCollator(results <-chan error, errs chan<- error) {
 	}
 
 	close(errs)
+}
+
+func (ch *render) RenderString(ctx context.Context, args ...any) (goTmpl.HTML, error) {
+	if len(args) != 1 {
+		return "", errors.New("want 1 arguments")
+	}
+
+	var contentToRender string
+	contentToRenderv := args[0]
+
+	if _, ok := contentToRenderv.(hstring.RenderedString); ok {
+		// This content is already rendered, this is potentially
+		// a infinite recursion.
+		return "", errors.New("text is already rendered, repeating it may cause infinite recursion")
+	}
+
+	cp := &pageContentOutput{
+		p:           ch.currentRenderingPage,
+		renderHooks: &renderHooks{},
+		workContent: []byte(contentToRender),
+	}
+
+	r, err := cp.renderContent(cp.workContent, false)
+	if err != nil {
+		return "", err
+	}
+
+	return goTmpl.HTML(r.Bytes()), nil
 }

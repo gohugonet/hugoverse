@@ -14,6 +14,9 @@ type ParseInfo struct {
 func (info ParseInfo) IsZero() bool {
 	return info.Config.Version == 0
 }
+func (info ParseInfo) Return() bool {
+	return info.HasReturn
+}
 
 type ParseConfig struct {
 	Version int

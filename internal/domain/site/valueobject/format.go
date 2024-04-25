@@ -3,6 +3,7 @@ package valueobject
 import (
 	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
+	"github.com/gohugonet/hugoverse/pkg/media"
 	"strings"
 )
 
@@ -12,7 +13,7 @@ type Format struct {
 	// can be overridden by providing a new definition for those types.
 	Name string `json:"name"`
 
-	MediaType Type `json:"-"`
+	MediaType media.Type `json:"-"`
 
 	// The base output file name used when not using "ugly URLs", defaults to "index".
 	BaseName string `json:"baseName"`
@@ -68,7 +69,7 @@ func (formats Formats) FromFilename(filename string) (f Format, found bool) {
 // HTMLFormat An ordered list of built-in output formats.
 var HTMLFormat = Format{
 	Name:      "HTML",
-	MediaType: HTMLType,
+	MediaType: media.HTMLType,
 	BaseName:  "index",
 }
 
@@ -79,7 +80,7 @@ var DefaultFormats = Formats{
 
 // DecodeFormats takes a list of output format configurations and merges those,
 // in the order given, with the Hugo defaults as the last resort.
-func DecodeFormats(mediaTypes Types) Formats {
+func DecodeFormats(mediaTypes media.Types) Formats {
 	// Format could be modified by mediaTypes configuration
 	// just make it simple for example
 	fmt.Println(mediaTypes)
