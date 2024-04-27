@@ -2,10 +2,14 @@ package template
 
 import (
 	"context"
+	"github.com/gohugonet/hugoverse/pkg/template/funcs/collections"
+	"github.com/gohugonet/hugoverse/pkg/template/funcs/compare"
 	"github.com/gohugonet/hugoverse/pkg/template/funcs/transform"
+	"github.com/gohugonet/hugoverse/pkg/template/funcs/urls"
 	template "github.com/gohugonet/hugoverse/pkg/template/texttemplate"
 	"github.com/spf13/afero"
 	"io"
+	"reflect"
 )
 
 type Type int
@@ -35,6 +39,7 @@ type Executor interface {
 
 type Lookup interface {
 	LookupLayout(d LayoutDescriptor) (Preparer, bool, error)
+	GetFunc(name string) (reflect.Value, bool)
 }
 
 type LayoutDescriptor interface {
@@ -61,4 +66,7 @@ type ParseInfo interface {
 
 type CustomizedFunctions interface {
 	transform.Markdown
+	urls.URL
+	compare.TimeZone
+	collections.Language
 }

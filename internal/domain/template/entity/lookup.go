@@ -3,10 +3,12 @@ package entity
 import (
 	"github.com/gohugonet/hugoverse/internal/domain/template"
 	"github.com/gohugonet/hugoverse/internal/domain/template/valueobject"
+	"reflect"
 )
 
 type Lookup struct {
 	BaseOf *valueobject.BaseOf
+	Funcsv map[string]reflect.Value
 }
 
 func (t *Lookup) lookupLayout(d template.LayoutDescriptor, ns *Namespace) (template.Preparer, bool, error) {
@@ -40,4 +42,9 @@ func (t *Lookup) findLayoutInfo(d template.LayoutDescriptor) (valueobject.Templa
 	}
 
 	return valueobject.TemplateInfo{}, valueobject.TemplateInfo{}, false
+}
+
+func (t *Lookup) GetFunc(name string) (reflect.Value, bool) {
+	v, found := t.Funcsv[name]
+	return v, found
 }

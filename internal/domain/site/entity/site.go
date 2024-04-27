@@ -29,14 +29,33 @@ type Site struct {
 	Publisher site.Publisher
 
 	ContentHub contenthub.ContentHub
+
+	*URL
+	*Language
 }
 
 func (s *Site) Build() error {
-	err := s.render()
-	if err != nil {
+	if err := s.setup(); err != nil {
 		return err
 	}
+	for _, l := range s.Language.Config {
+		s.Language.currentLanguage = l
+		err := s.render()
+		if err != nil {
+			return err
+		}
+	}
 
+	return nil
+}
+
+func (s *Site) setup() error {
+	if err := s.URL.setup(); err != nil {
+		return err
+	}
+	if err := s.Language.setup(); err != nil {
+		return err
+	}
 	return nil
 }
 

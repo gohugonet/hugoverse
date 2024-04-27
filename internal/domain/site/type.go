@@ -4,8 +4,40 @@ import (
 	"bytes"
 	"github.com/gohugonet/hugoverse/internal/domain/site/valueobject"
 	"github.com/spf13/afero"
+	"golang.org/x/text/collate"
 	"io"
+	"time"
 )
+
+type Site interface {
+	URL
+	Language
+}
+
+type Language interface {
+	Location() *time.Location
+	Collator() *collate.Collator
+}
+
+type URL interface {
+	AbsURL(in string) string
+	RelURL(in string) string
+	URLize(uri string) string
+}
+
+type Config interface {
+	URLConfig
+	Languages() []LanguageConfig
+}
+
+type URLConfig interface {
+	BaseUrl() string
+}
+
+type LanguageConfig interface {
+	Name() string
+	Code() string
+}
 
 type Fs interface {
 	Publish() afero.Fs

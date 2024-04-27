@@ -6,6 +6,7 @@ import (
 	"github.com/gohugonet/hugoverse/pkg/hreflect"
 	"github.com/gohugonet/hugoverse/pkg/htime"
 	"github.com/gohugonet/hugoverse/pkg/types"
+	"golang.org/x/text/collate"
 	"math"
 	"reflect"
 	"strconv"
@@ -183,10 +184,10 @@ func (n *Namespace) Le(first any, others ...any) bool {
 // LtCollate returns the boolean truth of arg1 < arg2 && arg1 < arg3 && arg1 < arg4.
 // The provided collator will be used for string comparisons.
 // This is for internal use.
-func (n *Namespace) LtCollate(first any, others ...any) bool {
+func (n *Namespace) LtCollate(collator *collate.Collator, first any, others ...any) bool {
 	n.checkComparisonArgCount(1, others...)
 	for _, other := range others {
-		left, right := n.compareGetWithCollator(first, other)
+		left, right := n.compareGetWithCollator(collator, first, other)
 		if !(left < right) {
 			return false
 		}
@@ -196,7 +197,7 @@ func (n *Namespace) LtCollate(first any, others ...any) bool {
 
 // Lt returns the boolean truth of arg1 < arg2 && arg1 < arg3 && arg1 < arg4.
 func (n *Namespace) Lt(first any, others ...any) bool {
-	return n.LtCollate(first, others...)
+	return n.LtCollate(nil, first, others...)
 }
 
 func (n *Namespace) checkComparisonArgCount(min int, others ...any) bool {
@@ -217,10 +218,11 @@ func (n *Namespace) Conditional(cond bool, v1, v2 any) any {
 }
 
 func (n *Namespace) compareGet(a any, b any) (float64, float64) {
-	return n.compareGetWithCollator(a, b)
+
+	return n.compareGetWithCollator(nil, a, b)
 }
 
-func (n *Namespace) compareGetWithCollator(a any, b any) (float64, float64) {
+func (n *Namespace) compareGetWithCollator(collator *collate.Collator, a any, b any) (float64, float64) {
 	if ac, ok := a.(compare.Comparer); ok {
 		c := ac.Compare(b)
 		if c < 0 {
@@ -301,10 +303,13 @@ func (n *Namespace) compareGetWithCollator(a any, b any) (float64, float64) {
 		}
 	}
 
-	if n.caseInsensitive && leftStr != nil && rightStr != nil {
+	if (n.caseInsensitive || collator != nil) && leftStr != nil && rightStr != nil {
 		var c int
-
-		c = compare.Strings(*leftStr, *rightStr)
+		if collator != nil {
+			c = collator.CompareString(*leftStr, *rightStr)
+		} else {
+			c = compare.Strings(*leftStr, *rightStr)
+		}
 		if c < 0 {
 			return 0, 1
 		} else if c > 0 {

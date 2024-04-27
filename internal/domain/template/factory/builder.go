@@ -46,8 +46,8 @@ func (b *builder) withNamespace(ns *entity.Namespace) *builder {
 	return b
 }
 
-func (b *builder) withLookup(lu *entity.Lookup) *builder {
-	b.tmpl.Lookup = lu
+func (b *builder) buildLookup() *builder {
+	b.tmpl.Lookup = newLookup(b.funcsv)
 	return b
 }
 
@@ -59,7 +59,8 @@ func (b *builder) withCfs(cfs template.CustomizedFunctions) *builder {
 func (b *builder) buildFunctions() *builder {
 	valueobject.RegisterNamespaces()
 	valueobject.RegisterCallbackNamespaces(b.tmpl.Execute)
-	valueobject.RegisterMarkdownNamespaces(b.cfs)
+	valueobject.RegisterExtendedNamespaces(b.cfs)
+	valueobject.RegisterLookerNamespaces(b.cfs, b.tmpl.Lookup)
 
 	funcs := htmltemplate.FuncMap{}
 

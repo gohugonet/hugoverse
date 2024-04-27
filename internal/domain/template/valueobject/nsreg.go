@@ -3,6 +3,7 @@ package valueobject
 import (
 	"context"
 	"github.com/gohugonet/hugoverse/internal/domain/template"
+	"github.com/gohugonet/hugoverse/pkg/template/funcs/collections"
 )
 
 var TemplateFuncsNamespaceRegistry []func() *TemplateFuncsNamespace
@@ -14,7 +15,6 @@ func AddTemplateFuncsNamespace(ns func() *TemplateFuncsNamespace) {
 func RegisterNamespaces() {
 	registerCast()
 	registerFmt()
-	registerCompare()
 	registerLang()
 }
 
@@ -22,6 +22,12 @@ func RegisterCallbackNamespaces(cb func(ctx context.Context, name string, data a
 	registerPartials(cb)
 }
 
-func RegisterMarkdownNamespaces(mdService template.CustomizedFunctions) {
-	registerTransform(mdService)
+func RegisterExtendedNamespaces(functions template.CustomizedFunctions) {
+	registerCompare(functions)
+	registerTransform(functions)
+	registerUrls(functions)
+}
+
+func RegisterLookerNamespaces(functions template.CustomizedFunctions, looker collections.FuncLooker) {
+	registerCollections(functions, looker, functions)
 }

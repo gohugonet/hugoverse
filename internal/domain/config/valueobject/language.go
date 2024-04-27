@@ -31,6 +31,14 @@ type LanguageConfig struct {
 	Disabled bool
 }
 
+func (l LanguageConfig) Name() string {
+	return l.LanguageName
+}
+
+func (l LanguageConfig) Code() string {
+	return l.LanguageCode
+}
+
 func DecodeLanguageConfig(p config.Provider) (map[string]LanguageConfig, error) {
 	var err error
 	m := p.GetStringMap("languages")

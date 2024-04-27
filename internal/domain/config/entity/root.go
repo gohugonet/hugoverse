@@ -31,3 +31,7 @@ func (r Root) CompiledTimeout() (time.Duration, error) {
 
 	return timeout, nil
 }
+
+func (r Root) BaseUrl() string {
+	return r.RootConfig.BaseURL
+}

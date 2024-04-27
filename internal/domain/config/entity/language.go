@@ -4,12 +4,17 @@ import (
 	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/config/valueobject"
 	"github.com/gohugonet/hugoverse/internal/domain/module"
+	"golang.org/x/exp/maps"
 )
 
 type Language struct {
 	Default     string
 	Configs     map[string]valueobject.LanguageConfig
 	RootConfigs map[string]valueobject.RootConfig
+}
+
+func (l Language) Languages() []valueobject.LanguageConfig {
+	return maps.Values(l.Configs)
 }
 
 func (l Language) GetDefaultDirs(names []string) ([]module.Component, error) {

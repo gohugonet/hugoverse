@@ -41,3 +41,11 @@ type Unwrapper interface {
 	// It got its slightly odd name to prevent collisions with user types.
 	Unwrapv() any
 }
+
+// Unwrap returns the underlying value of v if it implements Unwrapper, otherwise v is returned.
+func Unwrapv(v any) any {
+	if u, ok := v.(Unwrapper); ok {
+		return u.Unwrapv()
+	}
+	return v
+}

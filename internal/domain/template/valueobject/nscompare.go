@@ -3,14 +3,13 @@ package valueobject
 import (
 	"context"
 	"github.com/gohugonet/hugoverse/pkg/template/funcs/compare"
-	"time"
 )
 
 const nsCompare = "compare"
 
-func registerCompare() {
+func registerCompare(timezone compare.TimeZone) {
 	f := func() *TemplateFuncsNamespace {
-		ctx := compare.New(time.Now().Location(), false)
+		ctx := compare.New(timezone.Location(), false)
 
 		ns := &TemplateFuncsNamespace{
 			Name:    nsCompare,
