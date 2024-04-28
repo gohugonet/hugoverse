@@ -19,6 +19,12 @@ type ContentHub interface {
 	RenderString(ctx context.Context, args ...any) (goTmpl.HTML, error)
 
 	SetTemplateExecutor(exec TemplateExecutor)
+
+	Title
+}
+
+type Title interface {
+	CreateTitle(raw string) string
 }
 
 type TemplateDescriptor interface {

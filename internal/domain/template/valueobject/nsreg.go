@@ -26,6 +26,7 @@ func RegisterExtendedNamespaces(functions template.CustomizedFunctions) {
 	registerCompare(functions)
 	registerTransform(functions)
 	registerUrls(functions)
+	registerStrings(functions)
 }
 
 func RegisterLookerNamespaces(functions template.CustomizedFunctions, looker collections.FuncLooker) {

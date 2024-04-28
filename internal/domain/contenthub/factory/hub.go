@@ -21,6 +21,9 @@ func New(fs contenthub.Fs) (contenthub.ContentHub, error) {
 				ContentMap:  newContentMap(),
 				ContentSpec: cs,
 			}),
+		Title: &entity.Title{
+			Style: entity.StyleAP,
+		},
 	}
 
 	return ch, nil

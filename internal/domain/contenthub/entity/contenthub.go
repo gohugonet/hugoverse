@@ -13,6 +13,8 @@ type ContentHub struct {
 
 	*PageCollections
 
+	*Title
+	
 	*render
 }
 

@@ -44,6 +44,7 @@ func (b *sourceFilesystemsBuilder) Build() (*valueobject.SourceFilesystems, erro
 	}
 
 	b.result.Layouts = createView(module.ComponentFolderLayouts, b.theBigFs.OverlayMounts)
+	b.result.Assets = createView(module.ComponentFolderAssets, b.theBigFs.OverlayMounts)
 	b.result.Content = createView(module.ComponentFolderContent, b.theBigFs.OverlayMountsContent)
 
 	return b.result, nil
