@@ -1,0 +1,96 @@
+package factory
+
+import (
+	"github.com/gohugonet/hugoverse/internal/domain/resources"
+	"github.com/gohugonet/hugoverse/internal/domain/resources/entity"
+	"github.com/gohugonet/hugoverse/internal/domain/resources/valueobject"
+	"github.com/gohugonet/hugoverse/pkg/cache/dynacache"
+	"github.com/gohugonet/hugoverse/pkg/cache/filecache"
+	"github.com/gohugonet/hugoverse/pkg/hexec"
+	"github.com/gohugonet/hugoverse/pkg/identity"
+	"github.com/gohugonet/hugoverse/pkg/loggers"
+	"github.com/gohugonet/hugoverse/pkg/resource/jsconfig"
+	"github.com/spf13/afero"
+	"time"
+)
+
+func NewResources(ws resources.Workspace) (resources.Resources, error) {
+	fileCaches, err := newCaches(ws)
+	if err != nil {
+		return nil, err
+	}
+
+	memoryCache := newMemoryCache()
+	execHelper := newExecHelper(ws)
+	ip, err := newImageProcessor(ws)
+
+	common := &entity.Common{
+		Incr:       &identity.IncrementByOne{},
+		FileCaches: fileCaches,
+		PostBuildAssets: &entity.PostBuildAssets{
+			PostProcessResources: make(map[string]resources.PostPublishedResource),
+			JSConfigBuilder:      jsconfig.NewBuilder(),
+		},
+	}
+
+	rs := &entity.Resources{
+		Imaging: ip,
+		ImageCache: valueobject.NewImageCache(
+			fileCaches.ImageCache(),
+			memoryCache,
+		),
+		ExecHelper: execHelper,
+		Common:     common,
+	}
+
+	return rs, nil
+}
+
+func newCaches(ws resources.Workspace) (filecache.Caches, error) {
+	fs := ws.SourceFs()
+
+	m := make(filecache.Caches)
+	ws.CachesIterator(func(cacheKey string, isResourceDir bool, dir string, age time.Duration) error {
+		var cfs afero.Fs
+
+		if isResourceDir {
+			cfs = ws.ResourcesCacheFs()
+		} else {
+			cfs = fs
+		}
+
+		if cfs == nil {
+			panic("nil fs")
+		}
+
+		baseDir := dir
+
+		bfs := ws.NewBasePathFs(cfs, baseDir)
+
+		var pruneAllRootDir string
+		if cacheKey == "modules" {
+			pruneAllRootDir = "pkg"
+		}
+
+		m[cacheKey] = filecache.NewCache(bfs, age, pruneAllRootDir)
+		return nil
+	})
+
+	return m, nil
+}
+
+func newMemoryCache() *dynacache.Cache {
+	return dynacache.New(dynacache.Options{Running: true, Log: loggers.NewDefault()})
+}
+
+func newExecHelper(ws resources.Workspace) *hexec.Exec {
+	return hexec.NewWithAuth(ws.ExecAuth())
+}
+
+func newImageProcessor(ws resources.Workspace) (*entity.ImageProcessor, error) {
+	exifDecoder, err := ws.ExifDecoder()
+	if err != nil {
+		return nil, err
+	}
+	return &entity.ImageProcessor{ExifDecoder: exifDecoder}, nil
+}

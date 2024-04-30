@@ -12,8 +12,12 @@ type Config struct {
 	Provider config.Provider
 
 	Root
+	Caches
+	Security
 	Module
 	Language
+
+	Imaging
 }
 
 func (c *Config) Fs() afero.Fs {
@@ -22,19 +26,6 @@ func (c *Config) Fs() afero.Fs {
 
 func (c *Config) Theme() string {
 	return c.Root.DefaultTheme()
-}
-
-func (c *Config) ThemesDir() string {
-	// TODO
-	return c.Root.DefaultTheme()
-}
-
-func (c *Config) WorkingDir() string {
-	return c.Root.RootConfig.BaseDirs.WorkingDir
-}
-
-func (c *Config) PublishDir() string {
-	return c.Root.RootConfig.BaseDirs.PublishDir
 }
 
 func (c *Config) GetImports(moduleDir string) ([]string, error) {

@@ -30,6 +30,7 @@ func LoadConfig() (*entity.Config, error) {
 			WorkingDir: workingDir,
 			ThemesDir:  paths.AbsPathify(workingDir, DefaultThemesDir),
 			PublishDir: paths.AbsPathify(workingDir, DefaultPublishDir),
+			CacheDir:   "",
 		},
 		Logger: loggers.NewDefault(),
 	}
@@ -45,8 +46,11 @@ func LoadConfig() (*entity.Config, error) {
 		Provider: p,
 
 		Root:     entity.Root{},
+		Caches:   entity.Caches{},
+		Security: entity.Security{},
 		Module:   entity.Module{},
 		Language: entity.Language{},
+		Imaging:  entity.Imaging{},
 	}
 
 	if err := l.assembleConfig(c); err != nil {

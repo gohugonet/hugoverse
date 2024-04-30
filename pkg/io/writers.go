@@ -53,3 +53,19 @@ func (m multiWriteCloser) Close() error {
 	}
 	return err
 }
+
+// ToReadCloser creates an io.ReadCloser from the given io.Reader.
+// If it's not already, one will be created with a Close method that does nothing.
+func ToReadCloser(r io.Reader) io.ReadCloser {
+	if rc, ok := r.(io.ReadCloser); ok {
+		return rc
+	}
+
+	return struct {
+		io.Reader
+		io.Closer
+	}{
+		r,
+		io.NopCloser(nil),
+	}
+}

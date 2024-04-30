@@ -4,6 +4,7 @@ type BaseDirs struct {
 	WorkingDir string
 	ThemesDir  string
 	PublishDir string
+	CacheDir   string
 }
 
 type CommonDirs struct {
@@ -13,9 +14,6 @@ type CommonDirs struct {
 	// and not be committed to version control. But there may be cached content in here that you want to keep,
 	// e.g. resources/_gen/images for performance reasons or CSS built from SASS when your CI server doesn't have the full setup.
 	ResourceDir string
-
-	// The root directory for all cache files.
-	CacheDir string
 
 	// The content source directory.
 	ContentDir string

@@ -11,6 +11,7 @@ type FilesystemsCollector struct {
 
 	OverlayMounts        *overlayfs.OverlayFs
 	OverlayMountsContent *overlayfs.OverlayFs
+	OverlayResources     *overlayfs.OverlayFs
 
 	// Maps component type (layouts, static, content etc.) an ordered list of
 	// directories representing the overlay filesystems above.

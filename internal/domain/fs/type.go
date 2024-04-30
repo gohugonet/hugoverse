@@ -38,3 +38,8 @@ type OriginFs interface {
 }
 
 var FilepathSeparator = string(filepath.Separator)
+
+// FilesystemUnwrapper returns the underlying filesystem.
+type FilesystemUnwrapper interface {
+	UnwrapFilesystem() afero.Fs
+}

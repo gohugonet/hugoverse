@@ -165,6 +165,24 @@ func (cl *ConfigLoader) decodeConfig(p config.Provider, target *entity.Config) e
 	target.Root.RootConfig = r
 	target.Root.RootConfig.BaseDirs = cl.BaseDirs
 
+	cs, err := valueobject.DecodeCachesConfig(cl.SourceDescriptor.Fs(), p, cl.BaseDirs)
+	if err != nil {
+		return err
+	}
+	target.Caches.CachesConfig = cs
+
+	sec, err := valueobject.DecodeSecurityConfig(p)
+	if err != nil {
+		return err
+	}
+	target.Security.SecurityConfig = sec
+
+	img, err := valueobject.DecodeImagingConfig(p)
+	if err != nil {
+		return err
+	}
+	target.Imaging.ImagingConfigInternal = img
+
 	m, err := valueobject.DecodeModuleConfig(p)
 	if err != nil {
 		return err

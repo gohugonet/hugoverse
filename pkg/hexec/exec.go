@@ -81,6 +81,23 @@ var WithEnviron = func(env []string) func(c *commandeer) {
 	}
 }
 
+func NewWithAuth(au ExecAuth) *Exec {
+	e := &Exec{
+		sc: au,
+	}
+
+	var baseEnviron []string
+	for _, v := range os.Environ() {
+		k, _ := SplitEnvVar(v)
+		if e.sc.OSEnvAccept(k) {
+			baseEnviron = append(baseEnviron, v)
+		}
+	}
+	e.baseEnviron = baseEnviron
+
+	return e
+}
+
 // New creates a new Exec using the provided security config.
 func New() *Exec {
 	e := &Exec{
@@ -90,7 +107,7 @@ func New() *Exec {
 	var baseEnviron []string
 	for _, v := range os.Environ() {
 		k, _ := SplitEnvVar(v)
-		if e.sc.OsEnv.Accept(k) {
+		if e.sc.OSEnvAccept(k) {
 			baseEnviron = append(baseEnviron, v)
 		}
 	}
@@ -119,7 +136,7 @@ func SafeCommand(name string, arg ...string) (*exec.Cmd, error) {
 
 // Exec enforces a security policy for commands run via os/exec.
 type Exec struct {
-	sc Auth
+	sc ExecAuth
 
 	// os.Environ filtered by the Exec.OsEnviron whitelist filter.
 	baseEnviron []string
@@ -150,7 +167,7 @@ func (e *Exec) Npx(name string, arg ...any) (Runner, error) {
 }
 
 // Sec returns the security policies this Exec is configured with.
-func (e *Exec) Sec() Auth {
+func (e *Exec) Sec() ExecAuth {
 	return e.sc
 }
 

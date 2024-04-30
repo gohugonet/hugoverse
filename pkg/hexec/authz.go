@@ -38,6 +38,10 @@ func (c Auth) CheckAllowedExec(name string) error {
 	return nil
 }
 
+func (c Auth) OSEnvAccept(name string) bool {
+	return c.OsEnv.Accept(name)
+}
+
 // ToTOML converts c to TOML with [security] as the root.
 func (c Auth) ToTOML() string {
 	sec := c.ToSecurityMap()

@@ -39,3 +39,7 @@ type ReadSeekerNoOpCloser struct {
 func (r ReadSeekerNoOpCloser) Close() error {
 	return nil
 }
+
+// OpenReadSeekCloser allows setting some other way (than reading from a filesystem)
+// to open or create a ReadSeekCloser.
+type OpenReadSeekCloser func() (ReadSeekCloser, error)

@@ -11,6 +11,8 @@ const (
 	ComponentFolderData       = "data"
 	ComponentFolderAssets     = "assets"
 	ComponentFolderI18n       = "i18n"
+
+	FolderResources = "resources"
 )
 
 var (
