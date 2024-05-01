@@ -1,6 +1,7 @@
 package resources
 
 import (
+	"github.com/gohugonet/hugoverse/internal/domain/resources"
 	"github.com/spf13/cast"
 )
 

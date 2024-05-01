@@ -11,6 +11,7 @@ import (
 	"github.com/gohugonet/hugoverse/pkg/loggers"
 	"github.com/gohugonet/hugoverse/pkg/resource/jsconfig"
 	"github.com/spf13/afero"
+	"net/http"
 	"time"
 )
 
@@ -19,8 +20,9 @@ func NewResources(ws resources.Workspace) (resources.Resources, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	memoryCache := newMemoryCache()
+	resourceCache := newResourceCache(fileCaches.AssetsCache(), memoryCache)
+
 	execHelper := newExecHelper(ws)
 	ip, err := newImageProcessor(ws)
 
@@ -34,6 +36,18 @@ func NewResources(ws resources.Workspace) (resources.Resources, error) {
 	}
 
 	rs := &entity.Resources{
+		Creator: &entity.Creator{
+			MediaService: ws,
+			UrlService:   ws,
+			AssetsFs:     ws.AssetsFs(),
+			PublishFs:    ws.PublishFs(),
+
+			HttpClient: &http.Client{
+				Timeout: time.Minute,
+			},
+			CacheGetResource: fileCaches.GetResourceCache(),
+			ResourceCache:    resourceCache,
+		},
 		Imaging: ip,
 		ImageCache: valueobject.NewImageCache(
 			fileCaches.ImageCache(),
@@ -93,4 +107,25 @@ func newImageProcessor(ws resources.Workspace) (*entity.ImageProcessor, error) {
 		return nil, err
 	}
 	return &entity.ImageProcessor{ExifDecoder: exifDecoder}, nil
+}
+
+func newResourceCache(assetsCache *filecache.Cache, memCache *dynacache.Cache) *valueobject.ResourceCache {
+	return &valueobject.ResourceCache{
+		FileCache: assetsCache,
+		CacheResource: dynacache.GetOrCreatePartition[string, resources.Resource](
+			memCache,
+			"/res1",
+			dynacache.OptionsPartition{ClearWhen: dynacache.ClearOnChange, Weight: 40},
+		),
+		CacheResources: dynacache.GetOrCreatePartition[string, []resources.Resource](
+			memCache,
+			"/ress",
+			dynacache.OptionsPartition{ClearWhen: dynacache.ClearOnRebuild, Weight: 40},
+		),
+		CacheResourceTransformation: dynacache.GetOrCreatePartition[string, *valueobject.ResourceAdapterInner](
+			memCache,
+			"/res1/tra",
+			dynacache.OptionsPartition{ClearWhen: dynacache.ClearOnChange, Weight: 40},
+		),
+	}
 }

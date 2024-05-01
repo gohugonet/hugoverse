@@ -6,6 +6,8 @@ import (
 )
 
 type Resources struct {
+	*Creator
+
 	Imaging    *ImageProcessor
 	ImageCache *valueobject.ImageCache
 

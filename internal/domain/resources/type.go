@@ -10,12 +10,13 @@ import (
 	"github.com/gohugonet/hugoverse/pkg/maps"
 	"github.com/gohugonet/hugoverse/pkg/media"
 	"github.com/spf13/afero"
-	"go.opencensus.io/resource"
 	"time"
 )
 
 type Workspace interface {
 	SourceFs() afero.Fs
+	AssetsFs() afero.Fs
+	PublishFs() afero.Fs
 	ResourcesCacheFs() afero.Fs
 	NewBasePathFs(source afero.Fs, path string) afero.Fs
 
@@ -24,6 +25,18 @@ type Workspace interface {
 	ExifDecoder() (*exif.Decoder, error)
 
 	CachesIterator(func(cacheKey string, isResourceDir bool, dir string, age time.Duration) error)
+
+	MediaTypes
+	Url
+}
+
+type MediaTypes interface {
+	LookFirstBySuffix(suffix string) (media.Type, media.SuffixInfo, bool)
+	LookByType(mediaType string) (media.Type, bool)
+}
+
+type Url interface {
+	BasePathNoSlash() string
 }
 
 type Resources interface {
@@ -68,7 +81,7 @@ type TransformableResource interface {
 	Resource
 	Identifier
 	stale.Staler
-	resourceCopier
+	Copier
 }
 
 type baseResourceInternal interface {
@@ -87,7 +100,7 @@ type baseResourceInternal interface {
 
 // metaAssigner allows updating the media type in resources that supports it.
 type mediaTypeAssigner interface {
-	setMediaType(mediaType media.Type)
+	SetMediaType(mediaType media.Type)
 }
 
 type targetPather interface {
@@ -178,9 +191,9 @@ type Identifier interface {
 	Key() string
 }
 
-// resourceCopier is for internal use.
-type resourceCopier interface {
-	cloneTo(targetPath string) resource.Resource
+// Copier is for internal use.
+type Copier interface {
+	CloneTo(targetPath string) Resource
 }
 
 type NameNormalizedProvider interface {
@@ -190,15 +203,15 @@ type NameNormalizedProvider interface {
 }
 
 type fileInfo interface {
-	setOpenSource(pio.OpenReadSeekCloser)
-	setSourceFilenameIsHash(bool)
-	setTargetPath(ResourcePaths)
-	size() int64
+	SetOpenSource(pio.OpenReadSeekCloser)
+	SetSourceFilenameIsHash(bool)
+	SetTargetPath(ResourcePaths)
+	Size() int64
 	hashProvider
 }
 
 type hashProvider interface {
-	hash() string
+	Hash() string
 }
 
 type ResourcePaths interface {
@@ -216,4 +229,22 @@ type ResourcePaths interface {
 
 	// File This is the File component, e.g. "data.json".
 	File() string
+}
+
+type BaseResource interface {
+	baseResourceResource
+	baseResourceInternal
+	stale.Staler
+}
+
+type baseResourceResource interface {
+	Cloner
+	Copier
+	ContentProvider
+	Resource
+	Identifier
+}
+
+type Cloner interface {
+	Clone() Resource
 }

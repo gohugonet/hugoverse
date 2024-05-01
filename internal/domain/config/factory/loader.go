@@ -183,6 +183,12 @@ func (cl *ConfigLoader) decodeConfig(p config.Provider, target *entity.Config) e
 	}
 	target.Imaging.ImagingConfigInternal = img
 
+	mt, err := valueobject.DecodeMediaTypesConfig(p)
+	if err != nil {
+		return err
+	}
+	target.MediaType.MediaTypeConfig = mt
+
 	m, err := valueobject.DecodeModuleConfig(p)
 	if err != nil {
 		return err

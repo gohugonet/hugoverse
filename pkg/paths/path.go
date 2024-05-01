@@ -379,3 +379,8 @@ func ToSlashTrimTrailing(s string) string {
 func ToSlashPreserveLeading(s string) string {
 	return "/" + strings.Trim(filepath.ToSlash(s), "/")
 }
+
+// PathAndExt is the same as FileAndExt, but it uses the path package.
+func PathAndExt(in string) (string, string) {
+	return fileAndExt(in, pb)
+}

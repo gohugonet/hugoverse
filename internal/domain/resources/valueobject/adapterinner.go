@@ -7,7 +7,7 @@ import (
 	"sync"
 )
 
-type resourceAdapterInner struct {
+type ResourceAdapterInner struct {
 	// The context that started this transformation.
 	ctx context.Context
 

@@ -45,12 +45,13 @@ func LoadConfig() (*entity.Config, error) {
 		SourceFs: l.SourceDescriptor.Fs(),
 		Provider: p,
 
-		Root:     entity.Root{},
-		Caches:   entity.Caches{},
-		Security: entity.Security{},
-		Module:   entity.Module{},
-		Language: entity.Language{},
-		Imaging:  entity.Imaging{},
+		Root:      entity.Root{},
+		Caches:    entity.Caches{},
+		Security:  entity.Security{},
+		Module:    entity.Module{},
+		Language:  entity.Language{},
+		Imaging:   entity.Imaging{},
+		MediaType: entity.MediaType{},
 	}
 
 	if err := l.assembleConfig(c); err != nil {

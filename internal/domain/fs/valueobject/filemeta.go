@@ -3,12 +3,14 @@ package valueobject
 import (
 	"errors"
 	"github.com/gohugonet/hugoverse/pkg/hreflect"
+	"github.com/gohugonet/hugoverse/pkg/paths"
 	"github.com/spf13/afero"
 	"os"
 	"reflect"
 )
 
 type FileMeta struct {
+	PathInfo         *paths.Path
 	Name             string
 	Filename         string
 	Path             string

@@ -18,6 +18,7 @@ type Config struct {
 	Language
 
 	Imaging
+	MediaType
 }
 
 func (c *Config) Fs() afero.Fs {

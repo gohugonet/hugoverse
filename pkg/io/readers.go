@@ -43,3 +43,20 @@ func (r ReadSeekerNoOpCloser) Close() error {
 // OpenReadSeekCloser allows setting some other way (than reading from a filesystem)
 // to open or create a ReadSeekCloser.
 type OpenReadSeekCloser func() (ReadSeekCloser, error)
+
+// StringReader provides a way to read a string.
+type StringReader interface {
+	ReadString() string
+}
+
+// ReadString reads from the given reader and returns the content as a string.
+func ReadString(r io.Reader) (string, error) {
+	if sr, ok := r.(StringReader); ok {
+		return sr.ReadString(), nil
+	}
+	b, err := io.ReadAll(r)
+	if err != nil {
+		return "", err
+	}
+	return string(b), nil
+}

@@ -49,3 +49,9 @@ func Unwrapv(v any) any {
 	}
 	return v
 }
+
+// LowHigh is typically used to represent a slice boundary.
+type LowHigh struct {
+	Low  int
+	High int
+}

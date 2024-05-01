@@ -352,3 +352,13 @@ func cleanID(name string) string {
 func (f Caches) ImageCache() *Cache {
 	return f[cache.KeyImages]
 }
+
+// GetResourceCache gets the file cache for remote resources.
+func (f Caches) GetResourceCache() *Cache {
+	return f[cache.KeyGetResource]
+}
+
+// AssetsCache gets the file cache for assets (processed resources, SCSS etc.).
+func (f Caches) AssetsCache() *Cache {
+	return f[cache.KeyAssets]
+}

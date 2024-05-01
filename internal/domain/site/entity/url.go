@@ -198,3 +198,7 @@ func (u *URL) MakePath(s string) string {
 	s = text.RemoveAccentsString(s)
 	return s
 }
+
+func (u *URL) BasePathNoSlash() string {
+	return u.BaseURL.BasePathNoTrailingSlash
+}
