@@ -101,12 +101,12 @@ func newExecHelper(ws resources.Workspace) *hexec.Exec {
 	return hexec.NewWithAuth(ws.ExecAuth())
 }
 
-func newImageProcessor(ws resources.Workspace) (*entity.ImageProcessor, error) {
+func newImageProcessor(ws resources.Workspace) (*valueobject.ImageProcessor, error) {
 	exifDecoder, err := ws.ExifDecoder()
 	if err != nil {
 		return nil, err
 	}
-	return &entity.ImageProcessor{ExifDecoder: exifDecoder}, nil
+	return &valueobject.ImageProcessor{ExifDecoder: exifDecoder}, nil
 }
 
 func newResourceCache(assetsCache *filecache.Cache, memCache *dynacache.Cache) *valueobject.ResourceCache {

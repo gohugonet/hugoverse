@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"github.com/bep/gowebp/libwebp/webpoptions"
 	"github.com/gohugonet/hugoverse/internal/domain/config/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/image/exif"
 )
@@ -20,4 +21,12 @@ func (i Imaging) ExifDecoder() (*exif.Decoder, error) {
 		return nil, err
 	}
 	return exifDecoder, nil
+}
+
+func (i Imaging) ImageHint() webpoptions.EncodingPreset {
+	return i.Hint
+}
+
+func (i Imaging) ImageQuality() int {
+	return i.Imaging.Quality
 }

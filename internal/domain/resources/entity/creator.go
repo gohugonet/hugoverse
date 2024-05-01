@@ -111,11 +111,11 @@ func (c *Creator) newResource(rd valueobject.ResourceSourceDescriptor) (resource
 	}
 
 	if rd.MediaType.MainType == "image" {
-		imgFormat, ok := images.ImageFormatFromMediaSubType(rd.MediaType.SubType)
+		imgFormat, ok := valueobject.ImageFormatFromMediaSubType(rd.MediaType.SubType)
 		if ok {
 			ir := &imageResource{
-				Image:        images.NewImage(imgFormat, r.imaging, nil, gr),
-				baseResource: gr,
+				Image:        valueobject.NewImage(imgFormat, r.imaging, nil, gr),
+				BaseResource: gr,
 			}
 			ir.root = ir
 			return newResourceAdapter(gr.spec, rd.LazyPublish, ir), nil

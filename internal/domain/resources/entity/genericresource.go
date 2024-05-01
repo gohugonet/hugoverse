@@ -86,11 +86,11 @@ func (gr *genericResource) SetSourceFilenameIsHash(b bool) {
 
 func (gr *genericResource) SetTargetPath(d resources.ResourcePaths) {
 	gr.paths = valueobject.ResourcePaths{
-		Dir:             d.Dir(),
-		BaseDirTarget:   d.BaseDirTarget(),
-		BaseDirLink:     d.BaseDirLink(),
-		TargetBasePaths: d.TargetBasePaths(),
-		File:            d.File(),
+		Dir:             d.PathDir(),
+		BaseDirTarget:   d.PathBaseDirTarget(),
+		BaseDirLink:     d.PathBaseDirLink(),
+		TargetBasePaths: d.PathTargetBasePaths(),
+		File:            d.PathFile(),
 	}
 }
 

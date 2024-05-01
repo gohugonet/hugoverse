@@ -104,3 +104,19 @@ func (d ResourcePaths) FromTargetPath(targetPath string) ResourcePaths {
 
 	return d
 }
+
+func (d ResourcePaths) PathDir() string {
+	return d.Dir
+}
+func (d ResourcePaths) PathBaseDirTarget() string {
+	return d.BaseDirTarget
+}
+func (d ResourcePaths) PathBaseDirLink() string {
+	return d.BaseDirLink
+}
+func (d ResourcePaths) PathTargetBasePaths() []string {
+	return d.TargetBasePaths
+}
+func (d ResourcePaths) PathFile() string {
+	return d.File
+}

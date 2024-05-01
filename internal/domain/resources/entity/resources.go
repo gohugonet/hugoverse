@@ -8,7 +8,7 @@ import (
 type Resources struct {
 	*Creator
 
-	Imaging    *ImageProcessor
+	Imaging    *valueobject.ImageProcessor
 	ImageCache *valueobject.ImageCache
 
 	ExecHelper *hexec.Exec
