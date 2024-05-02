@@ -143,7 +143,7 @@ func (i *imageResource) Colors() ([]string, error) {
 }
 
 // Clone is for internal use.
-func (i *imageResource) Clone() resource.Resource {
+func (i *imageResource) Clone() resources.Resource {
 	gr := i.baseResource.Clone().(baseResource)
 	return &imageResource{
 		root:         i.root,

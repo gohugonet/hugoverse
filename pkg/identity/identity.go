@@ -138,3 +138,39 @@ func Unwrap(id Identity) Identity {
 type IsProbablyDependencyProvider interface {
 	IsProbablyDependency(other Identity) bool
 }
+
+// ForEeachIdentityByNameProvider provides a way to look up identities by name.
+type ForEeachIdentityByNameProvider interface {
+	// ForEeachIdentityByName calls cb for each Identity that relates to name.
+	// If cb returns true, the iteration is terminated.
+	ForEeachIdentityByName(name string, cb func(id Identity) bool)
+}
+
+// FirstIdentity returns the first Identity in v, Anonymous if none found
+func FirstIdentity(v any) Identity {
+	var result Identity = Anonymous
+	WalkIdentitiesShallow(v, func(level int, id Identity) bool {
+		result = id
+		return true
+	})
+
+	return result
+}
+
+func NewFindFirstManagerIdentityProvider(m Manager, id Identity) FindFirstManagerIdentityProvider {
+	return findFirstManagerIdentity{
+		Identity: Anonymous,
+		ManagerIdentity: ManagerIdentity{
+			Manager: m, Identity: id,
+		},
+	}
+}
+
+type findFirstManagerIdentity struct {
+	Identity
+	ManagerIdentity
+}
+
+func (f findFirstManagerIdentity) FindFirstManagerIdentity() ManagerIdentity {
+	return f.ManagerIdentity
+}

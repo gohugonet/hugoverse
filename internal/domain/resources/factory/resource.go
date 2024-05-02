@@ -25,6 +25,9 @@ func NewResources(ws resources.Workspace) (resources.Resources, error) {
 
 	execHelper := newExecHelper(ws)
 	ip, err := newImageProcessor(ws)
+	if err != nil {
+		return nil, err
+	}
 
 	common := &entity.Common{
 		Incr:       &identity.IncrementByOne{},
@@ -47,8 +50,9 @@ func NewResources(ws resources.Workspace) (resources.Resources, error) {
 			},
 			CacheGetResource: fileCaches.GetResourceCache(),
 			ResourceCache:    resourceCache,
+
+			Imaging: ip,
 		},
-		Imaging: ip,
 		ImageCache: valueobject.NewImageCache(
 			fileCaches.ImageCache(),
 			memoryCache,
@@ -106,11 +110,13 @@ func newImageProcessor(ws resources.Workspace) (*valueobject.ImageProcessor, err
 	if err != nil {
 		return nil, err
 	}
-	return &valueobject.ImageProcessor{ExifDecoder: exifDecoder}, nil
+	return &valueobject.ImageProcessor{
+		ExifDecoder: exifDecoder,
+	}, nil
 }
 
-func newResourceCache(assetsCache *filecache.Cache, memCache *dynacache.Cache) *valueobject.ResourceCache {
-	return &valueobject.ResourceCache{
+func newResourceCache(assetsCache *filecache.Cache, memCache *dynacache.Cache) *entity.ResourceCache {
+	return &entity.ResourceCache{
 		FileCache: assetsCache,
 		CacheResource: dynacache.GetOrCreatePartition[string, resources.Resource](
 			memCache,
@@ -122,7 +128,7 @@ func newResourceCache(assetsCache *filecache.Cache, memCache *dynacache.Cache) *
 			"/ress",
 			dynacache.OptionsPartition{ClearWhen: dynacache.ClearOnRebuild, Weight: 40},
 		),
-		CacheResourceTransformation: dynacache.GetOrCreatePartition[string, *valueobject.ResourceAdapterInner](
+		CacheResourceTransformation: dynacache.GetOrCreatePartition[string, *entity.ResourceAdapterInner](
 			memCache,
 			"/res1/tra",
 			dynacache.OptionsPartition{ClearWhen: dynacache.ClearOnChange, Weight: 40},

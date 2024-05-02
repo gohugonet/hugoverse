@@ -31,7 +31,7 @@ type genericResource struct {
 	sd    valueobject.ResourceSourceDescriptor
 	paths valueobject.ResourcePaths
 
-	resourceCache *valueobject.ResourceCache
+	resourceCache *ResourceCache
 
 	sourceFilenameIsHash bool
 

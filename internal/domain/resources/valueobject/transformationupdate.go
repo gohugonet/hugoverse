@@ -18,11 +18,10 @@ type TransformationUpdate struct {
 	MediaType      media.Type
 	Data           map[string]any
 
-	startCtx ResourceTransformationCtx
+	StartCtx ResourceTransformationCtx
 }
 
-// We will persist this information to disk.
-type transformedResourceMetadata struct {
+type TransformedResourceMetadata struct {
 	Target     string         `json:"Target"`
 	MediaTypeV string         `json:"MediaType"`
 	MetaData   map[string]any `json:"Data"`
@@ -32,15 +31,15 @@ func (u *TransformationUpdate) isContentChanged() bool {
 	return u.Content != nil || u.SourceFilename != nil
 }
 
-func (u *TransformationUpdate) toTransformedResourceMetadata() transformedResourceMetadata {
-	return transformedResourceMetadata{
+func (u *TransformationUpdate) ToTransformedResourceMetadata() TransformedResourceMetadata {
+	return TransformedResourceMetadata{
 		MediaTypeV: u.MediaType.Type,
 		Target:     u.TargetPath,
 		MetaData:   u.Data,
 	}
 }
 
-func (u *TransformationUpdate) updateFromCtx(ctx *ResourceTransformationCtx) {
+func (u *TransformationUpdate) UpdateFromCtx(ctx *ResourceTransformationCtx) {
 	u.TargetPath = ctx.OutPath
 	u.MediaType = ctx.OutMediaType
 	u.Data = ctx.Data

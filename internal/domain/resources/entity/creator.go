@@ -28,7 +28,9 @@ type Creator struct {
 
 	HttpClient       *http.Client
 	CacheGetResource *filecache.Cache
-	ResourceCache    *valueobject.ResourceCache
+	ResourceCache    *ResourceCache
+
+	Imaging *valueobject.ImageProcessor
 }
 
 // Copy copies r to the new targetPath.
@@ -114,16 +116,16 @@ func (c *Creator) newResource(rd valueobject.ResourceSourceDescriptor) (resource
 		imgFormat, ok := valueobject.ImageFormatFromMediaSubType(rd.MediaType.SubType)
 		if ok {
 			ir := &imageResource{
-				Image:        valueobject.NewImage(imgFormat, r.imaging, nil, gr),
+				Image:        valueobject.NewImage(imgFormat, c.Imaging, nil, gr),
 				BaseResource: gr,
 			}
 			ir.root = ir
-			return newResourceAdapter(gr.spec, rd.LazyPublish, ir), nil
+			return newResourceAdapter(c.ResourceCache, rd.LazyPublish, ir), nil
 		}
 
 	}
 
-	return newResourceAdapter(gr.spec, rd.LazyPublish, gr), nil
+	return newResourceAdapter(c.ResourceCache, rd.LazyPublish, gr), nil
 }
 
 // Match gets the resources matching the given pattern from the assets filesystem.
