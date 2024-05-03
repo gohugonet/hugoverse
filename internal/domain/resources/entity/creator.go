@@ -30,7 +30,8 @@ type Creator struct {
 	CacheGetResource *filecache.Cache
 	ResourceCache    *ResourceCache
 
-	Imaging *valueobject.ImageProcessor
+	Imaging    *valueobject.ImageProcessor
+	ImageCache *ImageCache
 }
 
 // Copy copies r to the new targetPath.
@@ -112,12 +113,12 @@ func (c *Creator) newResource(rd valueobject.ResourceSourceDescriptor) (resource
 		title:       rd.NameOriginal,
 	}
 
-	if rd.MediaType.MainType == "image" {
+	if rd.MediaType.MainType == "images" {
 		imgFormat, ok := valueobject.ImageFormatFromMediaSubType(rd.MediaType.SubType)
 		if ok {
 			ir := &imageResource{
-				Image:        valueobject.NewImage(imgFormat, c.Imaging, nil, gr),
-				BaseResource: gr,
+				Image:        valueobject.NewImage(imgFormat, c.Imaging, nil, gr, c.ImageCache),
+				baseResource: gr,
 			}
 			ir.root = ir
 			return newResourceAdapter(c.ResourceCache, rd.LazyPublish, ir), nil

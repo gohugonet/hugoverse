@@ -23,7 +23,7 @@ type BuiltinTypes struct {
 	TOMLType           media.Type
 	YAMLType           media.Type
 
-	// Common image types
+	// Common images types
 	PNGType  media.Type
 	JPEGType media.Type
 	GIFType  media.Type
@@ -69,18 +69,18 @@ var Builtin = BuiltinTypes{
 	WebAppManifestType: media.Type{Type: "application/manifest+json"},
 	RSSType:            media.Type{Type: "application/rss+xml"},
 	XMLType:            media.Type{Type: "application/xml"},
-	SVGType:            media.Type{Type: "image/svg+xml"},
+	SVGType:            media.Type{Type: "images/svg+xml"},
 	TextType:           media.Type{Type: "text/plain"},
 	TOMLType:           media.Type{Type: "application/toml"},
 	YAMLType:           media.Type{Type: "application/yaml"},
 
-	// Common image types
-	PNGType:  media.Type{Type: "image/png"},
-	JPEGType: media.Type{Type: "image/jpeg"},
-	GIFType:  media.Type{Type: "image/gif"},
-	TIFFType: media.Type{Type: "image/tiff"},
-	BMPType:  media.Type{Type: "image/bmp"},
-	WEBPType: media.Type{Type: "image/webp"},
+	// Common images types
+	PNGType:  media.Type{Type: "images/png"},
+	JPEGType: media.Type{Type: "images/jpeg"},
+	GIFType:  media.Type{Type: "images/gif"},
+	TIFFType: media.Type{Type: "images/tiff"},
+	BMPType:  media.Type{Type: "images/bmp"},
+	WEBPType: media.Type{Type: "images/webp"},
 
 	// Common font types
 	TrueTypeFontType: media.Type{Type: "font/ttf"},
@@ -120,18 +120,18 @@ var defaultMediaTypesConfig = map[string]any{
 	"application/manifest+json": map[string]any{"suffixes": []string{"webmanifest"}},
 	"application/rss+xml":       map[string]any{"suffixes": []string{"xml", "rss"}},
 	"application/xml":           map[string]any{"suffixes": []string{"xml"}},
-	"image/svg+xml":             map[string]any{"suffixes": []string{"svg"}},
+	"images/svg+xml":            map[string]any{"suffixes": []string{"svg"}},
 	"text/plain":                map[string]any{"suffixes": []string{"txt"}},
 	"application/toml":          map[string]any{"suffixes": []string{"toml"}},
 	"application/yaml":          map[string]any{"suffixes": []string{"yaml", "yml"}},
 
-	// Common image types
-	"image/png":  map[string]any{"suffixes": []string{"png"}},
-	"image/jpeg": map[string]any{"suffixes": []string{"jpg", "jpeg", "jpe", "jif", "jfif"}},
-	"image/gif":  map[string]any{"suffixes": []string{"gif"}},
-	"image/tiff": map[string]any{"suffixes": []string{"tif", "tiff"}},
-	"image/bmp":  map[string]any{"suffixes": []string{"bmp"}},
-	"image/webp": map[string]any{"suffixes": []string{"webp"}},
+	// Common images types
+	"images/png":  map[string]any{"suffixes": []string{"png"}},
+	"images/jpeg": map[string]any{"suffixes": []string{"jpg", "jpeg", "jpe", "jif", "jfif"}},
+	"images/gif":  map[string]any{"suffixes": []string{"gif"}},
+	"images/tiff": map[string]any{"suffixes": []string{"tif", "tiff"}},
+	"images/bmp":  map[string]any{"suffixes": []string{"bmp"}},
+	"images/webp": map[string]any{"suffixes": []string{"webp"}},
 
 	// Common font types
 	"font/ttf": map[string]any{"suffixes": []string{"ttf"}},

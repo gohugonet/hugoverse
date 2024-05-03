@@ -3,7 +3,7 @@ package entity
 import (
 	"github.com/bep/gowebp/libwebp/webpoptions"
 	"github.com/gohugonet/hugoverse/internal/domain/config/valueobject"
-	"github.com/gohugonet/hugoverse/pkg/image/exif"
+	"github.com/gohugonet/hugoverse/pkg/images/exif"
 )
 
 type Imaging struct {

@@ -42,6 +42,8 @@ type genericResource struct {
 	title  string
 	name   string
 	params map[string]any
+
+	spec *valueobject.Spec
 }
 
 func (gr *genericResource) IdentifierBase() string {
@@ -156,7 +158,7 @@ func (gr *genericResource) Publish() error {
 		targetFilenames := gr.getResourcePaths().TargetFilenames()
 
 		if gr.sourceFilenameIsHash {
-			// This is a processed image. We want to avoid copying it if it hasn't changed.
+			// This is a processed images. We want to avoid copying it if it hasn't changed.
 			var changedFilenames []string
 			for _, targetFilename := range targetFilenames {
 				if _, err := gr.publishFs.Stat(targetFilename); err == nil {
@@ -245,7 +247,7 @@ func (gr *genericResource) mergeData(in map[string]any) {
 	}
 }
 
-func (gr *genericResource) cloneWithUpdates(u *valueobject.TransformationUpdate) (resources.BaseResource, error) {
+func (gr *genericResource) cloneWithUpdates(u *valueobject.TransformationUpdate) (baseResource, error) {
 	r := gr.clone()
 
 	if u.Content != nil {
@@ -286,4 +288,8 @@ func (gr *genericResource) clone() *genericResource {
 func (gr *genericResource) openPublishFileForWriting(relTargetPath string) (io.WriteCloser, error) {
 	filenames := gr.paths.FromTargetPath(relTargetPath).TargetFilenames()
 	return helpers.OpenFilesForWriting(gr.publishFs, filenames...)
+}
+
+func (gr *genericResource) getSpec() *valueobject.Spec {
+	return gr.spec
 }

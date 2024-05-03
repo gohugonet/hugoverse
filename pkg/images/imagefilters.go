@@ -1,4 +1,4 @@
-package valueobject
+package images
 
 import (
 	"github.com/disintegration/gift"
@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-var imageFilters = map[string]gift.Resampling{
+var ImageFilters = map[string]gift.Resampling{
 	strings.ToLower("NearestNeighbor"):   gift.NearestNeighborResampling,
 	strings.ToLower("Box"):               gift.BoxResampling,
 	strings.ToLower("Linear"):            gift.LinearResampling,

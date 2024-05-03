@@ -422,8 +422,8 @@ func TestEscape(t *testing.T) {
 		},
 		{
 			"styleURLSpecialsEncoded",
-			`<a style="border-image: url({{"/**/'\";:// \\"}}), url(&quot;{{"/**/'\";:// \\"}}&quot;), url('{{"/**/'\";:// \\"}}'), 'http://www.example.com/?q={{"/**/'\";:// \\"}}''">`,
-			`<a style="border-image: url(/**/%27%22;://%20%5c), url(&quot;/**/%27%22;://%20%5c&quot;), url('/**/%27%22;://%20%5c'), 'http://www.example.com/?q=%2f%2a%2a%2f%27%22%3b%3a%2f%2f%20%5c''">`,
+			`<a style="border-images: url({{"/**/'\";:// \\"}}), url(&quot;{{"/**/'\";:// \\"}}&quot;), url('{{"/**/'\";:// \\"}}'), 'http://www.example.com/?q={{"/**/'\";:// \\"}}''">`,
+			`<a style="border-images: url(/**/%27%22;://%20%5c), url(&quot;/**/%27%22;://%20%5c&quot;), url('/**/%27%22;://%20%5c'), 'http://www.example.com/?q=%2f%2a%2a%2f%27%22%3b%3a%2f%2f%20%5c''">`,
 		},
 		{
 			"HTML comment",
@@ -700,9 +700,9 @@ func TestEscape(t *testing.T) {
 		},
 		{
 			"srcset bad URL in second position",
-			`<img srcset="{{"/not-an-image#,javascript:alert(1)"}}">`,
+			`<img srcset="{{"/not-an-images#,javascript:alert(1)"}}">`,
 			// The second URL is also filtered.
-			`<img srcset="/not-an-image#,#ZgotmplZ">`,
+			`<img srcset="/not-an-images#,#ZgotmplZ">`,
 		},
 		{
 			"srcset buffer growth",
@@ -1514,7 +1514,7 @@ func TestEscapeText(t *testing.T) {
 			context{state: stateCSSURL, delim: delimDoubleQuote, attr: attrStyle},
 		},
 		{
-			`<a style="background: url( /image?name=`,
+			`<a style="background: url( /images?name=`,
 			context{state: stateCSSURL, delim: delimDoubleQuote, urlPart: urlPartQueryOrFrag, attr: attrStyle},
 		},
 		{

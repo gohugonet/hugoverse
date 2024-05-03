@@ -110,7 +110,7 @@ func FromContent(types Types, extensionHints []string, content []byte) Type {
 			return mm
 		}
 
-		// E.g. an image with a *.js extension.
+		// E.g. an images with a *.js extension.
 		return zero
 	}
 

@@ -69,7 +69,7 @@ func (formats Formats) FromFilename(filename string) (f Format, found bool) {
 // HTMLFormat An ordered list of built-in output formats.
 var HTMLFormat = Format{
 	Name:      "HTML",
-	MediaType: media.HTMLType,
+	MediaType: media.Builtin.HTMLType,
 	BaseName:  "index",
 }
 

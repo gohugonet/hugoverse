@@ -11,7 +11,7 @@ type LayoutDescriptor struct {
 	Type    string
 	Section string
 
-	// E.g. "page", but also used for the _markup render kinds, e.g. "render-image".
+	// E.g. "page", but also used for the _markup render kinds, e.g. "render-images".
 	Kind string
 
 	// Comma-separated list of kind variants, e.g. "go,json" as variants which would find "render-codeblock-go.html"

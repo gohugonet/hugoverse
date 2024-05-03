@@ -73,9 +73,9 @@ type RenderHooks struct {
 	Link  LinkRenderHook
 }
 
-// ImageRenderHook contains configuration for the image render hook.
+// ImageRenderHook contains configuration for the images render hook.
 type ImageRenderHook struct {
-	// Enable the default image render hook.
+	// Enable the default images render hook.
 	// We need to know if it is set or not, hence the pointer.
 	EnableDefault *bool
 }
@@ -86,7 +86,7 @@ func (h ImageRenderHook) IsEnableDefault() bool {
 
 // LinkRenderHook contains configuration for the link render hook.
 type LinkRenderHook struct {
-	// Disable the default image render hook.
+	// Disable the default images render hook.
 	// We need to know if it is set or not, hence the pointer.
 	EnableDefault *bool
 }

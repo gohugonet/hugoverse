@@ -1,4 +1,4 @@
-package valueobject
+package images
 
 import (
 	"encoding/hex"
@@ -39,7 +39,7 @@ func ColorToHexString(c color.Color) string {
 	return fmt.Sprintf("#%.2x%.2x%.2x", rgba.R, rgba.G, rgba.B)
 }
 
-func hexStringToColor(s string) (color.Color, error) {
+func HexStringToColor(s string) (color.Color, error) {
 	s = strings.TrimPrefix(s, "#")
 
 	if len(s) != 3 && len(s) != 4 && len(s) != 6 && len(s) != 8 {

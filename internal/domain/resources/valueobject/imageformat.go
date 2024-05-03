@@ -23,7 +23,7 @@ func DefaultExtension(f resources.ImageFormat) string {
 	return MediaType(f).FirstSuffix.FullSuffix
 }
 
-// MediaType returns the media type of this image, e.g. image/jpeg for resources.JPEG
+// MediaType returns the media type of this images, e.g. images/jpeg for resources.JPEG
 func MediaType(f resources.ImageFormat) media.Type {
 	switch f {
 	case resources.JPEG:
@@ -39,6 +39,6 @@ func MediaType(f resources.ImageFormat) media.Type {
 	case resources.WEBP:
 		return media.Builtin.WEBPType
 	default:
-		panic(fmt.Sprintf("%d is not a valid image format", f))
+		panic(fmt.Sprintf("%d is not a valid images format", f))
 	}
 }

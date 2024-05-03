@@ -24,9 +24,9 @@ func TestEndsWithCSSKeyword(t *testing.T) {
 		{"Url", "url", true},
 		{"url", "important", false},
 		{"important", "important", true},
-		{"image-url", "url", false},
+		{"images-url", "url", false},
 		{"imageurl", "url", false},
-		{"image url", "url", true},
+		{"images url", "url", true},
 	}
 	for _, test := range tests {
 		got := endsWithCSSKeyword([]byte(test.css), test.kw)

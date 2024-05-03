@@ -147,7 +147,7 @@ func srcsetFilterAndEscaper(args ...any) string {
 		return s
 	case contentTypeURL:
 		// Normalizing gets rid of all HTML whitespace
-		// which separate the image URL from its metadata.
+		// which separate the images URL from its metadata.
 		var b strings.Builder
 		if processURLOnto(s, true, &b) {
 			s = b.String()
@@ -195,7 +195,7 @@ func filterSrcsetElement(s string, left int, right int, b *strings.Builder) {
 		}
 	}
 	if url := s[start:end]; isSafeURL(url) {
-		// If image metadata is only spaces or alnums then
+		// If images metadata is only spaces or alnums then
 		// we don't need to URL normalize it.
 		metadataOk := true
 		for i := end; i < right; i++ {

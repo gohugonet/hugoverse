@@ -3,14 +3,14 @@ package resources
 import (
 	"context"
 	"github.com/bep/gowebp/libwebp/webpoptions"
-	"github.com/gohugonet/hugoverse/pkg/cache/stale"
+	"github.com/disintegration/gift"
 	"github.com/gohugonet/hugoverse/pkg/hexec"
-	"github.com/gohugonet/hugoverse/pkg/identity"
-	"github.com/gohugonet/hugoverse/pkg/image/exif"
+	"github.com/gohugonet/hugoverse/pkg/images/exif"
 	pio "github.com/gohugonet/hugoverse/pkg/io"
 	"github.com/gohugonet/hugoverse/pkg/maps"
 	"github.com/gohugonet/hugoverse/pkg/media"
 	"github.com/spf13/afero"
+	"image/color"
 	"time"
 )
 
@@ -35,6 +35,13 @@ type Workspace interface {
 type Image interface {
 	ImageHint() webpoptions.EncodingPreset
 	ImageQuality() int
+	Resampling() gift.Resampling
+	ResamplingStr() string
+	Anchor() gift.Anchor
+	AnchorStr() string
+	BgColor() color.Color
+	BgColorStr() string
+	SourceHash() string
 }
 
 type MediaTypes interface {
@@ -81,37 +88,17 @@ type Source interface {
 	Publish() error
 }
 
-type TransformableResource interface {
-	baseResourceInternal
-
-	ContentProvider
-	Resource
-	Identifier
-	stale.Staler
-	Copier
-}
-
-type baseResourceInternal interface {
-	Source
-	NameNormalizedProvider
-
-	fileInfo
-	mediaTypeAssigner
-	targetPather
-
-	ReadSeekCloser() (pio.ReadSeekCloser, error)
-
-	identity.IdentityGroupProvider
-	identity.DependencyManagerProvider
-}
-
-// metaAssigner allows updating the media type in resources that supports it.
-type mediaTypeAssigner interface {
-	SetMediaType(mediaType media.Type)
-}
-
-type targetPather interface {
-	TargetPath() string
+// ContentProvider provides Content.
+// This should be used with care, as it will read the file content into memory, but it
+// should be cached as effectively as possible by the implementation.
+type ContentProvider interface {
+	// Content returns this resource's content. It will be equivalent to reading the content
+	// that RelPermalink points to in the published folder.
+	// The return type will be contextual, and should be what you would expect:
+	// * Page: template.HTML
+	// * JSON: String
+	// * Etc.
+	Content(context.Context) (any, error)
 }
 
 // OriginProvider provides the original Resource if this is wrapped.
@@ -123,7 +110,7 @@ type OriginProvider interface {
 
 type TypeProvider interface {
 	// ResourceType is the resource type. For most file types, this is the main
-	// part of the MIME type, e.g. "image", "application", "text" etc.
+	// part of the MIME type, e.g. "images", "application", "text" etc.
 	// For content pages, this value is "page".
 	ResourceType() string
 }
@@ -145,7 +132,7 @@ type NameTitleProvider interface {
 	// Name is the logical name of this resource. This can be set in the front matter
 	// metadata for this resource. If not set, Hugo will assign a value.
 	// This will in most cases be the base filename.
-	// So, for the image "/some/path/sunset.jpg" this will be "sunset.jpg".
+	// So, for the images "/some/path/sunset.jpg" this will be "sunset.jpg".
 	// The value returned by this method will be used in the GetByPrefix and ByPrefix methods
 	// on Resources.
 	Name() string
@@ -178,19 +165,6 @@ type ResourceError interface {
 	DataProvider
 }
 
-// ContentProvider provides Content.
-// This should be used with care, as it will read the file content into memory, but it
-// should be cached as effectively as possible by the implementation.
-type ContentProvider interface {
-	// Content returns this resource's content. It will be equivalent to reading the content
-	// that RelPermalink points to in the published folder.
-	// The return type will be contextual, and should be what you would expect:
-	// * Page: template.HTML
-	// * JSON: String
-	// * Etc.
-	Content(context.Context) (any, error)
-}
-
 // Identifier identifies a resource.
 type Identifier interface {
 	// Key is is mostly for internal use and should be considered opaque.
@@ -209,18 +183,6 @@ type NameNormalizedProvider interface {
 	NameNormalized() string
 }
 
-type fileInfo interface {
-	SetOpenSource(pio.OpenReadSeekCloser)
-	SetSourceFilenameIsHash(bool)
-	SetTargetPath(ResourcePaths)
-	Size() int64
-	hashProvider
-}
-
-type hashProvider interface {
-	Hash() string
-}
-
 type ResourcePaths interface {
 	PathDir() string
 	PathBaseDirTarget() string
@@ -229,25 +191,11 @@ type ResourcePaths interface {
 	PathFile() string
 }
 
-type BaseResource interface {
-	baseResourceResource
-	baseResourceInternal
-	stale.Staler
-}
-
-type baseResourceResource interface {
-	Cloner
-	Copier
-	ContentProvider
-	Resource
-	Identifier
-}
-
 type Cloner interface {
 	Clone() Resource
 }
 
-// ImageResource represents an image resource.
+// ImageResource represents an images resource.
 type ImageResource interface {
 	Resource
 	ImageResourceOps

@@ -29,6 +29,12 @@ func NewResources(ws resources.Workspace) (resources.Resources, error) {
 		return nil, err
 	}
 
+	ic := entity.NewImageCache(
+		resourceCache,
+		fileCaches.ImageCache(),
+		memoryCache,
+	)
+
 	common := &entity.Common{
 		Incr:       &identity.IncrementByOne{},
 		FileCaches: fileCaches,
@@ -51,12 +57,10 @@ func NewResources(ws resources.Workspace) (resources.Resources, error) {
 			CacheGetResource: fileCaches.GetResourceCache(),
 			ResourceCache:    resourceCache,
 
-			Imaging: ip,
+			Imaging:    ip,
+			ImageCache: ic,
 		},
-		ImageCache: valueobject.NewImageCache(
-			fileCaches.ImageCache(),
-			memoryCache,
-		),
+		ImageCache: ic,
 		ExecHelper: execHelper,
 		Common:     common,
 	}

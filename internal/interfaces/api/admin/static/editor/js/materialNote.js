@@ -2451,7 +2451,7 @@ var dom = (function() {
         row: 10
       },
 
-      // image
+      // images
       maximumImageFileSize: null, // size in bytes, null = no limit
 
       // callbacks
@@ -2572,8 +2572,8 @@ var dom = (function() {
           bordered: 'Bordered',
           shapeThumbnail: 'Shape: Thumbnail',
           shapeNone: 'Shape: None',
-          dragImageHere: 'Drag image or text here',
-          dropImage: 'Drop image or Text',
+          dragImageHere: 'Drag images or text here',
+          dropImage: 'Drop images or Text',
           selectFromFiles: 'Select from files',
           maximumFileSize: 'Maximum file size',
           maximumFileSizeError: 'Maximum file size exceeded.',
@@ -2690,11 +2690,11 @@ var dom = (function() {
     /**
      * @method createImage
      *
-     * create `<image>` from url string
+     * create `<images>` from url string
      *
      * @param {String} sUrl
      * @param {String} filename
-     * @return {Promise} - then: $image
+     * @return {Promise} - then: $images
      */
     var createImage = function(sUrl, filename) {
       return $.Deferred(function(deferred) {
@@ -3749,7 +3749,7 @@ var dom = (function() {
     };
 
     /**
-     * insert image
+     * insert images
      *
      * @param {jQuery} $editable
      * @param {String} sUrl
@@ -3767,7 +3767,7 @@ var dom = (function() {
       }).fail(function() {
         var $holder = dom.makeLayoutInfo($editable).holder();
         handler.bindCustomEvent(
-          $holder, $editable.data('callbacks'), 'image.upload.error'
+          $holder, $editable.data('callbacks'), 'images.upload.error'
         )();
       });
     };
@@ -4060,7 +4060,7 @@ var dom = (function() {
     };
 
     /**
-     * change image shape
+     * change images shape
      *
      * @param {jQuery} $editable
      * @param {String} value css class
@@ -4080,7 +4080,7 @@ var dom = (function() {
 
     /**
      * >>>>>>> CK
-     * change image class
+     * change images class
      *
      * @param {jQuery} $editable
      * @param {String} value css class
@@ -4566,7 +4566,7 @@ var dom = (function() {
         $linkPopover.hide();
       }
 
-      var $imagePopover = $popover.find('.note-image-popover');
+      var $imagePopover = $popover.find('.note-images-popover');
       if (styleInfo.image) {
         showPopover($imagePopover, posFromPlaceholder(styleInfo.image, isAirMode));
       } else {
@@ -4616,7 +4616,7 @@ var dom = (function() {
 
     /**
      * `mousedown` event handler on $handle
-     *  - controlSizing: resize image
+     *  - controlSizing: resize images
      *
      * @param {MouseEvent} event
      */
@@ -4684,7 +4684,7 @@ var dom = (function() {
           top: pos.top,
           width: imageSize.w,
           height: imageSize.h
-        }).data('target', styleInfo.image); // save current image element.
+        }).data('target', styleInfo.image); // save current images element.
         var sizingText = imageSize.w + 'x' + imageSize.h;
         $selection.find('.note-control-selection-info').text(sizingText);
       } else {
@@ -5083,7 +5083,7 @@ var dom = (function() {
     };
 
     /**
-     * paste clipboard image
+     * paste clipboard images
      *
      * @param {Event} event
      */
@@ -5123,7 +5123,7 @@ var dom = (function() {
               array[i] = data.charCodeAt(i);
             }
 
-            var blob = new Blob([array], { type : 'image/png' });
+            var blob = new Blob([array], { type : 'images/png' });
             blob.name = 'clipboard.png';
             handler.invoke('focus', $editable);
             handler.insertImages(layoutInfo, [blob]);
@@ -5137,7 +5137,7 @@ var dom = (function() {
       }
 
       var item = list.head(clipboardData.items);
-      var isClipboardImage = item.kind === 'file' && item.type.indexOf('image/') !== -1;
+      var isClipboardImage = item.kind === 'file' && item.type.indexOf('images/') !== -1;
 
       if (isClipboardImage) {
         handler.insertImages(layoutInfo, [item.getAsFile()]);
@@ -5311,7 +5311,7 @@ var dom = (function() {
         handler.invoke('editor.restoreRange', $editable);
 
         if (typeof data === 'string') {
-          // image url
+          // images url
           handler.invoke('editor.insertImage', $editable, data);
         } else {
           // array of files
@@ -5323,7 +5323,7 @@ var dom = (function() {
     };
 
     /**
-     * show image dialog
+     * show images dialog
      *
      * @param {jQuery} $editable
      * @param {jQuery} $dialog
@@ -5331,10 +5331,10 @@ var dom = (function() {
      */
     this.showImageDialog = function($editable, $dialog) {
       return $.Deferred(function(deferred) {
-        var $imageDialog = $dialog.find('.note-image-dialog');
-        var $imageInput = $dialog.find('.note-image-input'),
-            $imageUrl = $dialog.find('.note-image-url'),
-            $imageBtn = $dialog.find('.note-image-btn'),
+        var $imageDialog = $dialog.find('.note-images-dialog');
+        var $imageInput = $dialog.find('.note-images-input'),
+            $imageUrl = $dialog.find('.note-images-url'),
+            $imageBtn = $dialog.find('.note-images-btn'),
             $closeBtn = $imageDialog.find('.btnClose');
 
         $imageDialog.openModal();
@@ -5502,18 +5502,18 @@ var dom = (function() {
 
       // If onImageUpload options setted
       if (callbacks.onImageUpload) {
-        bindCustomEvent($holder, callbacks, 'image.upload')(files);
+        bindCustomEvent($holder, callbacks, 'images.upload')(files);
       // else insert Image as dataURL
       } else {
         $.each(files, function(idx, file) {
           var filename = file.name;
           if (options.maximumImageFileSize && options.maximumImageFileSize < file.size) {
-            bindCustomEvent($holder, callbacks, 'image.upload.error')(options.langInfo.image.maximumFileSizeError);
+            bindCustomEvent($holder, callbacks, 'images.upload.error')(options.langInfo.image.maximumFileSizeError);
           } else {
             async.readFileAsDataURL(file).then(function(sDataURL) {
               modules.editor.insertImage($editable, sDataURL, filename);
             }).fail(function() {
-              bindCustomEvent($holder, callbacks, 'image.upload.error')(options.langInfo.image.maximumFileSizeError);
+              bindCustomEvent($holder, callbacks, 'images.upload.error')(options.langInfo.image.maximumFileSizeError);
             });
           }
         });
@@ -6448,7 +6448,7 @@ var dom = (function() {
                       '<div class="btn-group">' + leftButton + rightButton + justifyButton + '</div>' +
                       '<div class="btn-group">' + roundedButton + circleButton + thumbnailButton + borderedButton + noneButton + '</div>' +
                       '<div class="btn-group">' + removeButton + '</div>';
-        return tplPopover('note-image-popover', content);
+        return tplPopover('note-images-popover', content);
       };
 
       var tplAirPopover = function() {
@@ -6610,7 +6610,7 @@ var dom = (function() {
                     '<div class="file-field input-field">' +
                             '<div class="btn">' +
                                 '<span>' + lang.image.image + '</span>' +
-                                '<input class="note-image-input" name="files" type="file" />' +
+                                '<input class="note-images-input" name="files" type="file" />' +
                             '</div>' +
                         '<div class="file-path-wrapper">' +
                             '<input class="file-path" type="text" />' +
@@ -6620,14 +6620,14 @@ var dom = (function() {
             '</div>' +
             '<div class="row">' +
                 '<div class="input-field col s12">' +
-                    '<input class="note-image-url" type="text" />' +
+                    '<input class="note-images-url" type="text" />' +
                     '<label>' + lang.image.url + '</label>' +
                 '</div>' +
             '</div>';
 
-        var footer = '<button class="waves-effect waves-light btn note-image-btn disabled" disabled>' + lang.image.insert + '</button>' +
+        var footer = '<button class="waves-effect waves-light btn note-images-btn disabled" disabled>' + lang.image.insert + '</button>' +
                      '<button class="waves-effect waves-light btn btnClose">' + lang.shortcut.close + '</button>';
-        return tplDialog('note-image-dialog', lang.image.insert, body, footer);
+        return tplDialog('note-images-dialog', lang.image.insert, body, footer);
       },
 
       link: function(lang, options) {
@@ -7248,7 +7248,7 @@ var dom = (function() {
       options = $.extend({}, $.materialnote.options, options);
       options.icons = $.extend({}, $.materialnote.options.icons, options.icons);
 
-      // Include langInfo in options for later use, e.g. for image drag-n-drop
+      // Include langInfo in options for later use, e.g. for images drag-n-drop
       // Setup language info with en-US as default
       options.langInfo = $.extend(true, {}, $.materialnote.lang['en-US'], $.materialnote.lang[options.lang]);
 

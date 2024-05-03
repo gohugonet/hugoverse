@@ -1,11 +1,14 @@
 package valueobject
 
 import (
+	"errors"
 	"github.com/bep/gowebp/libwebp/webpoptions"
 	"github.com/disintegration/gift"
 	"github.com/gohugonet/hugoverse/internal/domain/resources"
+	"github.com/gohugonet/hugoverse/pkg/images"
 	"image/color"
 	"strconv"
+	"strings"
 )
 
 const (
@@ -25,7 +28,21 @@ const (
 )
 
 var (
-	// Add or increment if changes to an image format's processing requires
+	imageFormats = map[string]resources.ImageFormat{
+		".jpg":  resources.JPEG,
+		".jpeg": resources.JPEG,
+		".jpe":  resources.JPEG,
+		".jif":  resources.JPEG,
+		".jfif": resources.JPEG,
+		".png":  resources.PNG,
+		".tif":  resources.TIFF,
+		".tiff": resources.TIFF,
+		".bmp":  resources.BMP,
+		".gif":  resources.GIF,
+		".webp": resources.WEBP,
+	}
+
+	// Add or increment if changes to an images format's processing requires
 	// re-generation.
 	imageFormatsVersions = map[resources.ImageFormat]int{
 		resources.PNG:  3, // Fix transparency issue with 32 bit images.
@@ -36,9 +53,14 @@ var (
 	mainImageVersionNumber = 0
 )
 
-// ImageConfig holds configuration to create a new image from an existing one, resize etc.
+func ImageFormatFromExt(ext string) (resources.ImageFormat, bool) {
+	f, found := imageFormats[ext]
+	return f, found
+}
+
+// ImageConfig holds configuration to create a new images from an existing one, resize etc.
 type ImageConfig struct {
-	// This defines the output format of the output image. It defaults to the source format.
+	// This defines the output format of the output images. It defaults to the source format.
 	TargetFormat resources.ImageFormat
 
 	Action string
@@ -50,16 +72,16 @@ type ImageConfig struct {
 	// This is only relevant for JPEG and WEBP images.
 	// Default is 75.
 	Quality            int
-	qualitySetForImage bool // Whether the above is set for this image.
+	qualitySetForImage bool // Whether the above is set for this images.
 
-	// Rotate rotates an image by the given angle counter-clockwise.
+	// Rotate rotates an images by the given angle counter-clockwise.
 	// The rotation will be performed first.
 	Rotate int
 
 	// Used to fill any transparency.
 	// When set in site config, it's used when converting to a format that does
 	// not support transparency.
-	// When set per image operation, it's used even for formats that does support
+	// When set per images operation, it's used even for formats that does support
 	// transparency.
 	BgColor    color.Color
 	BgColorStr string
@@ -87,7 +109,7 @@ func (i ImageConfig) GetKey(format resources.ImageFormat) string {
 	if i.Action != "" {
 		k += "_" + i.Action
 	}
-	// This slightly odd construct is here to preserve the old image keys.
+	// This slightly odd construct is here to preserve the old images keys.
 	if i.qualitySetForImage || RequiresDefaultQuality(i.TargetFormat) {
 		k += "_q" + strconv.Itoa(i.Quality)
 	}
@@ -122,4 +144,128 @@ func (i ImageConfig) GetKey(format resources.ImageFormat) string {
 	}
 
 	return k
+}
+
+func DecodeImageConfig(action string, options []string, defaults resources.Image, sourceFormat resources.ImageFormat) (ImageConfig, error) {
+	var (
+		c   ImageConfig = GetDefaultImageConfig(action, defaults)
+		err error
+	)
+
+	action = strings.ToLower(action)
+
+	c.Action = action
+
+	if options == nil {
+		return c, errors.New("image options cannot be empty")
+	}
+
+	for _, part := range options {
+		part = strings.ToLower(part)
+
+		if part == smartCropIdentifier {
+			c.AnchorStr = smartCropIdentifier
+		} else if pos, ok := images.AnchorPositions[part]; ok {
+			c.Anchor = pos
+			c.AnchorStr = part
+		} else if filter, ok := images.ImageFilters[part]; ok {
+			c.Filter = filter
+			c.FilterStr = part
+		} else if hint, ok := images.Hints[part]; ok {
+			c.Hint = hint
+		} else if part[0] == '#' {
+			c.BgColorStr = part[1:]
+			c.BgColor, err = images.HexStringToColor(c.BgColorStr)
+			if err != nil {
+				return c, err
+			}
+		} else if part[0] == 'q' {
+			c.Quality, err = strconv.Atoi(part[1:])
+			if err != nil {
+				return c, err
+			}
+			if c.Quality < 1 || c.Quality > 100 {
+				return c, errors.New("quality ranges from 1 to 100 inclusive")
+			}
+			c.qualitySetForImage = true
+		} else if part[0] == 'r' {
+			c.Rotate, err = strconv.Atoi(part[1:])
+			if err != nil {
+				return c, err
+			}
+		} else if strings.Contains(part, "x") {
+			widthHeight := strings.Split(part, "x")
+			if len(widthHeight) <= 2 {
+				first := widthHeight[0]
+				if first != "" {
+					c.Width, err = strconv.Atoi(first)
+					if err != nil {
+						return c, err
+					}
+				}
+
+				if len(widthHeight) == 2 {
+					second := widthHeight[1]
+					if second != "" {
+						c.Height, err = strconv.Atoi(second)
+						if err != nil {
+							return c, err
+						}
+					}
+				}
+			} else {
+				return c, errors.New("invalid image dimensions")
+			}
+		} else if f, ok := ImageFormatFromExt("." + part); ok {
+			c.TargetFormat = f
+		}
+	}
+
+	switch c.Action {
+	case ActionCrop, ActionFill, ActionFit:
+		if c.Width == 0 || c.Height == 0 {
+			return c, errors.New("must provide Width and Height")
+		}
+	case ActionResize:
+		if c.Width == 0 && c.Height == 0 {
+			return c, errors.New("must provide Width or Height")
+		}
+	default:
+		if c.Width != 0 || c.Height != 0 {
+			return c, errors.New("width or height are not supported for this action")
+		}
+	}
+
+	if action != "" && c.FilterStr == "" {
+		c.FilterStr = defaults.ResamplingStr()
+		c.Filter = defaults.Resampling()
+	}
+
+	if c.Hint == 0 {
+		c.Hint = webpoptions.EncodingPresetPhoto
+	}
+
+	if action != "" && c.AnchorStr == "" {
+		c.AnchorStr = defaults.AnchorStr()
+		c.Anchor = defaults.Anchor()
+	}
+
+	// default to the source format
+	if c.TargetFormat == 0 {
+		c.TargetFormat = sourceFormat
+	}
+
+	if c.Quality <= 0 && RequiresDefaultQuality(c.TargetFormat) {
+		// We need a quality setting for all JPEGs and WEBPs.
+		c.Quality = defaults.ImageQuality()
+	}
+
+	if c.BgColor == nil && c.TargetFormat != sourceFormat {
+		if SupportsTransparency(sourceFormat) && !SupportsTransparency(c.TargetFormat) {
+			c.BgColor = defaults.BgColor()
+			c.BgColorStr = defaults.BgColorStr()
+		}
+	}
+
+	return c, nil
 }

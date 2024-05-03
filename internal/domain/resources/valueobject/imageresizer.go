@@ -25,7 +25,7 @@ func (r imagingResizer) Resize(img image.Image, width, height uint) image.Image 
 	return result
 }
 
-// Calculates scaling factors using old and new image dimensions.
+// Calculates scaling factors using old and new images dimensions.
 // Code borrowed from https://github.com/nfnt/resize/blob/83c6a9932646f83e3267f353373d47347b6036b2/resize.go#L593
 func calcFactorsNfnt(width, height uint, oldWidth, oldHeight float64) (scaleX, scaleY float64) {
 	if width == 0 {

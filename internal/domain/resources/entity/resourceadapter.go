@@ -12,7 +12,7 @@ import (
 	"github.com/gohugonet/hugoverse/pkg/helpers"
 	"github.com/gohugonet/hugoverse/pkg/herrors"
 	"github.com/gohugonet/hugoverse/pkg/identity"
-	"github.com/gohugonet/hugoverse/pkg/image/exif"
+	"github.com/gohugonet/hugoverse/pkg/images/exif"
 	pio "github.com/gohugonet/hugoverse/pkg/io"
 	"github.com/gohugonet/hugoverse/pkg/maps"
 	"github.com/gohugonet/hugoverse/pkg/media"
@@ -21,7 +21,7 @@ import (
 	"strings"
 )
 
-func newResourceAdapter(rc *ResourceCache, lazyPublish bool, target resources.TransformableResource) *resourceAdapter {
+func newResourceAdapter(rc *ResourceCache, spec *valueobject.Spec, lazyPublish bool, target transformableResource) *resourceAdapter {
 	var po *valueobject.PublishOnce
 	if lazyPublish {
 		po = &valueobject.PublishOnce{}
@@ -32,6 +32,7 @@ func newResourceAdapter(rc *ResourceCache, lazyPublish bool, target resources.Tr
 		metaProvider:            target,
 		ResourceAdapterInner: &ResourceAdapterInner{
 			ctx:         context.Background(),
+			spec:        spec,
 			PublishOnce: po,
 			target:      target,
 			Staler:      &valueobject.AtomicStaler{},
@@ -54,7 +55,9 @@ type ResourceAdapterInner struct {
 	// The context that started this transformation.
 	ctx context.Context
 
-	target resources.TransformableResource
+	target transformableResource
+
+	spec *valueobject.Spec
 
 	stale.Staler
 
@@ -114,7 +117,7 @@ func (r *resourceAdapter) cloneTo(targetPath string) resources.Resource {
 	newInner := &ResourceAdapterInner{
 		ctx:    r.ctx,
 		Staler: r.Staler,
-		target: newtTarget.(resources.TransformableResource),
+		target: newtTarget.(transformableResource),
 	}
 	if r.ResourceAdapterInner.PublishOnce != nil {
 		newInner.PublishOnce = &valueobject.PublishOnce{}
@@ -255,10 +258,10 @@ func (r *resourceAdapter) getImageOps() resources.ImageResourceOps {
 	img, ok := r.target.(resources.ImageResourceOps)
 	if !ok {
 		if r.MediaType().SubType == "svg" {
-			panic("this method is only available for raster images. To determine if an image is SVG, you can do {{ if eq .MediaType.SubType \"svg\" }}{{ end }}")
+			panic("this method is only available for raster images. To determine if an images is SVG, you can do {{ if eq .MediaType.SubType \"svg\" }}{{ end }}")
 		}
 		fmt.Println(r.MediaType().SubType)
-		panic("this method is only available for image resources")
+		panic("this method is only available for images resources")
 	}
 	r.init(false, false)
 	return img

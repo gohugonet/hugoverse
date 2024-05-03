@@ -66,7 +66,7 @@ func (r *hookedRenderer) renderImage(w util.BufWriter, source []byte, node ast.N
 		ordinal = n.(int)
 	}
 
-	// We use the attributes to signal from the parser whether the image is in
+	// We use the attributes to signal from the parser whether the images is in
 	// a block context or not.
 	// We may find a better way to do that, but for now, we'll need to remove any
 	// internal attributes before rendering.

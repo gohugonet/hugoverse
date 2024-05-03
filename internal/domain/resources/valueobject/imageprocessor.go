@@ -3,7 +3,7 @@ package valueobject
 import (
 	"github.com/disintegration/gift"
 	"github.com/gohugonet/hugoverse/internal/domain/resources"
-	"github.com/gohugonet/hugoverse/pkg/image/exif"
+	"github.com/gohugonet/hugoverse/pkg/images/exif"
 	"github.com/muesli/smartcrop"
 	"image"
 	"image/color"
@@ -39,7 +39,7 @@ func (p *ImageProcessor) FiltersFromConfig(src image.Image, conf ImageConfig) ([
 
 			// First crop using the bounds returned by smartCrop.
 			filters = append(filters, gift.Crop(bounds))
-			// Then center crop the image to get an image the desired size without resizing.
+			// Then center crop the images to get an images the desired size without resizing.
 			filters = append(filters, gift.CropToSize(conf.Width, conf.Height, gift.CenterAnchor))
 
 		} else {

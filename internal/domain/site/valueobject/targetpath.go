@@ -79,7 +79,7 @@ func createTargetPaths(d TargetPathDescriptor) (tp TargetPaths) {
 	}
 
 	pagePath := slash
-	fullSuffix := d.Type.MediaType.FullSuffix()
+	fullSuffix := d.Type.MediaType.FirstSuffix.FullSuffix
 
 	var (
 		pagePathDir string

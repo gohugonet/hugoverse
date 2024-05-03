@@ -9,9 +9,9 @@ import (
 	"github.com/gohugonet/hugoverse/pkg/helpers"
 	"github.com/gohugonet/hugoverse/pkg/hstrings"
 	"github.com/gohugonet/hugoverse/pkg/identity"
-	"github.com/gohugonet/hugoverse/pkg/image/exif"
+	"github.com/gohugonet/hugoverse/pkg/images"
+	"github.com/gohugonet/hugoverse/pkg/images/exif"
 	"github.com/gohugonet/hugoverse/pkg/paths"
-	"go.opencensus.io/resource"
 	"image"
 	"image/color"
 	"image/draw"
@@ -26,7 +26,7 @@ import (
 
 	"github.com/disintegration/gift"
 
-	// Blind import for image.Decode
+	// Blind import for images.Decode
 	_ "golang.org/x/image/webp"
 )
 
@@ -37,11 +37,15 @@ var (
 	_ resources.NameNormalizedProvider = (*imageResource)(nil)
 )
 
-// imageResource represents an image resource.
+// imageResource represents an images resource.
 type imageResource struct {
 	*valueobject.Image
 
-	// When a image is processed in a chain, this holds the reference to the
+	ImageService resources.Image // TODO to be assigned
+
+	ImageCache *ImageCache
+
+	// When a images is processed in a chain, this holds the reference to the
 	// original (first).
 	root *imageResource
 
@@ -52,7 +56,7 @@ type imageResource struct {
 	dominantColorInit sync.Once
 	dominantColors    []string
 
-	resources.BaseResource
+	baseResource
 }
 
 type imageMeta struct {
@@ -65,7 +69,7 @@ func (i *imageResource) Exif() *exif.ExifInfo {
 
 func (i *imageResource) getExif() *exif.ExifInfo {
 	i.metaInit.Do(func() {
-		supportsExif := i.Format == images.JPEG || i.Format == images.TIFF
+		supportsExif := i.ImageFormat == resources.JPEG || i.ImageFormat == resources.TIFF
 		if !supportsExif {
 			return
 		}
@@ -97,9 +101,9 @@ func (i *imageResource) getExif() *exif.ExifInfo {
 			}
 			defer f.Close()
 
-			x, err := i.getSpec().imaging.DecodeExif(f)
+			x, err := i.Image.Proc.DecodeExif(f)
 			if err != nil {
-				i.getSpec().Logger.Warnf("Unable to decode Exif metadata from image: %s", i.Key())
+				fmt.Printf("Unable to decode Exif metadata from images: %s", i.Key())
 				return nil
 			}
 
@@ -110,7 +114,7 @@ func (i *imageResource) getExif() *exif.ExifInfo {
 			return enc.Encode(i.meta)
 		}
 
-		_, i.metaInitErr = i.getSpec().ImageCache.fcache.ReadOrCreate(key, read, create)
+		_, i.metaInitErr = i.ImageCache.Fcache.ReadOrCreate(key, read, create)
 	})
 
 	if i.metaInitErr != nil {
@@ -124,7 +128,7 @@ func (i *imageResource) getExif() *exif.ExifInfo {
 	return i.meta.Exif
 }
 
-// Colors returns a slice of the most dominant colors in an image
+// Colors returns a slice of the most dominant colors in an images
 // using a simple histogram method.
 func (i *imageResource) Colors() ([]string, error) {
 	var err error
@@ -152,8 +156,8 @@ func (i *imageResource) Clone() resources.Resource {
 	}
 }
 
-func (i *imageResource) cloneTo(targetPath string) resource.Resource {
-	gr := i.baseResource.cloneTo(targetPath).(baseResource)
+func (i *imageResource) cloneTo(targetPath string) resources.Resource {
+	gr := i.baseResource.CloneTo(targetPath).(baseResource)
 	return &imageResource{
 		root:         i.root,
 		Image:        i.WithSpec(gr),
@@ -161,15 +165,15 @@ func (i *imageResource) cloneTo(targetPath string) resource.Resource {
 	}
 }
 
-func (i *imageResource) cloneWithUpdates(u *transformationUpdate) (baseResource, error) {
-	base, err := i.baseResource.cloneWithUpdates(u)
+func (i *imageResource) cloneWithUpdates(u *valueobject.TransformationUpdate) (baseResource, error) {
+	base, err := i.baseResource.cloneWithUpdates(u) //TODO
 	if err != nil {
 		return nil, err
 	}
 
-	var img *images.Image
+	var img *valueobject.Image
 
-	if u.isContentChanged() {
+	if u.IsContentChanged() {
 		img = i.WithSpec(base)
 	} else {
 		img = i.Image
@@ -182,62 +186,62 @@ func (i *imageResource) cloneWithUpdates(u *transformationUpdate) (baseResource,
 	}, nil
 }
 
-var imageActions = []string{images.ActionResize, images.ActionCrop, images.ActionFit, images.ActionFill}
+var imageActions = []string{valueobject.ActionResize, valueobject.ActionCrop, valueobject.ActionFit, valueobject.ActionFill}
 
-// Process processes the image with the given spec.
+// Process processes the images with the given spec.
 // The spec can contain an optional action, one of "resize", "crop", "fit" or "fill".
 // This makes this method a more flexible version that covers all of Resize, Crop, Fit and Fill,
 // but it also supports e.g. format conversions without any resize action.
-func (i *imageResource) Process(spec string) (images.ImageResource, error) {
+func (i *imageResource) Process(spec string) (resources.ImageResource, error) {
 	action, options := i.resolveActionOptions(spec)
 	return i.processActionOptions(action, options)
 }
 
-// Resize resizes the image to the specified width and height using the specified resampling
-// filter and returns the transformed image. If one of width or height is 0, the image aspect
+// Resize resizes the images to the specified width and height using the specified resampling
+// filter and returns the transformed images. If one of width or height is 0, the images aspect
 // ratio is preserved.
-func (i *imageResource) Resize(spec string) (images.ImageResource, error) {
-	return i.processActionSpec(images.ActionResize, spec)
+func (i *imageResource) Resize(spec string) (resources.ImageResource, error) {
+	return i.processActionSpec(valueobject.ActionResize, spec)
 }
 
-// Crop the image to the specified dimensions without resizing using the given anchor point.
+// Crop the images to the specified dimensions without resizing using the given anchor point.
 // Space delimited config, e.g. `200x300 TopLeft`.
-func (i *imageResource) Crop(spec string) (images.ImageResource, error) {
-	return i.processActionSpec(images.ActionCrop, spec)
+func (i *imageResource) Crop(spec string) (resources.ImageResource, error) {
+	return i.processActionSpec(valueobject.ActionCrop, spec)
 }
 
-// Fit scales down the image using the specified resample filter to fit the specified
+// Fit scales down the images using the specified resample filter to fit the specified
 // maximum width and height.
-func (i *imageResource) Fit(spec string) (images.ImageResource, error) {
-	return i.processActionSpec(images.ActionFit, spec)
+func (i *imageResource) Fit(spec string) (resources.ImageResource, error) {
+	return i.processActionSpec(valueobject.ActionFit, spec)
 }
 
-// Fill scales the image to the smallest possible size that will cover the specified dimensions,
-// crops the resized image to the specified dimensions using the given anchor point.
+// Fill scales the images to the smallest possible size that will cover the specified dimensions,
+// crops the resized images to the specified dimensions using the given anchor point.
 // Space delimited config, e.g. `200x300 TopLeft`.
-func (i *imageResource) Fill(spec string) (images.ImageResource, error) {
-	return i.processActionSpec(images.ActionFill, spec)
+func (i *imageResource) Fill(spec string) (resources.ImageResource, error) {
+	return i.processActionSpec(valueobject.ActionFill, spec)
 }
 
-func (i *imageResource) Filter(filters ...any) (images.ImageResource, error) {
-	var conf images.ImageConfig
+func (i *imageResource) Filter(filters ...any) (resources.ImageResource, error) {
+	var conf valueobject.ImageConfig
 
 	var gfilters []gift.Filter
 
 	for _, f := range filters {
-		gfilters = append(gfilters, images.ToFilters(f)...)
+		gfilters = append(gfilters, valueobject.ToFilters(f)...)
 	}
 
 	var (
-		targetFormat images.Format
+		targetFormat resources.ImageFormat
 		configSet    bool
 	)
 	for _, f := range gfilters {
-		f = images.UnwrapFilter(f)
-		if specProvider, ok := f.(images.ImageProcessSpecProvider); ok {
+		f = valueobject.UnwrapFilter(f)
+		if specProvider, ok := f.(valueobject.ImageProcessSpecProvider); ok {
 			action, options := i.resolveActionOptions(specProvider.ImageProcessSpec())
 			var err error
-			conf, err = images.DecodeImageConfig(action, options, i.Proc.Cfg, i.Format)
+			conf, err = valueobject.DecodeImageConfig(action, options, i.ImageService, i.ImageFormat)
 			if err != nil {
 				return nil, err
 			}
@@ -251,24 +255,24 @@ func (i *imageResource) Filter(filters ...any) (images.ImageResource, error) {
 	}
 
 	if !configSet {
-		conf = images.GetDefaultImageConfig("filter", i.Proc.Cfg)
+		conf = valueobject.GetDefaultImageConfig("filter", i.ImageService)
 	}
 
 	conf.Action = "filter"
 	conf.Key = identity.HashString(gfilters)
 	conf.TargetFormat = targetFormat
 	if conf.TargetFormat == 0 {
-		conf.TargetFormat = i.Format
+		conf.TargetFormat = i.ImageFormat
 	}
 
 	return i.doWithImageConfig(conf, func(src image.Image) (image.Image, error) {
 		var filters []gift.Filter
 		for _, f := range gfilters {
-			f = images.UnwrapFilter(f)
-			if specProvider, ok := f.(images.ImageProcessSpecProvider); ok {
+			f = valueobject.UnwrapFilter(f)
+			if specProvider, ok := f.(valueobject.ImageProcessSpecProvider); ok {
 				processSpec := specProvider.ImageProcessSpec()
 				action, options := i.resolveActionOptions(processSpec)
-				conf, err := images.DecodeImageConfig(action, options, i.Proc.Cfg, i.Format)
+				conf, err := valueobject.DecodeImageConfig(action, options, i.ImageService, i.ImageFormat)
 				if err != nil {
 					return nil, err
 				}
@@ -277,7 +281,7 @@ func (i *imageResource) Filter(filters ...any) (images.ImageResource, error) {
 					return nil, err
 				}
 				filters = append(filters, pFilters...)
-			} else if orientationProvider, ok := f.(images.ImageFilterFromOrientationProvider); ok {
+			} else if orientationProvider, ok := f.(valueobject.ImageFilterFromOrientationProvider); ok {
 				tf := orientationProvider.AutoOrient(i.Exif())
 				if tf != nil {
 					filters = append(filters, tf)
@@ -303,12 +307,12 @@ func (i *imageResource) resolveActionOptions(spec string) (string, []string) {
 	return action, options
 }
 
-func (i *imageResource) processActionSpec(action, spec string) (images.ImageResource, error) {
+func (i *imageResource) processActionSpec(action, spec string) (resources.ImageResource, error) {
 	return i.processActionOptions(action, strings.Fields(spec))
 }
 
-func (i *imageResource) processActionOptions(action string, options []string) (images.ImageResource, error) {
-	conf, err := images.DecodeImageConfig(action, options, i.Proc.Cfg, i.Format)
+func (i *imageResource) processActionOptions(action string, options []string) (resources.ImageResource, error) {
+	conf, err := valueobject.DecodeImageConfig(action, options, i.ImageService, i.ImageFormat)
 	if err != nil {
 		return nil, err
 	}
@@ -320,7 +324,7 @@ func (i *imageResource) processActionOptions(action string, options []string) (i
 		return nil, err
 	}
 
-	if action == images.ActionFill {
+	if action == valueobject.ActionFill {
 		if conf.Anchor == 0 && img.Width() == 0 || img.Height() == 0 {
 			// See https://github.com/gohugoio/hugo/issues/7955
 			// Smartcrop fails silently in some rare cases.
@@ -336,17 +340,17 @@ func (i *imageResource) processActionOptions(action string, options []string) (i
 	return img, nil
 }
 
-// Serialize image processing. The imaging library spins up its own set of Go routines,
+// Serialize images processing. The imaging library spins up its own set of Go routines,
 // so there is not much to gain from adding more load to the mix. That
 // can even have negative effect in low resource scenarios.
 // Note that this only effects the non-cached scenario. Once the processed
-// image is written to disk, everything is fast, fast fast.
+// images is written to disk, everything is fast, fast fast.
 const imageProcWorkers = 1
 
 var imageProcSem = make(chan bool, imageProcWorkers)
 
-func (i *imageResource) doWithImageConfig(conf images.ImageConfig, f func(src image.Image) (image.Image, error)) (images.ImageResource, error) {
-	img, err := i.getSpec().ImageCache.getOrCreate(i, conf, func() (*imageResource, image.Image, error) {
+func (i *imageResource) doWithImageConfig(conf valueobject.ImageConfig, f func(src image.Image) (image.Image, error)) (resources.ImageResource, error) {
+	img, err := i.ImageCache.getOrCreate(i, conf, func() (*imageResource, image.Image, error) {
 		imageProcSem <- true
 		defer func() {
 			<-imageProcSem
@@ -362,15 +366,15 @@ func (i *imageResource) doWithImageConfig(conf images.ImageConfig, f func(src im
 			return nil, nil, &os.PathError{Op: conf.Action, Path: i.TargetPath(), Err: err}
 		}
 
-		hasAlpha := !images.IsOpaque(converted)
+		hasAlpha := !valueobject.IsOpaque(converted)
 		shouldFill := conf.BgColor != nil && hasAlpha
-		shouldFill = shouldFill || (!conf.TargetFormat.SupportsTransparency() && hasAlpha)
+		shouldFill = shouldFill || (!valueobject.SupportsTransparency(conf.TargetFormat) && hasAlpha)
 		var bgColor color.Color
 
 		if shouldFill {
 			bgColor = conf.BgColor
 			if bgColor == nil {
-				bgColor = i.Proc.Cfg.Config.BgColor
+				bgColor = i.ImageService.BgColor()
 			}
 			tmp := image.NewRGBA(converted.Bounds())
 			draw.Draw(tmp, tmp.Bounds(), image.NewUniform(bgColor), image.Point{}, draw.Src)
@@ -378,7 +382,7 @@ func (i *imageResource) doWithImageConfig(conf images.ImageConfig, f func(src im
 			converted = tmp
 		}
 
-		if conf.TargetFormat == images.PNG {
+		if conf.TargetFormat == resources.PNG {
 			// Apply the colour palette from the source
 			if paletted, ok := src.(*image.Paletted); ok {
 				palette := paletted.Palette
@@ -395,9 +399,9 @@ func (i *imageResource) doWithImageConfig(conf images.ImageConfig, f func(src im
 
 		ci := i.clone(converted)
 		targetPath := i.relTargetPathFromConfig(conf)
-		ci.setTargetPath(targetPath)
-		ci.Format = conf.TargetFormat
-		ci.setMediaType(conf.TargetFormat.MediaType())
+		ci.SetTargetPath(targetPath)
+		ci.ImageFormat = conf.TargetFormat
+		ci.SetMediaType(valueobject.MediaType(conf.TargetFormat))
 
 		return ci, converted, nil
 	})
@@ -416,16 +420,16 @@ func (g *giphy) GIF() *gif.GIF {
 	return g.gif
 }
 
-// DecodeImage decodes the image source into an Image.
+// DecodeImage decodes the images source into an Image.
 // This for internal use only.
 func (i *imageResource) DecodeImage() (image.Image, error) {
 	f, err := i.ReadSeekCloser()
 	if err != nil {
-		return nil, fmt.Errorf("failed to open image for decode: %w", err)
+		return nil, fmt.Errorf("failed to open images for decode: %w", err)
 	}
 	defer f.Close()
 
-	if i.Format == images.GIF {
+	if i.ImageFormat == resources.GIF {
 		g, err := gif.DecodeAll(f)
 		if err != nil {
 			return nil, fmt.Errorf("failed to decode gif: %w", err)
@@ -439,7 +443,7 @@ func (i *imageResource) DecodeImage() (image.Image, error) {
 func (i *imageResource) clone(img image.Image) *imageResource {
 	spec := i.baseResource.Clone().(baseResource)
 
-	var image *images.Image
+	var image *valueobject.Image
 	if img != nil {
 		image = i.WithImage(img)
 	} else {
@@ -456,28 +460,28 @@ func (i *imageResource) clone(img image.Image) *imageResource {
 func (i *imageResource) getImageMetaCacheTargetPath() string {
 	const imageMetaVersionNumber = 1 // Increment to invalidate the meta cache
 
-	cfgHash := i.getSpec().imaging.Cfg.SourceHash
-	df := i.getResourcePaths()
+	cfgHash := i.ImageService.SourceHash()
+	df := i.baseResource.getResourcePaths() //TODO
 	p1, _ := paths.FileAndExt(df.File)
-	h := i.hash()
-	idStr := identity.HashString(h, i.size(), imageMetaVersionNumber, cfgHash)
+	h := i.Hash()
+	idStr := identity.HashString(h, i.Size(), imageMetaVersionNumber, cfgHash)
 	df.File = fmt.Sprintf("%s_%s.json", p1, idStr)
 	return df.TargetPath()
 }
 
-func (i *imageResource) relTargetPathFromConfig(conf images.ImageConfig) internal.ResourcePaths {
+func (i *imageResource) relTargetPathFromConfig(conf valueobject.ImageConfig) valueobject.ResourcePaths {
 	p1, p2 := paths.FileAndExt(i.getResourcePaths().File)
-	if conf.TargetFormat != i.Format {
-		p2 = conf.TargetFormat.DefaultExtension()
+	if conf.TargetFormat != i.ImageFormat {
+		p2 = valueobject.DefaultExtension(conf.TargetFormat)
 	}
 
-	h := i.hash()
-	idStr := fmt.Sprintf("_hu%s_%d", h, i.size())
+	h := i.Hash()
+	idStr := fmt.Sprintf("_hu%s_%d", h, i.Size())
 
 	// Do not change for no good reason.
 	const md5Threshold = 100
 
-	key := conf.GetKey(i.Format)
+	key := conf.GetKey(i.ImageFormat)
 
 	// It is useful to have the key in clear text, but when nesting transforms, it
 	// can easily be too long to read, and maybe even too long
@@ -493,7 +497,7 @@ func (i *imageResource) relTargetPathFromConfig(conf images.ImageConfig) interna
 			p1 = ""
 		}
 	} else if strings.Contains(p1, idStr) {
-		// On scaling an already scaled image, we get the file info from the original.
+		// On scaling an already scaled images, we get the file info from the original.
 		// Repeating the same info in the filename makes it stuttery for no good reason.
 		idStr = ""
 	}

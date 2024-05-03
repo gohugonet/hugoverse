@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/config"
+	"github.com/gohugonet/hugoverse/pkg/images"
 	"github.com/gohugonet/hugoverse/pkg/maps"
 	"github.com/mitchellh/mapstructure"
 	"strings"
@@ -34,16 +35,16 @@ const (
 	smartCropVersionNumber = 1
 )
 
-// ImagingConfig contains default image processing configuration. This will be fetched
+// ImagingConfig contains default images processing configuration. This will be fetched
 // from site (or language) config.
 type ImagingConfig struct {
-	// Default image quality setting (1-100). Only used for JPEG images.
+	// Default images quality setting (1-100). Only used for JPEG images.
 	Quality int
 
 	// Resample filter to use in resize operations.
 	ResampleFilter string
 
-	// Hint about what type of image this is.
+	// Hint about what type of images this is.
 	// Currently only used when encoding to Webp.
 	// Default is "photo".
 	// Valid values are "picture", "photo", "drawing", "icon", or "text".
@@ -82,7 +83,7 @@ func DecodeImagingConfig(p config.Provider) (ImagingConfigInternal, error) {
 			return i, err
 		}
 
-		i.BgColor, err = hexStringToColor(i.Imaging.BgColor)
+		i.BgColor, err = images.HexStringToColor(i.Imaging.BgColor)
 		if err != nil {
 			return i, err
 		}
@@ -95,7 +96,7 @@ func DecodeImagingConfig(p config.Provider) (ImagingConfigInternal, error) {
 			i.Anchor = anchor
 		}
 
-		filter, found := imageFilters[i.Imaging.ResampleFilter]
+		filter, found := images.ImageFilters[i.Imaging.ResampleFilter]
 		if !found {
 			return i, fmt.Errorf("%q is not a valid resample filter", filter)
 		}
@@ -116,7 +117,7 @@ func DecodeImagingConfig(p config.Provider) (ImagingConfigInternal, error) {
 
 func (cfg *ImagingConfig) init() error {
 	if cfg.Quality < 0 || cfg.Quality > 100 {
-		return errors.New("image quality must be a number between 1 and 100")
+		return errors.New("images quality must be a number between 1 and 100")
 	}
 
 	cfg.BgColor = strings.ToLower(strings.TrimPrefix(cfg.BgColor, "#"))

@@ -15,7 +15,7 @@ type (
 )
 
 const (
-	// Used to signal to the rendering step that an image is used in a block context.
+	// Used to signal to the rendering step that an images is used in a block context.
 	// Dont's change this; the prefix must match the internalAttrPrefix in the root goldmark package.
 
 	ImageAttrIsBlock = "_h__isBlock"
@@ -59,7 +59,7 @@ func (t *ImagesTransformer) Transform(doc *ast.Document, reader text.Reader, pct
 
 				if isBlock && parent.Kind() == ast.KindParagraph {
 					for _, attr := range parent.Attributes() {
-						// Transfer any attribute set down to the image.
+						// Transfer any attribute set down to the images.
 						// Image elements does not support attributes on its own,
 						// so it's safe to just set without checking first.
 						n.SetAttribute(attr.Name, attr.Value)

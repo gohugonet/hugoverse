@@ -17,7 +17,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/resources"
-	"github.com/gohugonet/hugoverse/pkg/image/webp"
+	"github.com/gohugonet/hugoverse/internal/domain/resources/entity"
+	"github.com/gohugonet/hugoverse/pkg/images/webp"
 	pio "github.com/gohugonet/hugoverse/pkg/io"
 	"golang.org/x/image/bmp"
 	"golang.org/x/image/tiff"
@@ -33,7 +34,7 @@ import (
 	"github.com/disintegration/gift"
 )
 
-func NewImage(f resources.ImageFormat, proc *ImageProcessor, img image.Image, s Spec) *Image {
+func NewImage(f resources.ImageFormat, proc *ImageProcessor, img image.Image, s Spec, c *entity.ImageCache) *Image {
 	if img != nil {
 		return &Image{
 			ImageFormat: f,
@@ -43,6 +44,7 @@ func NewImage(f resources.ImageFormat, proc *ImageProcessor, img image.Image, s 
 				config:       imageConfigFromImage(img),
 				configLoaded: true,
 			},
+			ImageCache: c,
 		}
 	}
 	return &Image{ImageFormat: f, Proc: proc, Spec: s, imageConfig: &imageConfig{}}
@@ -53,6 +55,7 @@ type Image struct {
 	Proc        *ImageProcessor
 	Spec        Spec
 	*imageConfig
+	ImageCache *entity.ImageCache
 }
 
 func (i *Image) EncodeTo(conf ImageConfig, img image.Image, w io.Writer) error {
@@ -134,7 +137,7 @@ func (i *Image) WithSpec(s Spec) *Image {
 	return i
 }
 
-// InitConfig reads the image config from the given reader.
+// InitConfig reads the images config from the given reader.
 func (i *Image) InitConfig(r io.Reader) error {
 	var err error
 	i.configInit.Do(func() {
@@ -162,7 +165,7 @@ func (i *Image) initConfig() error {
 	})
 
 	if err != nil {
-		return fmt.Errorf("failed to load image config: %w", err)
+		return fmt.Errorf("failed to load images config: %w", err)
 	}
 
 	return nil
@@ -177,7 +180,7 @@ func GetDefaultImageConfig(action string, defaults resources.Image) ImageConfig 
 }
 
 type Spec interface {
-	// Loads the image source.
+	// Loads the images source.
 	ReadSeekCloser() (pio.ReadSeekCloser, error)
 }
 
@@ -217,11 +220,11 @@ func ToFilters(in any) []gift.Filter {
 	case gift.Filter:
 		return []gift.Filter{v}
 	default:
-		panic(fmt.Sprintf("%T is not an image filter", in))
+		panic(fmt.Sprintf("%T is not an images filter", in))
 	}
 }
 
-// IsOpaque returns false if the image has alpha channel and there is at least 1
+// IsOpaque returns false if the images has alpha channel and there is at least 1
 // pixel that is not (fully) opaque.
 func IsOpaque(img image.Image) bool {
 	if oim, ok := img.(interface {
@@ -233,7 +236,7 @@ func IsOpaque(img image.Image) bool {
 	return false
 }
 
-// ImageSource identifies and decodes an image.
+// ImageSource identifies and decodes an images.
 type ImageSource interface {
 	DecodeImage() (image.Image, error)
 	Key() string

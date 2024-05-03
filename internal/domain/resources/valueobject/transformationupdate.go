@@ -27,7 +27,7 @@ type TransformedResourceMetadata struct {
 	MetaData   map[string]any `json:"Data"`
 }
 
-func (u *TransformationUpdate) isContentChanged() bool {
+func (u *TransformationUpdate) IsContentChanged() bool {
 	return u.Content != nil || u.SourceFilename != nil
 }
 
