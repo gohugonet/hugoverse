@@ -6,12 +6,12 @@ import (
 	"github.com/gohugonet/hugoverse/internal/domain/resources/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/cache/dynacache"
 	"github.com/gohugonet/hugoverse/pkg/cache/filecache"
+	"github.com/gohugonet/hugoverse/pkg/glob"
 	"github.com/gohugonet/hugoverse/pkg/helpers"
 	"github.com/gohugonet/hugoverse/pkg/identity"
 	"github.com/gohugonet/hugoverse/pkg/io"
 	"github.com/gohugonet/hugoverse/pkg/paths"
 	"github.com/spf13/afero"
-	"go.opencensus.io/resource"
 	"net/http"
 	"os"
 	"path"
@@ -23,8 +23,10 @@ import (
 type Creator struct {
 	MediaService resources.MediaTypes
 	UrlService   resources.Url
-	AssetsFs     afero.Fs
-	PublishFs    afero.Fs
+	GlobService  resources.Glob
+
+	AssetsFs  afero.Fs
+	PublishFs afero.Fs
 
 	HttpClient       *http.Client
 	CacheGetResource *filecache.Cache
@@ -121,21 +123,21 @@ func (c *Creator) newResource(rd valueobject.ResourceSourceDescriptor) (resource
 				baseResource: gr,
 			}
 			ir.root = ir
-			return newResourceAdapter(c.ResourceCache, rd.LazyPublish, ir), nil
+			return newResourceAdapter(c.ResourceCache, gr.spec, rd.LazyPublish, ir), nil
 		}
 
 	}
 
-	return newResourceAdapter(c.ResourceCache, rd.LazyPublish, gr), nil
+	return newResourceAdapter(c.ResourceCache, gr.spec, rd.LazyPublish, gr), nil
 }
 
 // Match gets the resources matching the given pattern from the assets filesystem.
-func (c *Creator) Match(pattern string) (resource.Resources, error) {
+func (c *Creator) Match(pattern string) ([]resources.Resource, error) {
 	return c.match("__match", pattern, nil, false)
 }
 
-func (c *Client) ByType(tp string) resource.Resources {
-	res, err := c.match(path.Join("_byType", tp), "**", func(r resource.Resource) bool { return r.ResourceType() == tp }, false)
+func (c *Creator) ByType(tp string) []resources.Resource {
+	res, err := c.match(path.Join("_byType", tp), "**", func(r resources.Resource) bool { return r.ResourceType() == tp }, false)
 	if err != nil {
 		panic(err)
 	}
@@ -143,7 +145,7 @@ func (c *Client) ByType(tp string) resource.Resources {
 }
 
 // GetMatch gets first resource matching the given pattern from the assets filesystem.
-func (c *Creator) GetMatch(pattern string) (resource.Resource, error) {
+func (c *Creator) GetMatch(pattern string) (resources.Resource, error) {
 	res, err := c.match("__get-match", pattern, nil, true)
 	if err != nil || len(res) == 0 {
 		return nil, err
@@ -151,21 +153,21 @@ func (c *Creator) GetMatch(pattern string) (resource.Resource, error) {
 	return res[0], err
 }
 
-func (c *Creator) match(name, pattern string, matchFunc func(r resource.Resource) bool, firstOnly bool) (resource.Resources, error) {
+func (c *Creator) match(name, pattern string, matchFunc func(r resources.Resource) bool, firstOnly bool) ([]resources.Resource, error) {
 	pattern = glob.NormalizePath(pattern)
 	partitions := glob.FilterGlobParts(strings.Split(pattern, "/"))
 	key := path.Join(name, path.Join(partitions...))
 	key = path.Join(key, pattern)
 
-	return c.rs.ResourceCache.GetOrCreateResources(key, func() (resource.Resources, error) {
-		var res resource.Resources
+	return c.ResourceCache.GetOrCreateResources(key, func() ([]resources.Resource, error) {
+		var res []resources.Resource
 
-		handle := func(info hugofs.FileMetaInfo) (bool, error) {
+		handle := func(info fsVO.FileMetaInfo) (bool, error) {
 			meta := info.Meta()
 
-			r, err := c.rs.NewResource(resources.ResourceSourceDescriptor{
+			r, err := c.newResource(valueobject.ResourceSourceDescriptor{
 				LazyPublish: true,
-				OpenReadSeekCloser: func() (hugio.ReadSeekCloser, error) {
+				OpenReadSeekCloser: func() (io.ReadSeekCloser, error) {
 					return meta.Open()
 				},
 				NameNormalized: meta.PathInfo.Path(),
@@ -186,7 +188,7 @@ func (c *Creator) match(name, pattern string, matchFunc func(r resource.Resource
 			return firstOnly, nil
 		}
 
-		if err := hugofs.Glob(c.rs.BaseFs.Assets.Fs, pattern, handle); err != nil {
+		if err := c.GlobService.Glob(c.AssetsFs, pattern, handle); err != nil {
 			return nil, err
 		}
 
@@ -196,16 +198,16 @@ func (c *Creator) match(name, pattern string, matchFunc func(r resource.Resource
 
 // FromString creates a new Resource from a string with the given relative target path.
 // TODO(bep) see #10912; we currently emit a warning for this config scenario.
-func (c *Creator) FromString(targetPath, content string) (resource.Resource, error) {
+func (c *Creator) FromString(targetPath, content string) (resources.Resource, error) {
 	targetPath = path.Clean(targetPath)
 	key := dynacache.CleanKey(targetPath) + helpers.MD5String(content)
-	r, err := c.rs.ResourceCache.GetOrCreate(key, func() (resource.Resource, error) {
-		return c.rs.NewResource(
-			resources.ResourceSourceDescriptor{
+	r, err := c.ResourceCache.GetOrCreate(key, func() (resources.Resource, error) {
+		return c.newResource(
+			valueobject.ResourceSourceDescriptor{
 				LazyPublish:   true,
 				GroupIdentity: identity.Anonymous, // All usage of this resource are tracked via its string content.
-				OpenReadSeekCloser: func() (hugio.ReadSeekCloser, error) {
-					return hugio.NewReadSeekerNoOpCloserFromString(content), nil
+				OpenReadSeekCloser: func() (io.ReadSeekCloser, error) {
+					return io.NewReadSeekerNoOpCloserFromString(content), nil
 				},
 				TargetPath: targetPath,
 			})

@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/bep/gowebp/libwebp/webpoptions"
 	"github.com/disintegration/gift"
+	fsVO "github.com/gohugonet/hugoverse/internal/domain/fs/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/hexec"
 	"github.com/gohugonet/hugoverse/pkg/images/exif"
 	pio "github.com/gohugonet/hugoverse/pkg/io"
@@ -30,6 +31,11 @@ type Workspace interface {
 	MediaTypes
 	Url
 	Image
+	Glob
+}
+
+type Glob interface {
+	Glob(fs afero.Fs, pattern string, handle func(fi fsVO.FileMetaInfo) (bool, error)) error
 }
 
 type Image interface {

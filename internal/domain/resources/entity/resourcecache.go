@@ -29,6 +29,12 @@ func (c *ResourceCache) GetOrCreate(key string, f func() (resources.Resource, er
 	})
 }
 
+func (c *ResourceCache) GetOrCreateResources(key string, f func() ([]resources.Resource, error)) ([]resources.Resource, error) {
+	return c.CacheResources.GetOrCreate(key, func(key string) ([]resources.Resource, error) {
+		return f()
+	})
+}
+
 func (c *ResourceCache) GetFromFile(key string) (filecache.ItemInfo, io.ReadCloser, valueobject.TransformedResourceMetadata, bool) {
 	c.RLock()
 	defer c.RUnlock()

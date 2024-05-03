@@ -48,8 +48,10 @@ func NewResources(ws resources.Workspace) (resources.Resources, error) {
 		Creator: &entity.Creator{
 			MediaService: ws,
 			UrlService:   ws,
-			AssetsFs:     ws.AssetsFs(),
-			PublishFs:    ws.PublishFs(),
+			GlobService:  ws,
+
+			AssetsFs:  ws.AssetsFs(),
+			PublishFs: ws.PublishFs(),
 
 			HttpClient: &http.Client{
 				Timeout: time.Minute,
