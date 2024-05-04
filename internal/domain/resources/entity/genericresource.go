@@ -43,7 +43,7 @@ type genericResource struct {
 	name   string
 	params map[string]any
 
-	spec *valueobject.Spec
+	spec *Spec
 }
 
 func (gr *genericResource) IdentifierBase() string {
@@ -290,6 +290,6 @@ func (gr *genericResource) openPublishFileForWriting(relTargetPath string) (io.W
 	return helpers.OpenFilesForWriting(gr.publishFs, filenames...)
 }
 
-func (gr *genericResource) getSpec() *valueobject.Spec {
+func (gr *genericResource) getSpec() *Spec {
 	return gr.spec
 }

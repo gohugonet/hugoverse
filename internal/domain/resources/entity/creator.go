@@ -119,7 +119,7 @@ func (c *Creator) newResource(rd valueobject.ResourceSourceDescriptor) (resource
 		imgFormat, ok := valueobject.ImageFormatFromMediaSubType(rd.MediaType.SubType)
 		if ok {
 			ir := &imageResource{
-				Image:        valueobject.NewImage(imgFormat, c.Imaging, nil, gr, c.ImageCache),
+				Image:        NewImage(imgFormat, c.Imaging, nil, gr, c.ImageCache),
 				baseResource: gr,
 			}
 			ir.root = ir

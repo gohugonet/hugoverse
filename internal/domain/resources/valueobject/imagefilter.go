@@ -4,7 +4,7 @@ import "github.com/disintegration/gift"
 
 const filterAPIVersion = 0
 
-type filter struct {
+type Filter struct {
 	Options filterOpts
 	gift.Filter
 }

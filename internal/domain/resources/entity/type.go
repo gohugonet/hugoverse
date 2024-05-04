@@ -16,6 +16,17 @@ type baseResource interface {
 	stale.Staler
 }
 
+type transformableResource interface {
+	baseResourceInternal
+
+	resources.Copier
+	resources.ContentProvider
+	resources.Resource
+	resources.Identifier
+
+	stale.Staler
+}
+
 type baseResourceResource interface {
 	resources.Cloner
 	resources.Copier
@@ -48,7 +59,7 @@ type baseResourceInternal interface {
 }
 
 type specProvider interface {
-	getSpec() *valueobject.Spec
+	getSpec() *Spec
 }
 
 type fileInfo interface {
@@ -70,14 +81,4 @@ type mediaTypeAssigner interface {
 
 type targetPather interface {
 	TargetPath() string
-}
-
-type transformableResource interface {
-	baseResourceInternal
-
-	resources.ContentProvider
-	resources.Resource
-	resources.Identifier
-	stale.Staler
-	resources.Copier
 }

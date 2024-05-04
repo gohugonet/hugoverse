@@ -22,7 +22,7 @@ import (
 	"strings"
 )
 
-func newResourceAdapter(rc *ResourceCache, spec *valueobject.Spec, lazyPublish bool, target transformableResource) *resourceAdapter {
+func newResourceAdapter(rc *ResourceCache, spec *Spec, lazyPublish bool, target transformableResource) *resourceAdapter {
 	var po *valueobject.PublishOnce
 	if lazyPublish {
 		po = &valueobject.PublishOnce{}
@@ -58,7 +58,7 @@ type ResourceAdapterInner struct {
 
 	target transformableResource
 
-	spec *valueobject.Spec
+	spec *Spec
 
 	stale.Staler
 

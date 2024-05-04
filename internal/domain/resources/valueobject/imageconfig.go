@@ -5,6 +5,7 @@ import (
 	"github.com/bep/gowebp/libwebp/webpoptions"
 	"github.com/disintegration/gift"
 	"github.com/gohugonet/hugoverse/internal/domain/resources"
+	"github.com/gohugonet/hugoverse/internal/domain/resources/entity"
 	"github.com/gohugonet/hugoverse/pkg/images"
 	"image/color"
 	"strconv"
@@ -148,7 +149,7 @@ func (i ImageConfig) GetKey(format resources.ImageFormat) string {
 
 func DecodeImageConfig(action string, options []string, defaults resources.Image, sourceFormat resources.ImageFormat) (ImageConfig, error) {
 	var (
-		c   ImageConfig = GetDefaultImageConfig(action, defaults)
+		c   ImageConfig = entity.GetDefaultImageConfig(action, defaults)
 		err error
 	)
 

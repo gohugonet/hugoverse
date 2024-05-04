@@ -11,13 +11,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package valueobject
+package entity
 
 import (
 	"errors"
 	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/resources"
-	"github.com/gohugonet/hugoverse/internal/domain/resources/entity"
+	"github.com/gohugonet/hugoverse/internal/domain/resources/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/images/webp"
 	pio "github.com/gohugonet/hugoverse/pkg/io"
 	"golang.org/x/image/bmp"
@@ -34,7 +34,7 @@ import (
 	"github.com/disintegration/gift"
 )
 
-func NewImage(f resources.ImageFormat, proc *ImageProcessor, img image.Image, s Spec, c *entity.ImageCache) *Image {
+func NewImage(f resources.ImageFormat, proc *valueobject.ImageProcessor, img image.Image, s Spec, c *ImageCache) *Image {
 	if img != nil {
 		return &Image{
 			ImageFormat: f,
@@ -47,18 +47,20 @@ func NewImage(f resources.ImageFormat, proc *ImageProcessor, img image.Image, s 
 			ImageCache: c,
 		}
 	}
-	return &Image{ImageFormat: f, Proc: proc, Spec: s, imageConfig: &imageConfig{}}
+	return &Image{
+		ImageFormat: f, Proc: proc, Spec: s,
+		imageConfig: &imageConfig{}, ImageCache: c}
 }
 
 type Image struct {
 	ImageFormat resources.ImageFormat
-	Proc        *ImageProcessor
+	Proc        *valueobject.ImageProcessor
 	Spec        Spec
 	*imageConfig
-	ImageCache *entity.ImageCache
+	ImageCache *ImageCache
 }
 
-func (i *Image) EncodeTo(conf ImageConfig, img image.Image, w io.Writer) error {
+func (i *Image) EncodeTo(conf valueobject.ImageConfig, img image.Image, w io.Writer) error {
 	switch conf.TargetFormat {
 	case resources.JPEG:
 
@@ -171,8 +173,8 @@ func (i *Image) initConfig() error {
 	return nil
 }
 
-func GetDefaultImageConfig(action string, defaults resources.Image) ImageConfig {
-	return ImageConfig{
+func GetDefaultImageConfig(action string, defaults resources.Image) valueobject.ImageConfig {
+	return valueobject.ImageConfig{
 		Action:  action,
 		Hint:    defaults.ImageHint(),
 		Quality: defaults.ImageQuality(),
@@ -200,7 +202,7 @@ func imageConfigFromImage(img image.Image) image.Config {
 
 // UnwrapFilter unwraps the given filter if it is a filter wrapper.
 func UnwrapFilter(in gift.Filter) gift.Filter {
-	if f, ok := in.(filter); ok {
+	if f, ok := in.(valueobject.Filter); ok {
 		return f.Filter
 	}
 	return in
@@ -211,7 +213,7 @@ func ToFilters(in any) []gift.Filter {
 	switch v := in.(type) {
 	case []gift.Filter:
 		return v
-	case []filter:
+	case []valueobject.Filter:
 		vv := make([]gift.Filter, len(v))
 		for i, f := range v {
 			vv[i] = f
