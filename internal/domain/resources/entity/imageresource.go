@@ -166,7 +166,7 @@ func (i *imageResource) cloneTo(targetPath string) resources.Resource {
 }
 
 func (i *imageResource) cloneWithUpdates(u *valueobject.TransformationUpdate) (baseResource, error) {
-	base, err := i.baseResource.cloneWithUpdates(u) //TODO
+	base, err := i.baseResource.cloneWithUpdates(u)
 	if err != nil {
 		return nil, err
 	}
@@ -461,7 +461,7 @@ func (i *imageResource) getImageMetaCacheTargetPath() string {
 	const imageMetaVersionNumber = 1 // Increment to invalidate the meta cache
 
 	cfgHash := i.ImageService.SourceHash()
-	df := i.baseResource.getResourcePaths() //TODO
+	df := i.baseResource.getResourcePaths()
 	p1, _ := paths.FileAndExt(df.File)
 	h := i.Hash()
 	idStr := identity.HashString(h, i.Size(), imageMetaVersionNumber, cfgHash)

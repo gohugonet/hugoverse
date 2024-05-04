@@ -3,6 +3,7 @@ package entity
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/resources"
 	"github.com/gohugonet/hugoverse/internal/domain/resources/valueobject"
@@ -314,7 +315,7 @@ func (r *resourceAdapter) transform(key string, publish, setContent bool) (*Reso
 	tctx := &valueobject.ResourceTransformationCtx{
 		Ctx:                   r.ctx,
 		Data:                  make(map[string]any),
-		OpenResourcePublisher: nil, // TODO
+		OpenResourcePublisher: r.target.openPublishFileForWriting,
 		DependencyManager:     r.target.GetDependencyManager(),
 	}
 
@@ -394,22 +395,37 @@ func (r *resourceAdapter) transform(key string, publish, setContent bool) (*Reso
 			return fmt.Errorf(msg+": %w", err)
 		}
 
-		tryFileCache := true // TODO, hard code
-
-		err = tr.Transform(tctx)
-		if err != nil && err != herrors.ErrFeatureNotAvailable {
-			return nil, newErr(err)
-		}
-
+		var tryFileCache bool
 		if mayBeCachedOnDisk {
 			tryFileCache = true
-		}
-		if err != nil && !tryFileCache {
-			return nil, newErr(err)
+		} else {
+			err = tr.Transform(tctx)
+			if err != nil && !errors.Is(err, herrors.ErrFeatureNotAvailable) {
+				return nil, newErr(err)
+			}
+
+			if mayBeCachedOnDisk {
+				tryFileCache = true
+			}
+			if err != nil && !tryFileCache {
+				return nil, newErr(err)
+			}
 		}
 
 		if tryFileCache {
-			panic("TODO: try file cache")
+			f := r.target.tryTransformedFileCache(key, updates)
+			if f == nil {
+				if err != nil {
+					return nil, newErr(err)
+				}
+				return nil, newErr(fmt.Errorf("resource %q not found in file cache", key))
+			}
+			transformedContentr = f
+			updates.SourceFs = cache.FileCache.Fs
+			defer f.Close()
+
+			// The reader above is all we need.
+			break
 		}
 
 		if tctx.OutPath != "" {
@@ -425,8 +441,11 @@ func (r *resourceAdapter) transform(key string, publish, setContent bool) (*Reso
 	var publishwriters []io.WriteCloser
 
 	if publish {
-		// TODO: Should we also write to the cache?
-		panic("TODO: publish")
+		publicw, err := r.target.openPublishFileForWriting(updates.TargetPath)
+		if err != nil {
+			return nil, err
+		}
+		publishwriters = append(publishwriters, publicw)
 	}
 
 	if transformedContentr == nil {
@@ -474,12 +493,11 @@ func (r *resourceAdapter) transform(key string, publish, setContent bool) (*Reso
 		updates.Content = &s
 	}
 
-	// TODO: new target
-	//newTarget, err := r.target.cloneWithUpdates(updates)
-	//if err != nil {
-	//	return nil, err
-	//}
-	//r.target = newTarget
+	newTarget, err := r.target.cloneWithUpdates(updates)
+	if err != nil {
+		return nil, err
+	}
+	r.target = newTarget
 
 	return r.ResourceAdapterInner, nil
 }
