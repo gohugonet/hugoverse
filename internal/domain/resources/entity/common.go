@@ -2,7 +2,6 @@ package entity
 
 import (
 	"github.com/gohugonet/hugoverse/internal/domain/resources"
-	"github.com/gohugonet/hugoverse/pkg/cache/filecache"
 	"github.com/gohugonet/hugoverse/pkg/identity"
 	"github.com/gohugonet/hugoverse/pkg/resource/jsconfig"
 	"sync"
@@ -11,7 +10,6 @@ import (
 type Common struct {
 	Incr          identity.Incrementer
 	ResourceCache *ResourceCache
-	FileCaches    filecache.Caches
 
 	// Assets used after the build is done.
 	// This is shared between all sites.

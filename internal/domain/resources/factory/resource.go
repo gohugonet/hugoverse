@@ -16,12 +16,10 @@ import (
 )
 
 func NewResources(ws resources.Workspace) (resources.Resources, error) {
-	fileCaches, err := newCaches(ws)
+	c, err := newCache(ws)
 	if err != nil {
 		return nil, err
 	}
-	memoryCache := newMemoryCache()
-	resourceCache := newResourceCache(fileCaches.AssetsCache(), memoryCache)
 
 	execHelper := newExecHelper(ws)
 	ip, err := newImageProcessor(ws)
@@ -29,15 +27,8 @@ func NewResources(ws resources.Workspace) (resources.Resources, error) {
 		return nil, err
 	}
 
-	ic := entity.NewImageCache(
-		resourceCache,
-		fileCaches.ImageCache(),
-		memoryCache,
-	)
-
 	common := &entity.Common{
-		Incr:       &identity.IncrementByOne{},
-		FileCaches: fileCaches,
+		Incr: &identity.IncrementByOne{},
 		PostBuildAssets: &entity.PostBuildAssets{
 			PostProcessResources: make(map[string]resources.PostPublishedResource),
 			JSConfigBuilder:      jsconfig.NewBuilder(),
@@ -45,6 +36,8 @@ func NewResources(ws resources.Workspace) (resources.Resources, error) {
 	}
 
 	rs := &entity.Resources{
+		Cache:     c,
+		FsService: ws,
 		Creator: &entity.Creator{
 			MediaService: ws,
 			UrlService:   ws,
@@ -56,13 +49,9 @@ func NewResources(ws resources.Workspace) (resources.Resources, error) {
 			HttpClient: &http.Client{
 				Timeout: time.Minute,
 			},
-			CacheGetResource: fileCaches.GetResourceCache(),
-			ResourceCache:    resourceCache,
 
-			Imaging:    ip,
-			ImageCache: ic,
+			Imaging: ip,
 		},
-		ImageCache: ic,
 		ExecHelper: execHelper,
 		Common:     common,
 	}
@@ -70,11 +59,43 @@ func NewResources(ws resources.Workspace) (resources.Resources, error) {
 	return rs, nil
 }
 
+func newCache(ws resources.Workspace) (*entity.Cache, error) {
+	fileCaches, err := newCaches(ws)
+	if err != nil {
+		return nil, err
+	}
+	memoryCache := newMemoryCache()
+
+	return &entity.Cache{
+		Caches: fileCaches,
+		CacheImage: dynacache.GetOrCreatePartition[string, *entity.ResourceAdapter](
+			memoryCache,
+			"/imgs",
+			dynacache.OptionsPartition{ClearWhen: dynacache.ClearOnChange, Weight: 70},
+		),
+		CacheResource: dynacache.GetOrCreatePartition[string, resources.Resource](
+			memoryCache,
+			"/res1",
+			dynacache.OptionsPartition{ClearWhen: dynacache.ClearOnChange, Weight: 40},
+		),
+		CacheResources: dynacache.GetOrCreatePartition[string, []resources.Resource](
+			memoryCache,
+			"/ress",
+			dynacache.OptionsPartition{ClearWhen: dynacache.ClearOnRebuild, Weight: 40},
+		),
+		CacheResourceTransformation: dynacache.GetOrCreatePartition[string, *entity.ResourceAdapterInner](
+			memoryCache,
+			"/res1/tra",
+			dynacache.OptionsPartition{ClearWhen: dynacache.ClearOnChange, Weight: 40},
+		),
+	}, nil
+}
+
 func newCaches(ws resources.Workspace) (filecache.Caches, error) {
 	fs := ws.SourceFs()
 
 	m := make(filecache.Caches)
-	ws.CachesIterator(func(cacheKey string, isResourceDir bool, dir string, age time.Duration) error {
+	ws.CachesIterator(func(cacheKey string, isResourceDir bool, dir string, age time.Duration) {
 		var cfs afero.Fs
 
 		if isResourceDir {
@@ -97,7 +118,6 @@ func newCaches(ws resources.Workspace) (filecache.Caches, error) {
 		}
 
 		m[cacheKey] = filecache.NewCache(bfs, age, pruneAllRootDir)
-		return nil
 	})
 
 	return m, nil
@@ -119,25 +139,4 @@ func newImageProcessor(ws resources.Workspace) (*valueobject.ImageProcessor, err
 	return &valueobject.ImageProcessor{
 		ExifDecoder: exifDecoder,
 	}, nil
-}
-
-func newResourceCache(assetsCache *filecache.Cache, memCache *dynacache.Cache) *entity.ResourceCache {
-	return &entity.ResourceCache{
-		FileCache: assetsCache,
-		CacheResource: dynacache.GetOrCreatePartition[string, resources.Resource](
-			memCache,
-			"/res1",
-			dynacache.OptionsPartition{ClearWhen: dynacache.ClearOnChange, Weight: 40},
-		),
-		CacheResources: dynacache.GetOrCreatePartition[string, []resources.Resource](
-			memCache,
-			"/ress",
-			dynacache.OptionsPartition{ClearWhen: dynacache.ClearOnRebuild, Weight: 40},
-		),
-		CacheResourceTransformation: dynacache.GetOrCreatePartition[string, *entity.ResourceAdapterInner](
-			memCache,
-			"/res1/tra",
-			dynacache.OptionsPartition{ClearWhen: dynacache.ClearOnChange, Weight: 40},
-		),
-	}
 }

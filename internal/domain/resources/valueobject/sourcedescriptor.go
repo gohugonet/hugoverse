@@ -11,7 +11,6 @@ import (
 )
 
 type ResourceSourceDescriptor struct {
-	MediaService resources.MediaTypes
 	// The source Content.
 	OpenReadSeekCloser io.OpenReadSeekCloser
 
@@ -52,7 +51,29 @@ type ResourceSourceDescriptor struct {
 	GroupIdentity identity.Identity
 }
 
-func (fd *ResourceSourceDescriptor) Setup() error {
+func NewResourceSourceDescriptor(
+	pathname string,
+	path *paths.Path,
+	mediaService resources.MediaTypes,
+	openReadSeekCloser io.OpenReadSeekCloser) (*ResourceSourceDescriptor, error) {
+
+	sd := &ResourceSourceDescriptor{
+		LazyPublish:        true,
+		OpenReadSeekCloser: openReadSeekCloser,
+		Path:               path,
+		GroupIdentity:      path,
+		TargetPath:         pathname,
+		Data:               make(map[string]any),
+	}
+
+	if err := sd.setup(mediaService); err != nil {
+		return nil, err
+	}
+
+	return sd, nil
+}
+
+func (fd *ResourceSourceDescriptor) setup(mediaService resources.MediaTypes) error {
 	if fd.OpenReadSeekCloser == nil {
 		panic(errors.New("OpenReadSeekCloser is nil"))
 	}
@@ -104,11 +125,11 @@ func (fd *ResourceSourceDescriptor) Setup() error {
 			found      bool
 			suffixInfo media.SuffixInfo
 		)
-		mediaType, suffixInfo, found = fd.MediaService.LookFirstBySuffix(ext)
+		mediaType, suffixInfo, found = mediaService.LookFirstBySuffix(ext)
 		// TODO(bep) we need to handle these ambiguous types better, but in this context
 		// we most likely want the application/xml type.
 		if suffixInfo.Suffix == "xml" && mediaType.SubType == "rss" {
-			mediaType, found = fd.MediaService.LookByType("application/xml")
+			mediaType, found = mediaService.LookByType("application/xml")
 		}
 
 		if !found {

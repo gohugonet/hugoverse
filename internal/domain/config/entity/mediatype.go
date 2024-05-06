@@ -15,5 +15,4 @@ func (t MediaType) LookFirstBySuffix(suffix string) (media.Type, media.SuffixInf
 
 func (t MediaType) LookByType(mediaType string) (media.Type, bool) {
 	return t.MediaTypeConfig.Types.GetByType(mediaType)
-
 }

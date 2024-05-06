@@ -5,7 +5,6 @@ import (
 	"github.com/gohugonet/hugoverse/internal/domain/resources"
 	"github.com/gohugonet/hugoverse/internal/domain/resources/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/cache/dynacache"
-	"github.com/gohugonet/hugoverse/pkg/cache/filecache"
 	"github.com/gohugonet/hugoverse/pkg/glob"
 	"github.com/gohugonet/hugoverse/pkg/helpers"
 	"github.com/gohugonet/hugoverse/pkg/identity"
@@ -13,9 +12,7 @@ import (
 	"github.com/gohugonet/hugoverse/pkg/paths"
 	"github.com/spf13/afero"
 	"net/http"
-	"os"
 	"path"
-	"path/filepath"
 	"strings"
 	"sync"
 )
@@ -28,61 +25,12 @@ type Creator struct {
 	AssetsFs  afero.Fs
 	PublishFs afero.Fs
 
-	HttpClient       *http.Client
-	CacheGetResource *filecache.Cache
-	ResourceCache    *ResourceCache
+	HttpClient *http.Client
 
-	Imaging    *valueobject.ImageProcessor
-	ImageCache *ImageCache
+	Imaging *valueobject.ImageProcessor
 }
 
-// Copy copies r to the new targetPath.
-func (c *Creator) Copy(r resources.Resource, targetPath string) (resources.Resource, error) {
-	key := dynacache.CleanKey(targetPath) + "__copy"
-	return c.ResourceCache.GetOrCreate(key, func() (resources.Resource, error) {
-		return valueobject.Copy(r, targetPath), nil
-	})
-}
-
-// Get creates a new Resource by opening the given pathname in the assets filesystem.
-func (c *Creator) Get(pathname string) (resources.Resource, error) {
-	pathname = path.Clean(pathname)
-	key := dynacache.CleanKey(pathname) + "__get"
-
-	return c.ResourceCache.GetOrCreate(key, func() (resources.Resource, error) {
-		// The resource file will not be read before it gets used (e.g. in .Content),
-		// so we need to check that the file exists here.
-		filename := filepath.FromSlash(pathname)
-		fi, err := c.AssetsFs.Stat(filename)
-		if err != nil {
-			if os.IsNotExist(err) {
-				return nil, nil
-			}
-			// A real error.
-			return nil, err
-		}
-
-		// TODO, refactor PathInfo
-		pi := fi.(fsVO.FileMetaInfo).Meta().PathInfo
-
-		return c.newResource(valueobject.ResourceSourceDescriptor{
-			MediaService: c.MediaService,
-			LazyPublish:  true,
-			OpenReadSeekCloser: func() (io.ReadSeekCloser, error) {
-				return c.AssetsFs.Open(filename)
-			},
-			Path:          pi,
-			GroupIdentity: pi,
-			TargetPath:    pathname,
-		})
-	})
-}
-
-func (c *Creator) newResource(rd valueobject.ResourceSourceDescriptor) (resources.Resource, error) {
-	if err := rd.Setup(); err != nil {
-		return nil, err
-	}
-
+func (c *Creator) newResource(rd *valueobject.ResourceSourceDescriptor) (resources.Resource, error) {
 	dir, name := path.Split(rd.TargetPath)
 	dir = paths.ToSlashPreserveLeading(dir)
 	if dir == "/" {
@@ -113,6 +61,13 @@ func (c *Creator) newResource(rd valueobject.ResourceSourceDescriptor) (resource
 		params:      make(map[string]any),
 		name:        rd.NameOriginal,
 		title:       rd.NameOriginal,
+	}
+
+	switch valueobject.ClassifyType(rd.MediaType.Type) {
+	case "transformer":
+	case "image":
+	default:
+		// general
 	}
 
 	if rd.MediaType.MainType == "images" {

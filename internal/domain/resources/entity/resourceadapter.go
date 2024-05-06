@@ -22,12 +22,12 @@ import (
 	"strings"
 )
 
-func newResourceAdapter(rc *ResourceCache, spec *Spec, lazyPublish bool, target transformableResource) *resourceAdapter {
+func newResourceAdapter(rc *ResourceCache, spec *Spec, lazyPublish bool, target transformableResource) *ResourceAdapter {
 	var po *valueobject.PublishOnce
 	if lazyPublish {
 		po = &valueobject.PublishOnce{}
 	}
-	return &resourceAdapter{
+	return &ResourceAdapter{
 		ResourceCache:           rc,
 		resourceTransformations: &resourceTransformations{},
 		metaProvider:            target,
@@ -41,7 +41,7 @@ func newResourceAdapter(rc *ResourceCache, spec *Spec, lazyPublish bool, target 
 	}
 }
 
-type resourceAdapter struct {
+type ResourceAdapter struct {
 	ResourceCache *ResourceCache
 
 	commonResource
@@ -70,9 +70,9 @@ func (r *ResourceAdapterInner) IsStale() bool {
 	return r.Staler.IsStale() || r.target.IsStale()
 }
 
-var _ identity.ForEeachIdentityByNameProvider = (*resourceAdapter)(nil)
+var _ identity.ForEeachIdentityByNameProvider = (*ResourceAdapter)(nil)
 
-func (r *resourceAdapter) Content(ctx context.Context) (any, error) {
+func (r *ResourceAdapter) Content(ctx context.Context) (any, error) {
 	r.init(false, true)
 	if r.transformationsErr != nil {
 		return nil, r.transformationsErr
@@ -80,20 +80,20 @@ func (r *resourceAdapter) Content(ctx context.Context) (any, error) {
 	return r.target.Content(ctx)
 }
 
-func (r *resourceAdapter) Err() resources.ResourceError {
+func (r *ResourceAdapter) Err() resources.ResourceError {
 	return nil
 }
 
-func (r *resourceAdapter) GetIdentity() identity.Identity {
+func (r *ResourceAdapter) GetIdentity() identity.Identity {
 	return identity.FirstIdentity(r.target)
 }
 
-func (r *resourceAdapter) Data() any {
+func (r *ResourceAdapter) Data() any {
 	r.init(false, false)
 	return r.target.Data()
 }
 
-func (r *resourceAdapter) ForEeachIdentityByName(name string, f func(identity.Identity) bool) {
+func (r *ResourceAdapter) ForEeachIdentityByName(name string, f func(identity.Identity) bool) {
 	if constants.IsFieldRelOrPermalink(name) && !r.resourceTransformations.hasTransformationPermalinkHash() {
 		// Special case for links without any content hash in the URL.
 		// We don't need to rebuild all pages that use this resource,
@@ -105,15 +105,15 @@ func (r *resourceAdapter) ForEeachIdentityByName(name string, f func(identity.Id
 	f(r.target.GetDependencyManager())
 }
 
-func (r *resourceAdapter) GetIdentityGroup() identity.Identity {
+func (r *ResourceAdapter) GetIdentityGroup() identity.Identity {
 	return r.target.GetIdentityGroup()
 }
 
-func (r *resourceAdapter) GetDependencyManager() identity.Manager {
+func (r *ResourceAdapter) GetDependencyManager() identity.Manager {
 	return r.target.GetDependencyManager()
 }
 
-func (r *resourceAdapter) cloneTo(targetPath string) resources.Resource {
+func (r *ResourceAdapter) cloneTo(targetPath string) resources.Resource {
 	newtTarget := r.target.CloneTo(targetPath)
 	newInner := &ResourceAdapterInner{
 		ctx:    r.ctx,
@@ -127,107 +127,107 @@ func (r *resourceAdapter) cloneTo(targetPath string) resources.Resource {
 	return r
 }
 
-func (r *resourceAdapter) Process(spec string) (resources.ImageResource, error) {
+func (r *ResourceAdapter) Process(spec string) (resources.ImageResource, error) {
 	return r.getImageOps().Process(spec)
 }
 
-func (r *resourceAdapter) Crop(spec string) (resources.ImageResource, error) {
+func (r *ResourceAdapter) Crop(spec string) (resources.ImageResource, error) {
 	return r.getImageOps().Crop(spec)
 }
 
-func (r *resourceAdapter) Fill(spec string) (resources.ImageResource, error) {
+func (r *ResourceAdapter) Fill(spec string) (resources.ImageResource, error) {
 	return r.getImageOps().Fill(spec)
 }
 
-func (r *resourceAdapter) Fit(spec string) (resources.ImageResource, error) {
+func (r *ResourceAdapter) Fit(spec string) (resources.ImageResource, error) {
 	return r.getImageOps().Fit(spec)
 }
 
-func (r *resourceAdapter) Filter(filters ...any) (resources.ImageResource, error) {
+func (r *ResourceAdapter) Filter(filters ...any) (resources.ImageResource, error) {
 	return r.getImageOps().Filter(filters...)
 }
 
-func (r *resourceAdapter) Height() int {
+func (r *ResourceAdapter) Height() int {
 	return r.getImageOps().Height()
 }
 
-func (r *resourceAdapter) Exif() *exif.ExifInfo {
+func (r *ResourceAdapter) Exif() *exif.ExifInfo {
 	return r.getImageOps().Exif()
 }
 
-func (r *resourceAdapter) Colors() ([]string, error) {
+func (r *ResourceAdapter) Colors() ([]string, error) {
 	return r.getImageOps().Colors()
 }
 
-func (r *resourceAdapter) Key() string {
+func (r *ResourceAdapter) Key() string {
 	r.init(false, false)
 	return r.target.(resources.Identifier).Key()
 }
 
-func (r *resourceAdapter) MediaType() media.Type {
+func (r *ResourceAdapter) MediaType() media.Type {
 	r.init(false, false)
 	return r.target.MediaType()
 }
 
-func (r *resourceAdapter) Name() string {
+func (r *ResourceAdapter) Name() string {
 	r.init(false, false)
 	return r.metaProvider.Name()
 }
 
-func (r *resourceAdapter) NameNormalized() string {
+func (r *ResourceAdapter) NameNormalized() string {
 	r.init(false, false)
 	return r.target.(resources.NameNormalizedProvider).NameNormalized()
 }
 
-func (r *resourceAdapter) Params() maps.Params {
+func (r *ResourceAdapter) Params() maps.Params {
 	r.init(false, false)
 	return r.metaProvider.Params()
 }
 
-func (r *resourceAdapter) Permalink() string {
+func (r *ResourceAdapter) Permalink() string {
 	r.init(true, false)
 	return r.target.Permalink()
 }
 
-func (r *resourceAdapter) Publish() error {
+func (r *ResourceAdapter) Publish() error {
 	r.init(false, false)
 
 	return r.target.Publish()
 }
 
-func (r *resourceAdapter) ReadSeekCloser() (pio.ReadSeekCloser, error) {
+func (r *ResourceAdapter) ReadSeekCloser() (pio.ReadSeekCloser, error) {
 	r.init(false, false)
 	return r.target.ReadSeekCloser()
 }
 
-func (r *resourceAdapter) RelPermalink() string {
+func (r *ResourceAdapter) RelPermalink() string {
 	r.init(true, false)
 	return r.target.RelPermalink()
 }
 
-func (r *resourceAdapter) Resize(spec string) (resources.ImageResource, error) {
+func (r *ResourceAdapter) Resize(spec string) (resources.ImageResource, error) {
 	return r.getImageOps().Resize(spec)
 }
 
-func (r *resourceAdapter) ResourceType() string {
+func (r *ResourceAdapter) ResourceType() string {
 	r.init(false, false)
 	return r.target.ResourceType()
 }
 
-func (r *resourceAdapter) String() string {
+func (r *ResourceAdapter) String() string {
 	return r.Name()
 }
 
-func (r *resourceAdapter) Title() string {
+func (r *ResourceAdapter) Title() string {
 	r.init(false, false)
 	return r.metaProvider.Title()
 }
 
-func (r *resourceAdapter) Transform(t ...valueobject.ResourceTransformation) (valueobject.ResourceTransformer, error) {
+func (r *ResourceAdapter) Transform(t ...valueobject.ResourceTransformation) (valueobject.ResourceTransformer, error) {
 	return r.TransformWithContext(context.Background(), t...)
 }
 
-func (r *resourceAdapter) TransformWithContext(ctx context.Context, t ...valueobject.ResourceTransformation) (valueobject.ResourceTransformer, error) {
+func (r *ResourceAdapter) TransformWithContext(ctx context.Context, t ...valueobject.ResourceTransformation) (valueobject.ResourceTransformer, error) {
 	r.resourceTransformations = &resourceTransformations{
 		transformations: append(r.transformations, t...),
 	}
@@ -242,20 +242,20 @@ func (r *resourceAdapter) TransformWithContext(ctx context.Context, t ...valueob
 	return r, nil
 }
 
-func (r *resourceAdapter) Width() int {
+func (r *ResourceAdapter) Width() int {
 	return r.getImageOps().Width()
 }
 
-func (r *resourceAdapter) DecodeImage() (image.Image, error) {
+func (r *ResourceAdapter) DecodeImage() (image.Image, error) {
 	return r.getImageOps().DecodeImage()
 }
 
-func (r *resourceAdapter) WithResourceMeta(mp resources.MetaProvider) resources.Resource {
+func (r *ResourceAdapter) WithResourceMeta(mp resources.MetaProvider) resources.Resource {
 	r.metaProvider = mp
 	return r
 }
 
-func (r *resourceAdapter) getImageOps() resources.ImageResourceOps {
+func (r *ResourceAdapter) getImageOps() resources.ImageResourceOps {
 	img, ok := r.target.(resources.ImageResourceOps)
 	if !ok {
 		if r.MediaType().SubType == "svg" {
@@ -268,7 +268,7 @@ func (r *resourceAdapter) getImageOps() resources.ImageResourceOps {
 	return img
 }
 
-func (r *resourceAdapter) publish() {
+func (r *ResourceAdapter) publish() {
 	if r.PublishOnce == nil {
 		return
 	}
@@ -282,7 +282,7 @@ func (r *resourceAdapter) publish() {
 	})
 }
 
-func (r *resourceAdapter) TransformationKey() string {
+func (r *ResourceAdapter) TransformationKey() string {
 	var key string
 	for _, tr := range r.transformations {
 		key = key + "_" + tr.Key().Value()
@@ -290,7 +290,7 @@ func (r *resourceAdapter) TransformationKey() string {
 	return r.ResourceCache.CleanKey(r.target.Key()) + "_" + helpers.MD5String(key)
 }
 
-func (r *resourceAdapter) getOrTransform(publish, setContent bool) error {
+func (r *ResourceAdapter) getOrTransform(publish, setContent bool) error {
 	key := r.TransformationKey()
 	res, err := r.ResourceCache.CacheResourceTransformation.GetOrCreate(
 		key, func(string) (*ResourceAdapterInner, error) {
@@ -304,7 +304,7 @@ func (r *resourceAdapter) getOrTransform(publish, setContent bool) error {
 	return nil
 }
 
-func (r *resourceAdapter) transform(key string, publish, setContent bool) (*ResourceAdapterInner, error) {
+func (r *ResourceAdapter) transform(key string, publish, setContent bool) (*ResourceAdapterInner, error) {
 	cache := r.ResourceCache
 
 	b1 := bp.GetBuffer()
@@ -502,11 +502,11 @@ func (r *resourceAdapter) transform(key string, publish, setContent bool) (*Reso
 	return r.ResourceAdapterInner, nil
 }
 
-func (r *resourceAdapter) init(publish, setContent bool) {
+func (r *ResourceAdapter) init(publish, setContent bool) {
 	r.initTransform(publish, setContent)
 }
 
-func (r *resourceAdapter) initTransform(publish, setContent bool) {
+func (r *ResourceAdapter) initTransform(publish, setContent bool) {
 	r.transformationsInit.Do(func() {
 		if len(r.transformations) == 0 {
 			// Nothing to do.

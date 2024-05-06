@@ -13,31 +13,19 @@ type ImageCache struct {
 	rc *ResourceCache
 
 	Fcache *filecache.Cache
-	Mcache *dynacache.Partition[string, *resourceAdapter]
-}
-
-func NewImageCache(rc *ResourceCache, fileCache *filecache.Cache, memCache *dynacache.Cache) *ImageCache {
-	return &ImageCache{
-		rc:     rc,
-		Fcache: fileCache,
-		Mcache: dynacache.GetOrCreatePartition[string, *resourceAdapter](
-			memCache,
-			"/imgs",
-			dynacache.OptionsPartition{ClearWhen: dynacache.ClearOnChange, Weight: 70},
-		),
-	}
+	Mcache *dynacache.Partition[string, *ResourceAdapter]
 }
 
 func (c *ImageCache) getOrCreate(
 	parent *imageResource, conf valueobject.ImageConfig,
 	createImage func() (*imageResource, image.Image, error),
-) (*resourceAdapter, error) {
+) (*ResourceAdapter, error) {
 	relTarget := parent.relTargetPathFromConfig(conf)
 	relTargetPath := relTarget.TargetPath()
 	memKey := relTargetPath
 	memKey = dynacache.CleanKey(memKey)
 
-	v, err := c.Mcache.GetOrCreate(memKey, func(key string) (*resourceAdapter, error) {
+	v, err := c.Mcache.GetOrCreate(memKey, func(key string) (*ResourceAdapter, error) {
 		var img *imageResource
 
 		// These funcs are protected by a named lock.

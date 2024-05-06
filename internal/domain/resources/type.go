@@ -16,22 +16,31 @@ import (
 )
 
 type Workspace interface {
+	ExecAuth() hexec.ExecAuth
+
+	Fs
+	ImageConfig
+	CacheConfig
+	MediaTypes
+	Url
+	Image
+	Glob
+}
+
+type Fs interface {
 	SourceFs() afero.Fs
 	AssetsFs() afero.Fs
 	PublishFs() afero.Fs
 	ResourcesCacheFs() afero.Fs
 	NewBasePathFs(source afero.Fs, path string) afero.Fs
+}
 
-	ExecAuth() hexec.ExecAuth
-
+type ImageConfig interface {
 	ExifDecoder() (*exif.Decoder, error)
+}
 
-	CachesIterator(func(cacheKey string, isResourceDir bool, dir string, age time.Duration) error)
-
-	MediaTypes
-	Url
-	Image
-	Glob
+type CacheConfig interface {
+	CachesIterator(func(cacheKey string, isResourceDir bool, dir string, age time.Duration))
 }
 
 type Glob interface {
