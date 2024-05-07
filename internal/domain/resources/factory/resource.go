@@ -36,13 +36,16 @@ func NewResources(ws resources.Workspace) (resources.Resources, error) {
 	}
 
 	rs := &entity.Resources{
-		Cache:     c,
-		FsService: ws,
-		Creator: &entity.Creator{
-			MediaService: ws,
-			UrlService:   ws,
-			GlobService:  ws,
+		Cache:        c,
+		FsService:    ws,
+		MediaService: ws,
+		UrlService:   ws,
+		GlobService:  ws,
 
+		ImageService: ws,
+		ImageProc:    ip,
+
+		Creator: &entity.Creator{
 			AssetsFs:  ws.AssetsFs(),
 			PublishFs: ws.PublishFs(),
 
@@ -68,7 +71,7 @@ func newCache(ws resources.Workspace) (*entity.Cache, error) {
 
 	return &entity.Cache{
 		Caches: fileCaches,
-		CacheImage: dynacache.GetOrCreatePartition[string, *entity.ResourceAdapter](
+		CacheImage: dynacache.GetOrCreatePartition[string, *entity.ResourceImage](
 			memoryCache,
 			"/imgs",
 			dynacache.OptionsPartition{ClearWhen: dynacache.ClearOnChange, Weight: 70},

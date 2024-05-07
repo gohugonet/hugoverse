@@ -23,7 +23,6 @@ type Workspace interface {
 	CacheConfig
 	MediaTypes
 	Url
-	Image
 	Glob
 }
 
@@ -35,10 +34,6 @@ type Fs interface {
 	NewBasePathFs(source afero.Fs, path string) afero.Fs
 }
 
-type ImageConfig interface {
-	ExifDecoder() (*exif.Decoder, error)
-}
-
 type CacheConfig interface {
 	CachesIterator(func(cacheKey string, isResourceDir bool, dir string, age time.Duration))
 }
@@ -47,7 +42,8 @@ type Glob interface {
 	Glob(fs afero.Fs, pattern string, handle func(fi fsVO.FileMetaInfo) (bool, error)) error
 }
 
-type Image interface {
+type ImageConfig interface {
+	ExifDecoder() (*exif.Decoder, error)
 	ImageHint() webpoptions.EncodingPreset
 	ImageQuality() int
 	Resampling() gift.Resampling

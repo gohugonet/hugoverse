@@ -11,13 +11,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package entity
+package valueobject
 
 import (
 	"errors"
 	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/resources"
-	"github.com/gohugonet/hugoverse/internal/domain/resources/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/images/webp"
 	pio "github.com/gohugonet/hugoverse/pkg/io"
 	"golang.org/x/image/bmp"
@@ -34,33 +33,29 @@ import (
 	"github.com/disintegration/gift"
 )
 
-func NewImage(f resources.ImageFormat, proc *valueobject.ImageProcessor, img image.Image, s Spec, c *ImageCache) *Image {
+func NewImage(f resources.ImageFormat, img image.Image, s pio.ReadSeekCloserProvider) *Image {
 	if img != nil {
 		return &Image{
 			ImageFormat: f,
-			Proc:        proc,
 			Spec:        s,
 			imageConfig: &imageConfig{
 				config:       imageConfigFromImage(img),
 				configLoaded: true,
 			},
-			ImageCache: c,
 		}
 	}
 	return &Image{
-		ImageFormat: f, Proc: proc, Spec: s,
-		imageConfig: &imageConfig{}, ImageCache: c}
+		ImageFormat: f, Spec: s,
+		imageConfig: &imageConfig{}}
 }
 
 type Image struct {
 	ImageFormat resources.ImageFormat
-	Proc        *valueobject.ImageProcessor
-	Spec        Spec
+	Spec        pio.ReadSeekCloserProvider
 	*imageConfig
-	ImageCache *ImageCache
 }
 
-func (i *Image) EncodeTo(conf valueobject.ImageConfig, img image.Image, w io.Writer) error {
+func (i *Image) EncodeTo(conf ImageConfig, img image.Image, w io.Writer) error {
 	switch conf.TargetFormat {
 	case resources.JPEG:
 
@@ -133,7 +128,7 @@ func (i *Image) WithImage(img image.Image) *Image {
 	return i
 }
 
-func (i *Image) WithSpec(s Spec) *Image {
+func (i *Image) WithSpec(s pio.ReadSeekCloserProvider) *Image {
 	i.Spec = s
 	i.imageConfig = &imageConfig{}
 	return i
@@ -173,17 +168,12 @@ func (i *Image) initConfig() error {
 	return nil
 }
 
-func GetDefaultImageConfig(action string, defaults resources.Image) valueobject.ImageConfig {
-	return valueobject.ImageConfig{
+func GetDefaultImageConfig(action string, defaults resources.ImageConfig) ImageConfig {
+	return ImageConfig{
 		Action:  action,
 		Hint:    defaults.ImageHint(),
 		Quality: defaults.ImageQuality(),
 	}
-}
-
-type Spec interface {
-	// Loads the images source.
-	ReadSeekCloser() (pio.ReadSeekCloser, error)
 }
 
 type imageConfig struct {
@@ -202,7 +192,7 @@ func imageConfigFromImage(img image.Image) image.Config {
 
 // UnwrapFilter unwraps the given filter if it is a filter wrapper.
 func UnwrapFilter(in gift.Filter) gift.Filter {
-	if f, ok := in.(valueobject.Filter); ok {
+	if f, ok := in.(Filter); ok {
 		return f.Filter
 	}
 	return in
@@ -213,7 +203,7 @@ func ToFilters(in any) []gift.Filter {
 	switch v := in.(type) {
 	case []gift.Filter:
 		return v
-	case []valueobject.Filter:
+	case []Filter:
 		vv := make([]gift.Filter, len(v))
 		for i, f := range v {
 			vv[i] = f

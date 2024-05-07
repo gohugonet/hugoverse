@@ -15,14 +15,17 @@ import (
 type Resources struct {
 	*Cache
 
-	*Creator
-
 	ExecHelper *hexec.Exec
 
 	*Common
 
 	FsService    resources.Fs
 	MediaService resources.MediaTypes
+	UrlService   resources.Url
+	GlobService  resources.Glob
+
+	ImageService resources.ImageConfig
+	ImageProc    *valueobject.ImageProcessor
 }
 
 func (rs *Resources) GetResource(pathname string) (resources.Resource, error) {

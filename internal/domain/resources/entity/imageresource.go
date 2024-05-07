@@ -39,9 +39,9 @@ var (
 
 // imageResource represents an images resource.
 type imageResource struct {
-	*Image
+	*valueobject.Image
 
-	ImageService resources.Image // TODO to be assigned
+	ImageService resources.ImageConfig // TODO to be assigned
 
 	ImageCache *ImageCache
 
@@ -171,7 +171,7 @@ func (i *imageResource) cloneWithUpdates(u *valueobject.TransformationUpdate) (b
 		return nil, err
 	}
 
-	var img *Image
+	var img *valueobject.Image
 
 	if u.IsContentChanged() {
 		img = i.WithSpec(base)
@@ -229,7 +229,7 @@ func (i *imageResource) Filter(filters ...any) (resources.ImageResource, error) 
 	var gfilters []gift.Filter
 
 	for _, f := range filters {
-		gfilters = append(gfilters, ToFilters(f)...)
+		gfilters = append(gfilters, valueobject.ToFilters(f)...)
 	}
 
 	var (
@@ -237,7 +237,7 @@ func (i *imageResource) Filter(filters ...any) (resources.ImageResource, error) 
 		configSet    bool
 	)
 	for _, f := range gfilters {
-		f = UnwrapFilter(f)
+		f = valueobject.UnwrapFilter(f)
 		if specProvider, ok := f.(valueobject.ImageProcessSpecProvider); ok {
 			action, options := i.resolveActionOptions(specProvider.ImageProcessSpec())
 			var err error
@@ -255,7 +255,7 @@ func (i *imageResource) Filter(filters ...any) (resources.ImageResource, error) 
 	}
 
 	if !configSet {
-		conf = GetDefaultImageConfig("filter", i.ImageService)
+		conf = valueobject.GetDefaultImageConfig("filter", i.ImageService)
 	}
 
 	conf.Action = "filter"
@@ -268,7 +268,7 @@ func (i *imageResource) Filter(filters ...any) (resources.ImageResource, error) 
 	return i.doWithImageConfig(conf, func(src image.Image) (image.Image, error) {
 		var filters []gift.Filter
 		for _, f := range gfilters {
-			f = UnwrapFilter(f)
+			f = valueobject.UnwrapFilter(f)
 			if specProvider, ok := f.(valueobject.ImageProcessSpecProvider); ok {
 				processSpec := specProvider.ImageProcessSpec()
 				action, options := i.resolveActionOptions(processSpec)
@@ -366,7 +366,7 @@ func (i *imageResource) doWithImageConfig(conf valueobject.ImageConfig, f func(s
 			return nil, nil, &os.PathError{Op: conf.Action, Path: i.TargetPath(), Err: err}
 		}
 
-		hasAlpha := !IsOpaque(converted)
+		hasAlpha := !valueobject.IsOpaque(converted)
 		shouldFill := conf.BgColor != nil && hasAlpha
 		shouldFill = shouldFill || (!valueobject.SupportsTransparency(conf.TargetFormat) && hasAlpha)
 		var bgColor color.Color
@@ -411,15 +411,6 @@ func (i *imageResource) doWithImageConfig(conf valueobject.ImageConfig, f func(s
 	return img, nil
 }
 
-type giphy struct {
-	image.Image
-	gif *gif.GIF
-}
-
-func (g *giphy) GIF() *gif.GIF {
-	return g.gif
-}
-
 // DecodeImage decodes the images source into an Image.
 // This for internal use only.
 func (i *imageResource) DecodeImage() (image.Image, error) {
@@ -443,7 +434,7 @@ func (i *imageResource) DecodeImage() (image.Image, error) {
 func (i *imageResource) clone(img image.Image) *imageResource {
 	spec := i.baseResource.Clone().(baseResource)
 
-	var image *Image
+	var image *valueobject.Image
 	if img != nil {
 		image = i.WithImage(img)
 	} else {

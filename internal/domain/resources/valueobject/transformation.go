@@ -1,29 +1,11 @@
 package valueobject
 
 import (
-	"context"
 	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/resources"
 	"github.com/gohugonet/hugoverse/pkg/identity"
 	pio "github.com/gohugonet/hugoverse/pkg/io"
 )
-
-type ResourceTransformer interface {
-	resources.Resource
-	Transformer
-}
-
-type Transformer interface {
-	Transform(...ResourceTransformation) (ResourceTransformer, error)
-	TransformWithContext(context.Context, ...ResourceTransformation) (ResourceTransformer, error)
-}
-
-// ResourceTransformation is the interface that a resource transformation step
-// needs to implement.
-type ResourceTransformation interface {
-	Key() ResourceTransformationKey
-	Transform(ctx *ResourceTransformationCtx) error
-}
 
 // ResourceTransformationKey are provided by the different transformation implementations.
 // It identifies the transformation (name) and its configuration (elements).
