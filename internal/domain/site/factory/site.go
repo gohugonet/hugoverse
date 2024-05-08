@@ -8,7 +8,7 @@ import (
 	"github.com/gohugonet/hugoverse/pkg/media"
 )
 
-func New(fs site.Fs, ch contenthub.ContentHub, conf site.Config) site.Site {
+func New(fs site.Fs, ch contenthub.ContentHub, conf site.Config) *entity.Site {
 	mediaTypes := media.DecodeTypes()
 	formats := valueobject.DecodeFormats(mediaTypes)
 	outputFormats := valueobject.CreateSiteOutputFormats(formats)

@@ -1,15 +1,20 @@
 package application
 
 import (
+	configAgr "github.com/gohugonet/hugoverse/internal/domain/config/entity"
 	configFact "github.com/gohugonet/hugoverse/internal/domain/config/factory"
 	"github.com/gohugonet/hugoverse/internal/domain/config/valueobject"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
 	contentHubFact "github.com/gohugonet/hugoverse/internal/domain/contenthub/factory"
+	fsAgr "github.com/gohugonet/hugoverse/internal/domain/fs/entity"
 	fsFact "github.com/gohugonet/hugoverse/internal/domain/fs/factory"
 	"github.com/gohugonet/hugoverse/internal/domain/markdown"
 	mdFact "github.com/gohugonet/hugoverse/internal/domain/markdown/factory"
 	moduleFact "github.com/gohugonet/hugoverse/internal/domain/module/factory"
+	rsAgr "github.com/gohugonet/hugoverse/internal/domain/resources/entity"
+	rsFact "github.com/gohugonet/hugoverse/internal/domain/resources/factory"
 	"github.com/gohugonet/hugoverse/internal/domain/site"
+	siteAgr "github.com/gohugonet/hugoverse/internal/domain/site/entity"
 	siteFact "github.com/gohugonet/hugoverse/internal/domain/site/factory"
 	tmplFact "github.com/gohugonet/hugoverse/internal/domain/template/factory"
 )
@@ -43,10 +48,21 @@ func GenerateStaticSite() error {
 		languages: c.Languages(),
 	})
 
+	ws := &resourcesWorkspaceProvider{
+		Config: c,
+		Fs:     fs,
+		Site:   s,
+	}
+	resources, err := rsFact.NewResources(ws)
+	if err != nil {
+		return err
+	}
+
 	exec, err := tmplFact.New(fs, &templateCustomizedFunctionsProvider{
 		Markdown:   mdFact.NewMarkdown(),
 		ContentHub: ch,
 		Site:       s,
+		Resources:  resources,
 	})
 
 	if err != nil {
@@ -79,10 +95,17 @@ func (fs *fsDir) PublishDir() string {
 	return fs.publishDir
 }
 
+type resourcesWorkspaceProvider struct {
+	*configAgr.Config
+	*fsAgr.Fs
+	*siteAgr.Site
+}
+
 type templateCustomizedFunctionsProvider struct {
 	markdown.Markdown
 	contenthub.ContentHub
 	site.Site
+	*rsAgr.Resources
 }
 
 type siteConfig struct {

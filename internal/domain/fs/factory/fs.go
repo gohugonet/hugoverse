@@ -9,7 +9,7 @@ import (
 
 var log = loggers.NewDefault()
 
-func New(dir fs.Dir, mods module.Modules) (fs.Fs, error) {
+func New(dir fs.Dir, mods module.Modules) (*entity.Fs, error) {
 	f := &entity.Fs{
 		OriginFs: NewOriginFs(dir),
 	}

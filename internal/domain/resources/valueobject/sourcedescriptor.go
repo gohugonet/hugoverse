@@ -54,7 +54,7 @@ type ResourceSourceDescriptor struct {
 func NewResourceSourceDescriptor(
 	pathname string,
 	path *paths.Path,
-	mediaService resources.MediaTypes,
+	mediaService resources.MediaTypesConfig,
 	openReadSeekCloser io.OpenReadSeekCloser) (*ResourceSourceDescriptor, error) {
 
 	sd := &ResourceSourceDescriptor{
@@ -73,7 +73,7 @@ func NewResourceSourceDescriptor(
 	return sd, nil
 }
 
-func (fd *ResourceSourceDescriptor) setup(mediaService resources.MediaTypes) error {
+func (fd *ResourceSourceDescriptor) setup(mediaService resources.MediaTypesConfig) error {
 	if fd.OpenReadSeekCloser == nil {
 		panic(errors.New("OpenReadSeekCloser is nil"))
 	}

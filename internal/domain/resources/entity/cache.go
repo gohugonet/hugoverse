@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"encoding/json"
 	"github.com/gohugonet/hugoverse/internal/domain/resources"
 	"github.com/gohugonet/hugoverse/internal/domain/resources/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/cache/dynacache"
@@ -8,6 +9,9 @@ import (
 	pio "github.com/gohugonet/hugoverse/pkg/io"
 	"image"
 	"io"
+	"path"
+	"path/filepath"
+	"strings"
 	"sync"
 )
 
@@ -19,7 +23,7 @@ type Cache struct {
 	CacheImage                  *dynacache.Partition[string, *ResourceImage]
 	CacheResource               *dynacache.Partition[string, resources.Resource]
 	CacheResources              *dynacache.Partition[string, []resources.Resource]
-	CacheResourceTransformation *dynacache.Partition[string, *ResourceAdapterInner]
+	CacheResourceTransformation *dynacache.Partition[string, *Resource]
 }
 
 func (c *Cache) GetOrCreateResource(key string, f func() (resources.Resource, error)) (resources.Resource, error) {
@@ -94,4 +98,38 @@ func (c *Cache) GetOrCreateImageResource(parent *ResourceImage, conf valueobject
 	})
 
 	return v, err
+}
+
+func (c *Cache) CleanKey(key string) string {
+	return strings.TrimPrefix(path.Clean(strings.ToLower(filepath.ToSlash(key))), "/")
+}
+
+// WriteMeta writes the metadata to file and returns a writer for the content part.
+func (c *Cache) WriteMeta(key string, meta valueobject.TransformedResourceMetadata) (filecache.ItemInfo, io.WriteCloser, error) {
+	filenameMeta, filenameContent := c.getFilenames(key)
+	raw, err := json.Marshal(meta)
+	if err != nil {
+		return filecache.ItemInfo{}, nil, err
+	}
+
+	_, fm, err := c.Caches.AssetsCache().WriteCloser(filenameMeta)
+	if err != nil {
+		return filecache.ItemInfo{}, nil, err
+	}
+	defer fm.Close()
+
+	if _, err := fm.Write(raw); err != nil {
+		return filecache.ItemInfo{}, nil, err
+	}
+
+	fi, fc, err := c.Caches.AssetsCache().WriteCloser(filenameContent)
+
+	return fi, fc, err
+}
+
+func (c *Cache) getFilenames(key string) (string, string) {
+	filenameMeta := key + ".json"
+	filenameContent := key + ".Content"
+
+	return filenameMeta, filenameContent
 }

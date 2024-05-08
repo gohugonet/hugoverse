@@ -8,8 +8,7 @@ import (
 )
 
 type Common struct {
-	Incr          identity.Incrementer
-	ResourceCache *ResourceCache
+	Incr identity.Incrementer
 
 	// Assets used after the build is done.
 	// This is shared between all sites.

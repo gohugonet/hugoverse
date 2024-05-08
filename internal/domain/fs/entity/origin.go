@@ -22,8 +22,16 @@ func (f *OriginFs) Origin() afero.Fs {
 	return f.Source
 }
 
+func (f *OriginFs) SourceFs() afero.Fs {
+	return f.Origin()
+}
+
 func (f *OriginFs) Publish() afero.Fs {
 	return f.PublishDir
+}
+
+func (f *OriginFs) PublishFs() afero.Fs {
+	return f.Publish()
 }
 
 func (f *OriginFs) Working() afero.Fs {

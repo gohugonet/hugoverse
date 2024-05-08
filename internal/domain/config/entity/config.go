@@ -7,7 +7,7 @@ import (
 )
 
 type Config struct {
-	SourceFs afero.Fs
+	ConfigSourceFs afero.Fs
 
 	Provider config.Provider
 
@@ -22,7 +22,7 @@ type Config struct {
 }
 
 func (c *Config) Fs() afero.Fs {
-	return c.SourceFs
+	return c.ConfigSourceFs
 }
 
 func (c *Config) Theme() string {
@@ -37,9 +37,9 @@ func (c *Config) GetImports(moduleDir string) ([]string, error) {
 		err            error
 	)
 
-	configFilename, hasConfigFile = valueobject.CheckConfigFilename(moduleDir, c.SourceFs)
+	configFilename, hasConfigFile = valueobject.CheckConfigFilename(moduleDir, c.ConfigSourceFs)
 	if hasConfigFile {
-		cfg, err = valueobject.FromFile(c.SourceFs, configFilename)
+		cfg, err = valueobject.FromFile(c.ConfigSourceFs, configFilename)
 		if err != nil {
 			return nil, err
 		}

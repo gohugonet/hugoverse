@@ -1,7 +1,6 @@
 package entity
 
 import (
-	"github.com/gohugonet/hugoverse/internal/domain/resources/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/constants"
 	"sync"
 )
@@ -19,7 +18,7 @@ var transformationsToCacheOnDisk = map[string]bool{
 type resourceTransformations struct {
 	transformationsInit sync.Once
 	transformationsErr  error
-	transformations     []valueobject.ResourceTransformation
+	transformations     []ResourceTransformation
 }
 
 // hasTransformationPermalinkHash reports whether any of the transformations

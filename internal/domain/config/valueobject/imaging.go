@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/config"
+	"github.com/gohugonet/hugoverse/pkg/identity"
 	"github.com/gohugonet/hugoverse/pkg/images"
 	"github.com/gohugonet/hugoverse/pkg/maps"
 	"github.com/mitchellh/mapstructure"
@@ -112,6 +113,7 @@ func DecodeImagingConfig(p config.Provider) (ImagingConfigInternal, error) {
 		return ImagingConfigInternal{}, err
 	}
 
+	c.SourceHash = identity.HashString(in)
 	return c, nil
 }
 

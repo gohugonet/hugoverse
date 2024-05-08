@@ -16,14 +16,18 @@ import (
 )
 
 type Workspace interface {
-	ExecAuth() hexec.ExecAuth
-
 	Fs
+
 	ImageConfig
 	CacheConfig
-	MediaTypes
-	Url
-	Glob
+	MediaTypesConfig
+	SecurityConfig
+
+	SiteUrl
+}
+
+type SecurityConfig interface {
+	ExecAuth() hexec.ExecAuth
 }
 
 type Fs interface {
@@ -31,15 +35,13 @@ type Fs interface {
 	AssetsFs() afero.Fs
 	PublishFs() afero.Fs
 	ResourcesCacheFs() afero.Fs
+
 	NewBasePathFs(source afero.Fs, path string) afero.Fs
+	Glob(fs afero.Fs, pattern string, handle func(fi fsVO.FileMetaInfo) (bool, error)) error
 }
 
 type CacheConfig interface {
 	CachesIterator(func(cacheKey string, isResourceDir bool, dir string, age time.Duration))
-}
-
-type Glob interface {
-	Glob(fs afero.Fs, pattern string, handle func(fi fsVO.FileMetaInfo) (bool, error)) error
 }
 
 type ImageConfig interface {
@@ -55,12 +57,12 @@ type ImageConfig interface {
 	SourceHash() string
 }
 
-type MediaTypes interface {
+type MediaTypesConfig interface {
 	LookFirstBySuffix(suffix string) (media.Type, media.SuffixInfo, bool)
 	LookByType(mediaType string) (media.Type, bool)
 }
 
-type Url interface {
+type SiteUrl interface {
 	BasePathNoSlash() string
 }
 

@@ -20,9 +20,8 @@ type Resources struct {
 	*Common
 
 	FsService    resources.Fs
-	MediaService resources.MediaTypes
-	UrlService   resources.Url
-	GlobService  resources.Glob
+	MediaService resources.MediaTypesConfig
+	UrlService   resources.SiteUrl
 
 	ImageService resources.ImageConfig
 	ImageProc    *valueobject.ImageProcessor

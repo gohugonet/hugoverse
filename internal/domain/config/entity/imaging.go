@@ -2,8 +2,10 @@ package entity
 
 import (
 	"github.com/bep/gowebp/libwebp/webpoptions"
+	"github.com/disintegration/gift"
 	"github.com/gohugonet/hugoverse/internal/domain/config/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/images/exif"
+	"image/color"
 )
 
 type Imaging struct {
@@ -23,10 +25,12 @@ func (i Imaging) ExifDecoder() (*exif.Decoder, error) {
 	return exifDecoder, nil
 }
 
-func (i Imaging) ImageHint() webpoptions.EncodingPreset {
-	return i.Hint
-}
-
-func (i Imaging) ImageQuality() int {
-	return i.Imaging.Quality
-}
+func (i Imaging) ImageHint() webpoptions.EncodingPreset { return i.Hint }
+func (i Imaging) ImageQuality() int                     { return i.Imaging.Quality }
+func (i Imaging) Resampling() gift.Resampling           { return i.ResampleFilter }
+func (i Imaging) ResamplingStr() string                 { return i.Imaging.ResampleFilter }
+func (i Imaging) Anchor() gift.Anchor                   { return i.ImagingConfigInternal.Anchor }
+func (i Imaging) AnchorStr() string                     { return i.Imaging.Anchor }
+func (i Imaging) BgColor() color.Color                  { return i.ImagingConfigInternal.BgColor }
+func (i Imaging) BgColorStr() string                    { return i.Imaging.BgColor }
+func (i Imaging) SourceHash() string                    { return i.ImagingConfigInternal.SourceHash }

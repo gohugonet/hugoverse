@@ -1,13 +1,17 @@
 package entity
 
 import (
+	"errors"
 	"github.com/gohugonet/hugoverse/internal/domain/resources"
 	"github.com/gohugonet/hugoverse/internal/domain/resources/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/cache/stale"
+	"github.com/gohugonet/hugoverse/pkg/helpers"
 	pio "github.com/gohugonet/hugoverse/pkg/io"
 	"github.com/gohugonet/hugoverse/pkg/maps"
 	"github.com/gohugonet/hugoverse/pkg/media"
 	"github.com/gohugonet/hugoverse/pkg/paths"
+	"github.com/spf13/afero"
+	"io"
 	"strings"
 )
 
@@ -27,6 +31,8 @@ type Resource struct {
 
 	sd    valueobject.ResourceSourceDescriptor
 	paths valueobject.ResourcePaths
+
+	publishFs afero.Fs
 }
 
 func (l *Resource) MediaType() media.Type {
@@ -96,4 +102,55 @@ func (l *Resource) Key() string {
 	}
 
 	return key
+}
+
+func (l *Resource) openPublishFileForWriting(relTargetPath string) (io.WriteCloser, error) {
+	filenames := l.paths.FromTargetPath(relTargetPath).TargetFilenames()
+	return helpers.OpenFilesForWriting(l.publishFs, filenames...)
+}
+
+func (l *Resource) cloneWithUpdates(u *valueobject.TransformationUpdate) (*Resource, error) {
+	r := l.clone()
+
+	if u.Content != nil {
+		r.sd.OpenReadSeekCloser = func() (pio.ReadSeekCloser, error) {
+			return pio.NewReadSeekerNoOpCloserFromString(*u.Content), nil
+		}
+	}
+
+	r.sd.MediaType = u.MediaType
+
+	if u.SourceFilename != nil {
+		if u.SourceFs == nil {
+			return nil, errors.New("sourceFs is nil")
+		}
+		r.sd.OpenReadSeekCloser = func() (pio.ReadSeekCloser, error) {
+			return u.SourceFs.Open(*u.SourceFilename)
+		}
+	} else if u.SourceFs != nil {
+		return nil, errors.New("sourceFs is set without sourceFilename")
+	}
+
+	if u.TargetPath == "" {
+		return nil, errors.New("missing targetPath")
+	}
+
+	r.paths = r.paths.FromTargetPath(u.TargetPath)
+	r.mergeData(u.Data)
+
+	return r, nil
+}
+
+func (l *Resource) mergeData(in map[string]any) {
+	if len(in) == 0 {
+		return
+	}
+	if l.sd.Data == nil {
+		l.sd.Data = make(map[string]any)
+	}
+	for k, v := range in {
+		if _, found := l.sd.Data[k]; !found {
+			l.sd.Data[k] = v
+		}
+	}
 }

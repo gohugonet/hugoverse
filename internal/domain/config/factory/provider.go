@@ -42,8 +42,8 @@ func LoadConfig() (*entity.Config, error) {
 	}
 
 	c := &entity.Config{
-		SourceFs: l.SourceDescriptor.Fs(),
-		Provider: p,
+		ConfigSourceFs: l.SourceDescriptor.Fs(),
+		Provider:       p,
 
 		Root:      entity.Root{},
 		Caches:    entity.Caches{},

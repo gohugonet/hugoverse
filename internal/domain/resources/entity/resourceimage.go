@@ -28,6 +28,8 @@ var (
 	_ resources.ImageResource = (*ResourceImage)(nil)
 )
 
+var imageActions = []string{valueobject.ActionResize, valueobject.ActionCrop, valueobject.ActionFit, valueobject.ActionFill}
+
 type ResourceImage struct {
 	Resource
 	*valueobject.Image
@@ -46,6 +48,10 @@ type ResourceImage struct {
 
 	dominantColorInit sync.Once
 	dominantColors    []string
+}
+
+type imageMeta struct {
+	Exif *exif.ExifInfo
 }
 
 // Process processes the images with the given spec.
@@ -282,6 +288,15 @@ func (i *ResourceImage) processActionOptions(action string, options []string) (r
 
 	return img, nil
 }
+
+// Serialize image processing. The imaging library spins up its own set of Go routines,
+// so there is not much to gain from adding more load to the mix. That
+// can even have negative effect in low resource scenarios.
+// Note that this only effects the non-cached scenario. Once the processed
+// image is written to disk, everything is fast, fast fast.
+const imageProcWorkers = 1
+
+var imageProcSem = make(chan bool, imageProcWorkers)
 
 func (i *ResourceImage) doWithImageConfig(conf valueobject.ImageConfig, f func(src image.Image) (image.Image, error)) (resources.ImageResource, error) {
 	img, err := i.ImageCache.GetOrCreateImageResource(i, conf, func() (*ResourceImage, image.Image, error) {

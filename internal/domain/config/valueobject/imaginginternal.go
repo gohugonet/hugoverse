@@ -12,5 +12,7 @@ type ImagingConfigInternal struct {
 	ResampleFilter gift.Resampling
 	Anchor         gift.Anchor
 
+	SourceHash string
+
 	Imaging ImagingConfig
 }

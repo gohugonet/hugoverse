@@ -11,11 +11,10 @@ import (
 	"github.com/gohugonet/hugoverse/pkg/loggers"
 	"github.com/gohugonet/hugoverse/pkg/resource/jsconfig"
 	"github.com/spf13/afero"
-	"net/http"
 	"time"
 )
 
-func NewResources(ws resources.Workspace) (resources.Resources, error) {
+func NewResources(ws resources.Workspace) (*entity.Resources, error) {
 	c, err := newCache(ws)
 	if err != nil {
 		return nil, err
@@ -40,21 +39,10 @@ func NewResources(ws resources.Workspace) (resources.Resources, error) {
 		FsService:    ws,
 		MediaService: ws,
 		UrlService:   ws,
-		GlobService:  ws,
 
 		ImageService: ws,
 		ImageProc:    ip,
 
-		Creator: &entity.Creator{
-			AssetsFs:  ws.AssetsFs(),
-			PublishFs: ws.PublishFs(),
-
-			HttpClient: &http.Client{
-				Timeout: time.Minute,
-			},
-
-			Imaging: ip,
-		},
 		ExecHelper: execHelper,
 		Common:     common,
 	}
@@ -86,7 +74,7 @@ func newCache(ws resources.Workspace) (*entity.Cache, error) {
 			"/ress",
 			dynacache.OptionsPartition{ClearWhen: dynacache.ClearOnRebuild, Weight: 40},
 		),
-		CacheResourceTransformation: dynacache.GetOrCreatePartition[string, *entity.ResourceAdapterInner](
+		CacheResourceTransformation: dynacache.GetOrCreatePartition[string, *entity.Resource](
 			memoryCache,
 			"/res1/tra",
 			dynacache.OptionsPartition{ClearWhen: dynacache.ClearOnChange, Weight: 40},

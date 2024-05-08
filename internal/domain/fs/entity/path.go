@@ -17,3 +17,11 @@ func (ps *PathSpec) LayoutFs() afero.Fs {
 func (ps *PathSpec) ContentFs() afero.Fs {
 	return ps.BaseFs.SourceFilesystems.Content.Fs
 }
+
+func (ps *PathSpec) AssetsFs() afero.Fs {
+	return ps.BaseFs.SourceFilesystems.Assets.Fs
+}
+
+func (ps *PathSpec) ResourcesCacheFs() afero.Fs {
+	return ps.BaseFs.SourceFilesystems.ResourcesCache
+}
