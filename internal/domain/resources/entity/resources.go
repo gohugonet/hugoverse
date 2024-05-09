@@ -5,11 +5,13 @@ import (
 	"github.com/gohugonet/hugoverse/internal/domain/resources"
 	"github.com/gohugonet/hugoverse/internal/domain/resources/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/cache/dynacache"
+	"github.com/gohugonet/hugoverse/pkg/glob"
 	"github.com/gohugonet/hugoverse/pkg/hexec"
 	"github.com/gohugonet/hugoverse/pkg/io"
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 )
 
 type Resources struct {
@@ -25,6 +27,8 @@ type Resources struct {
 
 	ImageService resources.ImageConfig
 	ImageProc    *valueobject.ImageProcessor
+
+	*MinifierClient
 }
 
 func (rs *Resources) GetResource(pathname string) (resources.Resource, error) {
@@ -57,5 +61,65 @@ func (rs *Resources) GetResource(pathname string) (resources.Resource, error) {
 			return nil, err
 		}
 		return rs.newResource(sd)
+	})
+}
+
+// GetMatch gets first resource matching the given pattern from the assets filesystem.
+func (rs *Resources) GetMatch(pattern string) (resources.Resource, error) {
+	res, err := rs.match("__get-match", pattern, nil, true)
+	if err != nil || len(res) == 0 {
+		return nil, err
+	}
+	return res[0], err
+}
+
+func (rs *Resources) match(name, pattern string, matchFunc func(r resources.Resource) bool, firstOnly bool) ([]resources.Resource, error) {
+	pattern = glob.NormalizePath(pattern)
+	partitions := glob.FilterGlobParts(strings.Split(pattern, "/"))
+	key := path.Join(name, path.Join(partitions...))
+	key = path.Join(key, pattern)
+
+	return rs.Cache.GetOrCreateResources(key, func() ([]resources.Resource, error) {
+		var res []resources.Resource
+
+		handle := func(info fsVO.FileMetaInfo) (bool, error) {
+			meta := info.Meta()
+
+			r, err := rs.newResource(&valueobject.ResourceSourceDescriptor{
+				LazyPublish: true,
+				OpenReadSeekCloser: func() (io.ReadSeekCloser, error) {
+					return meta.Open()
+				},
+				NameNormalized: meta.PathInfo.Path(),
+				NameOriginal:   meta.PathInfo.Unnormalized().Path(),
+				GroupIdentity:  meta.PathInfo,
+				TargetPath:     meta.PathInfo.Unnormalized().Path(),
+			})
+			if err != nil {
+				return true, err
+			}
+
+			if matchFunc != nil && !matchFunc(r) {
+				return false, nil
+			}
+
+			res = append(res, r)
+
+			return firstOnly, nil
+		}
+
+		if err := rs.FsService.Glob(rs.FsService.AssetsFs(), pattern, handle); err != nil {
+			return nil, err
+		}
+
+		return res, nil
+	})
+}
+
+// Copy copies r to the new targetPath.
+func (rs *Resources) Copy(r resources.Resource, targetPath string) (resources.Resource, error) {
+	key := dynacache.CleanKey(targetPath) + "__copy"
+	return rs.Cache.GetOrCreateResource(key, func() (resources.Resource, error) {
+		return valueobject.Copy(r, targetPath), nil
 	})
 }

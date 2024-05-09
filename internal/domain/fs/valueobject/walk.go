@@ -28,7 +28,21 @@ type Walkway struct {
 	// We may traverse symbolic links and bite ourself.
 	Seen map[string]bool
 
+	// Some optional flags.
+	FailOnNotExist bool // If set, return an error if a directory is not found.
+
 	Log loggers.Logger
+}
+
+func NewWalkway(fs afero.Fs, root string, walker WalkFunc) *Walkway {
+	return &Walkway{
+		Fs:     fs,
+		Root:   root,
+		WalkFn: walker,
+		Seen:   make(map[string]bool),
+
+		Log: loggers.NewDefault(),
+	}
 }
 
 func (w *Walkway) Walk() error {
@@ -58,7 +72,7 @@ func (w *Walkway) Walk() error {
 func (w *Walkway) walk(path string, info FileMetaInfo, dirEntries []FileMetaInfo, walkFn WalkFunc) error {
 	err := walkFn(path, info, nil)
 	if err != nil {
-		if info.IsDir() && err == filepath.SkipDir {
+		if info.IsDir() && errors.Is(err, filepath.SkipDir) {
 			return nil
 		}
 		return err
@@ -133,7 +147,7 @@ func (w *Walkway) walk(path string, info FileMetaInfo, dirEntries []FileMetaInfo
 
 		err := w.walk(meta.PathWalk, fim, nil, walkFn)
 		if err != nil {
-			if !fi.IsDir() || err != filepath.SkipDir {
+			if !fi.IsDir() || !errors.Is(err, filepath.SkipDir) {
 				return err
 			}
 		}
@@ -157,7 +171,7 @@ func (w *Walkway) isSeen(filename string) bool {
 
 // checkErr returns true if the error is handled.
 func (w *Walkway) checkErr(filename string, err error) bool {
-	if os.IsNotExist(err) {
+	if os.IsNotExist(err) && !w.FailOnNotExist {
 		// The file may be removed in process.
 		// This may be a ERROR situation, but it is not possible
 		// to determine as a general case.

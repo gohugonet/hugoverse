@@ -189,6 +189,18 @@ func (cl *ConfigLoader) decodeConfig(p config.Provider, target *entity.Config) e
 	}
 	target.MediaType.MediaTypeConfig = mt
 
+	ofs, err := valueobject.DecodeOutputFormatConfig(mt.Types, p)
+	if err != nil {
+		return err
+	}
+	target.OutputFormats.OutputFormatsConfig = ofs
+
+	mf, err := valueobject.DecodeMinifyConfig(p)
+	if err != nil {
+		return err
+	}
+	target.Minify.MinifyConfig = mf
+
 	m, err := valueobject.DecodeModuleConfig(p)
 	if err != nil {
 		return err

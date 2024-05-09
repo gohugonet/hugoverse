@@ -15,5 +15,5 @@ func (f *Fs) NewBasePathFs(source afero.Fs, path string) afero.Fs {
 }
 
 func (f *Fs) Glob(fs afero.Fs, pattern string, handle func(fi valueobject.FileMetaInfo) (bool, error)) error {
-	return nil
+	return valueobject.Glob(fs, pattern, handle)
 }

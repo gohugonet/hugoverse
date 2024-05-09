@@ -5,6 +5,7 @@ import (
 	"github.com/gohugonet/hugoverse/internal/domain/site"
 	"github.com/gohugonet/hugoverse/internal/domain/site/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/media"
+	"github.com/gohugonet/hugoverse/pkg/output"
 	"sort"
 )
 
@@ -12,18 +13,18 @@ type Site struct {
 	// Output formats defined in site config per Page Kind, or some defaults
 	// if not set.
 	// Output formats defined in Page front matter will override these.
-	OutputFormats map[string]valueobject.Formats
+	OutputFormats map[string]output.Formats
 
 	// The output formats that we need to render this site in. This slice
 	// will be fixed once set.
 	// This will be the union of Site.Pages' outputFormats.
 	// This slice will be sorted.
-	RenderFormats valueobject.Formats
+	RenderFormats output.Formats
 
 	// All the output formats and media types available for this site.
 	// These values will be merged from the Hugo defaults, the site config and,
 	// finally, the language settings.
-	OutputFormatsConfig valueobject.Formats
+	OutputFormatsConfig output.Formats
 	MediaTypesConfig    media.Types
 
 	Publisher site.Publisher
@@ -104,7 +105,7 @@ func (s *Site) preparePagesForRender() error {
 
 func (s *Site) initRenderFormats() {
 	formatSet := make(map[string]bool)
-	formats := valueobject.Formats{}
+	formats := output.Formats{}
 
 	// media type - format
 	// site output format - render format

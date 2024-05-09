@@ -4,14 +4,14 @@ import (
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
 	"github.com/gohugonet/hugoverse/internal/domain/site"
 	"github.com/gohugonet/hugoverse/internal/domain/site/entity"
-	"github.com/gohugonet/hugoverse/internal/domain/site/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/media"
+	"github.com/gohugonet/hugoverse/pkg/output"
 )
 
 func New(fs site.Fs, ch contenthub.ContentHub, conf site.Config) *entity.Site {
 	mediaTypes := media.DecodeTypes()
-	formats := valueobject.DecodeFormats(mediaTypes)
-	outputFormats := valueobject.CreateSiteOutputFormats(formats)
+	formats := output.DecodeFormats(mediaTypes)
+	outputFormats := CreateSiteOutputFormats(formats)
 
 	return &entity.Site{
 		OutputFormats:       outputFormats,
@@ -30,4 +30,22 @@ func New(fs site.Fs, ch contenthub.ContentHub, conf site.Config) *entity.Site {
 			Config: conf.Languages(),
 		},
 	}
+}
+
+func CreateSiteOutputFormats(allFormats output.Formats) map[string]output.Formats {
+	defaultOutputFormats :=
+		createDefaultOutputFormats(allFormats)
+	return defaultOutputFormats
+}
+
+func createDefaultOutputFormats(allFormats output.Formats) map[string]output.Formats {
+	htmlOut, _ := allFormats.GetByName(output.HTMLFormat.Name)
+
+	m := map[string]output.Formats{
+		contenthub.KindPage:    {htmlOut},
+		contenthub.KindHome:    {htmlOut},
+		contenthub.KindSection: {htmlOut},
+	}
+
+	return m
 }

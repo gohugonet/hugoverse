@@ -10,7 +10,9 @@ import (
 	pio "github.com/gohugonet/hugoverse/pkg/io"
 	"github.com/gohugonet/hugoverse/pkg/maps"
 	"github.com/gohugonet/hugoverse/pkg/media"
+	"github.com/gohugonet/hugoverse/pkg/output"
 	"github.com/spf13/afero"
+	"github.com/tdewolff/minify/v2"
 	"image/color"
 	"time"
 )
@@ -22,8 +24,20 @@ type Workspace interface {
 	CacheConfig
 	MediaTypesConfig
 	SecurityConfig
+	OutputFormatsConfig
+	MinifyConfig
 
 	SiteUrl
+}
+
+type OutputFormatsConfig interface {
+	AllOutputFormats() output.Formats
+}
+
+type MinifyConfig interface {
+	IsMinifyPublish() bool
+	GetMinifier(s string) minify.Minifier
+	Minifiers(mediaTypes media.Types, cb func(media.Type, minify.Minifier))
 }
 
 type SecurityConfig interface {
@@ -60,6 +74,7 @@ type ImageConfig interface {
 type MediaTypesConfig interface {
 	LookFirstBySuffix(suffix string) (media.Type, media.SuffixInfo, bool)
 	LookByType(mediaType string) (media.Type, bool)
+	MediaTypes() media.Types
 }
 
 type SiteUrl interface {
@@ -82,6 +97,10 @@ type Resource interface {
 	ParamsProvider
 	DataProvider
 	ErrProvider
+}
+
+type ResourceCopier interface {
+	CloneTo(targetPath string) Resource
 }
 
 type PostPublishedResource interface {

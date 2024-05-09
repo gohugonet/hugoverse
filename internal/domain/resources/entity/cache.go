@@ -32,6 +32,12 @@ func (c *Cache) GetOrCreateResource(key string, f func() (resources.Resource, er
 	})
 }
 
+func (c *Cache) GetOrCreateResources(key string, f func() ([]resources.Resource, error)) ([]resources.Resource, error) {
+	return c.CacheResources.GetOrCreate(key, func(key string) ([]resources.Resource, error) {
+		return f()
+	})
+}
+
 func (c *Cache) GetOrCreateImageResource(parent *ResourceImage, conf valueobject.ImageConfig,
 	createImage func() (*ResourceImage, image.Image, error)) (*ResourceImage, error) {
 

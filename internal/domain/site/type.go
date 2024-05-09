@@ -2,7 +2,7 @@ package site
 
 import (
 	"bytes"
-	"github.com/gohugonet/hugoverse/internal/domain/site/valueobject"
+	"github.com/gohugonet/hugoverse/pkg/output"
 	"github.com/spf13/afero"
 	"golang.org/x/text/collate"
 	"io"
@@ -59,7 +59,7 @@ type Descriptor struct {
 	Src io.Reader
 
 	// The OutputFormat of this content.
-	OutputFormat valueobject.Format
+	OutputFormat output.Format
 
 	// Where to publish this content. This is a filesystem-relative path.
 	TargetPath string

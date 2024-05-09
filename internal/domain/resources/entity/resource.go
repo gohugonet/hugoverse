@@ -87,6 +87,12 @@ func (l *Resource) Size() int64 {
 	return l.h.Size
 }
 
+func (l *Resource) CloneTo(targetPath string) resources.Resource {
+	c := l.clone()
+	c.paths = c.paths.FromTargetPath(targetPath)
+	return c
+}
+
 func (l *Resource) clone() *Resource {
 	clone := *l
 	return &clone

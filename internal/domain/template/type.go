@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/gohugonet/hugoverse/pkg/template/funcs/collections"
 	"github.com/gohugonet/hugoverse/pkg/template/funcs/compare"
+	"github.com/gohugonet/hugoverse/pkg/template/funcs/resource"
 	"github.com/gohugonet/hugoverse/pkg/template/funcs/strings"
 	"github.com/gohugonet/hugoverse/pkg/template/funcs/transform"
 	"github.com/gohugonet/hugoverse/pkg/template/funcs/urls"
@@ -71,4 +72,5 @@ type CustomizedFunctions interface {
 	compare.TimeZone
 	collections.Language
 	strings.Title
+	resource.Resource
 }

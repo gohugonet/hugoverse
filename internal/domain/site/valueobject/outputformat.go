@@ -1,5 +1,7 @@
 package valueobject
 
+import "github.com/gohugonet/hugoverse/pkg/output"
+
 // OutputFormats holds a list of the relevant output formats for a given page.
 type OutputFormats []OutputFormat
 
@@ -17,13 +19,13 @@ type OutputFormat struct {
 	// Most other output formats will have "alternate" as value for this.
 	Rel string
 
-	Format Format
+	Format output.Format
 
 	relPermalink string
 	permalink    string
 }
 
-func NewOutputFormat(relPermalink, permalink string, f Format) OutputFormat {
+func NewOutputFormat(relPermalink, permalink string, f output.Format) OutputFormat {
 	return OutputFormat{Rel: "canonical", Format: f, relPermalink: relPermalink, permalink: permalink}
 }
 

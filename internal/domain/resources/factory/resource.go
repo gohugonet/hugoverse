@@ -26,6 +26,11 @@ func NewResources(ws resources.Workspace) (*entity.Resources, error) {
 		return nil, err
 	}
 
+	mc, err := NewMinifier(ws.MediaTypes(), ws.AllOutputFormats(), ws)
+	if err != nil {
+		return nil, err
+	}
+
 	common := &entity.Common{
 		Incr: &identity.IncrementByOne{},
 		PostBuildAssets: &entity.PostBuildAssets{
@@ -45,6 +50,8 @@ func NewResources(ws resources.Workspace) (*entity.Resources, error) {
 
 		ExecHelper: execHelper,
 		Common:     common,
+
+		MinifierClient: mc,
 	}
 
 	return rs, nil

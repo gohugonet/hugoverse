@@ -3,9 +3,10 @@ package valueobject
 import (
 	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
+	"github.com/gohugonet/hugoverse/pkg/output"
 )
 
-func NewPagePaths(ofs Formats, page contenthub.PageInfo) (PagePaths, error) {
+func NewPagePaths(ofs output.Formats, page contenthub.PageInfo) (PagePaths, error) {
 	targetPathDescriptor, err := createTargetPathDescriptor(page)
 	if err != nil {
 		return PagePaths{}, err
