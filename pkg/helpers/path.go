@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"github.com/gohugonet/hugoverse/pkg/herrors"
 	pio "github.com/gohugonet/hugoverse/pkg/io"
+	"github.com/gohugonet/hugoverse/pkg/paths"
 	"io"
 	"os"
 	"path"
@@ -274,32 +275,9 @@ func OpenFileForWriting(fs afero.Fs, filename string) (afero.File, error) {
 	return f, err
 }
 
-func cacheDirDefault(cacheDir string) string {
-	// Always use the cacheDir config if set.
-	if len(cacheDir) > 1 {
-		return addTrailingFileSeparator(cacheDir)
-	}
-
-	// See Issue #8714.
-	// Turns out that Cloudflare also sets NETLIFY=true in its build environment,
-	// but all of these 3 should not give any false positives.
-	if os.Getenv("NETLIFY") == "true" && os.Getenv("PULL_REQUEST") != "" && os.Getenv("DEPLOY_PRIME_URL") != "" {
-		// Netlify's cache behaviour is not documented, the currently best example
-		// is this project:
-		// https://github.com/philhawksworth/content-shards/blob/master/gulpfile.js
-		return "/opt/build/cache/hugo_cache/"
-	}
-
-	// This will fall back to an hugo_cache folder in either os.UserCacheDir or the tmp dir, which should work fine for most CI
-	// providers. See this for a working CircleCI setup:
-	// https://github.com/bep/hugo-sass-test/blob/6c3960a8f4b90e8938228688bc49bdcdd6b2d99e/.circleci/config.yml
-	// If not, they can set the HUGO_CACHEDIR environment variable or cacheDir config key.
-	return ""
-}
-
-func addTrailingFileSeparator(s string) string {
-	if !strings.HasSuffix(s, FilePathSeparator) {
-		s = s + FilePathSeparator
+func AddTrailingFileSeparator(s string) string {
+	if !strings.HasSuffix(s, paths.FilePathSeparator) {
+		s = s + paths.FilePathSeparator
 	}
 	return s
 }

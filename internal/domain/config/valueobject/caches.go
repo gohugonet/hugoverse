@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/config"
 	"github.com/gohugonet/hugoverse/pkg/cache"
+	"github.com/gohugonet/hugoverse/pkg/helpers"
 	"github.com/gohugonet/hugoverse/pkg/maps"
-	"github.com/gohugonet/hugoverse/pkg/paths"
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/afero"
 	"os"
@@ -195,7 +195,7 @@ func GetCacheDir(fs afero.Fs, cacheDir string) (string, error) {
 	cacheDir = cacheDirDefault(cacheDir)
 
 	if cacheDir != "" {
-		exists, err := DirExists(cacheDir, fs)
+		exists, err := helpers.DirExists(cacheDir, fs)
 		if err != nil {
 			return "", err
 		}
@@ -224,16 +224,16 @@ func GetCacheDir(fs afero.Fs, cacheDir string) (string, error) {
 	// Fall back to a cache in /tmp.
 	userName := os.Getenv("USER")
 	if userName != "" {
-		return GetTempDir(hugoCacheBase+"_"+userName, fs), nil
+		return helpers.GetTempDir(hugoCacheBase+"_"+userName, fs), nil
 	} else {
-		return GetTempDir(hugoCacheBase, fs), nil
+		return helpers.GetTempDir(hugoCacheBase, fs), nil
 	}
 }
 
 func cacheDirDefault(cacheDir string) string {
 	// Always use the cacheDir config if set.
 	if len(cacheDir) > 1 {
-		return addTrailingFileSeparator(cacheDir)
+		return helpers.AddTrailingFileSeparator(cacheDir)
 	}
 
 	// See Issue #8714.
@@ -251,44 +251,4 @@ func cacheDirDefault(cacheDir string) string {
 	// https://github.com/bep/hugo-sass-test/blob/6c3960a8f4b90e8938228688bc49bdcdd6b2d99e/.circleci/config.yml
 	// If not, they can set the HUGO_CACHEDIR environment variable or cacheDir config key.
 	return ""
-}
-
-func addTrailingFileSeparator(s string) string {
-	if !strings.HasSuffix(s, paths.FilePathSeparator) {
-		s = s + paths.FilePathSeparator
-	}
-	return s
-}
-
-// GetTempDir returns a temporary directory with the given sub path.
-func GetTempDir(subPath string, fs afero.Fs) string {
-	return afero.GetTempDir(fs, subPath)
-}
-
-// DirExists checks if a path exists and is a directory.
-func DirExists(path string, fs afero.Fs) (bool, error) {
-	return afero.DirExists(fs, path)
-}
-
-// IsDir checks if a given path is a directory.
-func IsDir(path string, fs afero.Fs) (bool, error) {
-	return afero.IsDir(fs, path)
-}
-
-// IsEmpty checks if a given path is empty, meaning it doesn't contain any regular files.
-func IsEmpty(path string, fs afero.Fs) (bool, error) {
-	var hasFile bool
-	err := afero.Walk(fs, path, func(path string, info os.FileInfo, err error) error {
-		if info.IsDir() {
-			return nil
-		}
-		hasFile = true
-		return filepath.SkipDir
-	})
-	return !hasFile, err
-}
-
-// Exists checks if a file or directory exists.
-func Exists(path string, fs afero.Fs) (bool, error) {
-	return afero.Exists(fs, path)
 }
