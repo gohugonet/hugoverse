@@ -7,7 +7,7 @@ import (
 	"reflect"
 )
 
-func New(fs template.Fs, cfs template.CustomizedFunctions) (template.Template, error) {
+func New(fs template.Fs, cfs template.CustomizedFunctions) (*entity.Template, error) {
 	b := newBuilder().
 		withFs(fs).
 		withNamespace(newNamespace()).

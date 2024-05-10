@@ -30,6 +30,16 @@ func registerResources(res resource.Resource) {
 			[][2]string{},
 		)
 
+		ns.AddMethodMapping(ctx.Fingerprint,
+			[]string{"fingerprint"},
+			[][2]string{},
+		)
+
+		ns.AddMethodMapping(ctx.ToCSS,
+			[]string{"toCSS"},
+			[][2]string{},
+		)
+
 		return ns
 	}
 

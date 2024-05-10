@@ -34,6 +34,11 @@ func LoadConfig() (*entity.Config, error) {
 		},
 		Logger: loggers.NewDefault(),
 	}
+	var err error
+	l.BaseDirs.CacheDir, err = valueobject.GetCacheDir(l.SourceDescriptor.Fs(), l.BaseDirs.CacheDir)
+	if err != nil {
+		return nil, err
+	}
 
 	defer l.deleteMergeStrategies()
 	p, err := l.loadConfigByDefault()

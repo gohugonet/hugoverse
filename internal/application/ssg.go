@@ -65,6 +65,8 @@ func GenerateStaticSite() error {
 		Resources:  resources,
 	})
 
+	resources.SetupTemplateClient(exec) // Expose template service to resources operations
+
 	if err != nil {
 		return err
 	}

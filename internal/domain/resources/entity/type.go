@@ -4,6 +4,8 @@ import (
 	"context"
 	"github.com/gohugonet/hugoverse/internal/domain/resources"
 	"github.com/gohugonet/hugoverse/internal/domain/resources/valueobject"
+	"github.com/gohugonet/hugoverse/internal/domain/template"
+	"io"
 )
 
 type hashProvider interface {
@@ -25,4 +27,9 @@ type Transformer interface {
 type ResourceTransformation interface {
 	Key() valueobject.ResourceTransformationKey
 	Transform(ctx *valueobject.ResourceTransformationCtx) error
+}
+
+type Template interface {
+	Parse(name, tpl string) (template.Preparer, error)
+	ExecuteWithContext(ctx context.Context, templ template.Preparer, wr io.Writer, data any) error
 }

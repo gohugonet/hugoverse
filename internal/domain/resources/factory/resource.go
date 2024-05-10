@@ -21,6 +21,12 @@ func NewResources(ws resources.Workspace) (*entity.Resources, error) {
 	}
 
 	execHelper := newExecHelper(ws)
+	log := loggers.NewDefault()
+	ds, err := newDartSass(execHelper, ws)
+	if err != nil {
+		log.Errorln(err)
+	}
+
 	ip, err := newImageProcessor(ws)
 	if err != nil {
 		return nil, err
@@ -51,7 +57,10 @@ func NewResources(ws resources.Workspace) (*entity.Resources, error) {
 		ExecHelper: execHelper,
 		Common:     common,
 
-		MinifierClient: mc,
+		MinifierClient:  mc,
+		TemplateClient:  nil,
+		IntegrityClient: &entity.IntegrityClient{},
+		SassClient:      ds,
 	}
 
 	return rs, nil

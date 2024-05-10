@@ -9,7 +9,8 @@ import (
 // RootMapping describes a virtual file or directory mount.
 type RootMapping struct {
 	// The virtual mount.
-	From string
+	From     string
+	FromBase string // The base directory of the virtual mount. //TODO
 	// The source directory or file.
 	To string
 	// The base of To. May be empty if an

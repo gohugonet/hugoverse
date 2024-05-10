@@ -1,7 +1,13 @@
 package resource
 
 import (
+	"context"
+	"errors"
+	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/resources"
+	"github.com/gohugonet/hugoverse/pkg/loggers"
+	"github.com/gohugonet/hugoverse/pkg/maps"
+	"github.com/gohugonet/hugoverse/pkg/template/funcs/resource/resourcehelpers"
 	"github.com/spf13/cast"
 )
 
@@ -65,4 +71,110 @@ func (ns *Namespace) GetMatch(pattern any) resources.Resource {
 // minifier.
 func (ns *Namespace) Minify(r resources.Resource) (resources.Resource, error) {
 	return ns.resourceService.Minify(r)
+}
+
+// ExecuteAsTemplate creates a Resource from a Go template, parsed and executed with
+// the given data, and published to the relative target path.
+func (ns *Namespace) ExecuteAsTemplate(ctx context.Context, args ...any) (resources.Resource, error) {
+	if len(args) != 3 {
+		return nil, fmt.Errorf("must provide targetPath, the template data context and a Resource object")
+	}
+	targetPath, err := cast.ToStringE(args[0])
+	if err != nil {
+		return nil, err
+	}
+	data := args[1]
+
+	r, ok := args[2].(resources.Resource)
+	if !ok {
+		return nil, fmt.Errorf("type %T not supported in Resource transformations", args[2])
+	}
+
+	return ns.resourceService.ExecuteAsTemplate(ctx, r, targetPath, data)
+}
+
+// Fingerprint transforms the given Resource with a MD5 hash of the content in
+// the RelPermalink and Permalink.
+func (ns *Namespace) Fingerprint(args ...any) (resources.Resource, error) {
+	if len(args) < 1 {
+		return nil, errors.New("must provide a Resource object")
+	}
+
+	if len(args) > 2 {
+		return nil, errors.New("must not provide more arguments than Resource and hash algorithm")
+	}
+
+	var algo string
+	resIdx := 0
+
+	if len(args) == 2 {
+		resIdx = 1
+		var err error
+		algo, err = cast.ToStringE(args[0])
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	r, ok := args[resIdx].(resources.Resource)
+	if !ok {
+		return nil, fmt.Errorf("%T can not be transformed", args[resIdx])
+	}
+
+	return ns.resourceService.Fingerprint(r, algo)
+}
+
+// ToCSS converts the given Resource to CSS. You can optional provide an Options object
+// as second argument. As an option, you can e.g. specify e.g. the target path (string)
+// for the converted CSS resource.
+func (ns *Namespace) ToCSS(args ...any) (resources.Resource, error) {
+	if len(args) > 2 {
+		return nil, errors.New("must not provide more arguments than resource object and options")
+	}
+
+	const (
+		// Transpiler implementation can be controlled from the client by
+		// setting the 'transpiler' option.
+		// Default is currently 'libsass', but that may change.
+		transpilerDart    = "dartsass"
+		transpilerLibSass = "libsass" // not supported anymore
+	)
+
+	var (
+		r          resources.Resource
+		m          map[string]any
+		targetPath string
+		err        error
+		ok         bool
+	)
+
+	r, targetPath, ok = resourcehelpers.ResolveIfFirstArgIsString(args)
+
+	if !ok {
+		r, m, err = resourcehelpers.ResolveArgs(args)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if m != nil {
+		if t, found := maps.LookupEqualFold(m, "transpiler"); found {
+			switch t {
+			case transpilerDart:
+				log := loggers.NewDefault()
+				log.Debugf("using transpiler %q", cast.ToString(t))
+			default:
+				return nil, fmt.Errorf("unsupported transpiler %q; valid values are %q", t, transpilerDart)
+			}
+		}
+	}
+
+	if m == nil {
+		m = make(map[string]any)
+	}
+	if targetPath != "" {
+		m["targetPath"] = targetPath
+	}
+
+	return ns.resourceService.ToCSS(r, m)
 }

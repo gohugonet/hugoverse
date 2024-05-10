@@ -6,8 +6,10 @@ import (
 	"github.com/gohugonet/hugoverse/internal/domain/config"
 	"github.com/gohugonet/hugoverse/pkg/cache"
 	"github.com/gohugonet/hugoverse/pkg/maps"
+	"github.com/gohugonet/hugoverse/pkg/paths"
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/afero"
+	"os"
 	"path"
 	"path/filepath"
 	"strings"
@@ -185,4 +187,108 @@ func resolveDirPlaceholder(bcfg BaseDirs, placeholder string) (cacheDir string, 
 	}
 
 	return "", false, fmt.Errorf("%q is not a valid placeholder (valid values are :cacheDir or :resourceDir)", placeholder)
+}
+
+// GetCacheDir returns a cache dir from the given filesystem and config.
+// The dir will be created if it does not exist.
+func GetCacheDir(fs afero.Fs, cacheDir string) (string, error) {
+	cacheDir = cacheDirDefault(cacheDir)
+
+	if cacheDir != "" {
+		exists, err := DirExists(cacheDir, fs)
+		if err != nil {
+			return "", err
+		}
+		if !exists {
+			err := fs.MkdirAll(cacheDir, 0o777) // Before umask
+			if err != nil {
+				return "", fmt.Errorf("failed to create cache dir: %w", err)
+			}
+		}
+		return cacheDir, nil
+	}
+
+	const hugoCacheBase = "hugo_cache"
+
+	// Avoid filling up the home dir with Hugo cache dirs from development.
+	//if !htesting.IsTest {
+	userCacheDir, err := os.UserCacheDir()
+	if err == nil {
+		cacheDir := filepath.Join(userCacheDir, hugoCacheBase)
+		if err := fs.Mkdir(cacheDir, 0o777); err == nil || os.IsExist(err) {
+			return cacheDir, nil
+		}
+	}
+	//}
+
+	// Fall back to a cache in /tmp.
+	userName := os.Getenv("USER")
+	if userName != "" {
+		return GetTempDir(hugoCacheBase+"_"+userName, fs), nil
+	} else {
+		return GetTempDir(hugoCacheBase, fs), nil
+	}
+}
+
+func cacheDirDefault(cacheDir string) string {
+	// Always use the cacheDir config if set.
+	if len(cacheDir) > 1 {
+		return addTrailingFileSeparator(cacheDir)
+	}
+
+	// See Issue #8714.
+	// Turns out that Cloudflare also sets NETLIFY=true in its build environment,
+	// but all of these 3 should not give any false positives.
+	if os.Getenv("NETLIFY") == "true" && os.Getenv("PULL_REQUEST") != "" && os.Getenv("DEPLOY_PRIME_URL") != "" {
+		// Netlify's cache behaviour is not documented, the currently best example
+		// is this project:
+		// https://github.com/philhawksworth/content-shards/blob/master/gulpfile.js
+		return "/opt/build/cache/hugo_cache/"
+	}
+
+	// This will fall back to an hugo_cache folder in either os.UserCacheDir or the tmp dir, which should work fine for most CI
+	// providers. See this for a working CircleCI setup:
+	// https://github.com/bep/hugo-sass-test/blob/6c3960a8f4b90e8938228688bc49bdcdd6b2d99e/.circleci/config.yml
+	// If not, they can set the HUGO_CACHEDIR environment variable or cacheDir config key.
+	return ""
+}
+
+func addTrailingFileSeparator(s string) string {
+	if !strings.HasSuffix(s, paths.FilePathSeparator) {
+		s = s + paths.FilePathSeparator
+	}
+	return s
+}
+
+// GetTempDir returns a temporary directory with the given sub path.
+func GetTempDir(subPath string, fs afero.Fs) string {
+	return afero.GetTempDir(fs, subPath)
+}
+
+// DirExists checks if a path exists and is a directory.
+func DirExists(path string, fs afero.Fs) (bool, error) {
+	return afero.DirExists(fs, path)
+}
+
+// IsDir checks if a given path is a directory.
+func IsDir(path string, fs afero.Fs) (bool, error) {
+	return afero.IsDir(fs, path)
+}
+
+// IsEmpty checks if a given path is empty, meaning it doesn't contain any regular files.
+func IsEmpty(path string, fs afero.Fs) (bool, error) {
+	var hasFile bool
+	err := afero.Walk(fs, path, func(path string, info os.FileInfo, err error) error {
+		if info.IsDir() {
+			return nil
+		}
+		hasFile = true
+		return filepath.SkipDir
+	})
+	return !hasFile, err
+}
+
+// Exists checks if a file or directory exists.
+func Exists(path string, fs afero.Fs) (bool, error) {
+	return afero.Exists(fs, path)
 }

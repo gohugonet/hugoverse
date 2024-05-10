@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/afero"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 // NewRootMappingFs creates a new RootMappingFs
@@ -16,7 +17,19 @@ import (
 // that maps to the actual filename in To.
 func newRootMappingFs(afs afero.Fs, rms ...valueobject.RootMapping) *valueobject.RootMappingFs {
 	t := radixtree.New()
+	realMapToRoot := radixtree.New()
 	var virtualRoots []valueobject.RootMapping
+
+	addMapping := func(key string, rm valueobject.RootMapping, to *radixtree.Tree) {
+		var mappings []valueobject.RootMapping
+		v, found := to.Get(key)
+		if found {
+			// There may be more than one language pointing to the same root.
+			mappings = v.([]valueobject.RootMapping)
+		}
+		mappings = append(mappings, rm)
+		to.Insert(key, mappings)
+	}
 
 	for _, rm := range rms {
 		fi, err := afs.Stat(rm.To)
@@ -40,6 +53,12 @@ func newRootMappingFs(afs afero.Fs, rms ...valueobject.RootMapping) *valueobject
 		mappings = append(mappings, rm)
 		t.Insert(key, mappings)
 
+		rev := rm.To
+		if !strings.HasPrefix(rev, fs.FilepathSeparator) {
+			rev = fs.FilepathSeparator + rev
+		}
+		addMapping(rev, rm, realMapToRoot)
+
 		log.Printf("key: %s, mappings: %+v\n", key, mappings)
 
 		virtualRoots = append(virtualRoots, rm)
@@ -51,5 +70,6 @@ func newRootMappingFs(afs afero.Fs, rms ...valueobject.RootMapping) *valueobject
 	return &valueobject.RootMappingFs{
 		Fs:            afs,
 		RootMapToReal: t,
+		RealMapToRoot: realMapToRoot,
 	}
 }

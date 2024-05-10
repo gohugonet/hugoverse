@@ -29,6 +29,13 @@ type Resources struct {
 	ImageProc    *valueobject.ImageProcessor
 
 	*MinifierClient
+	*TemplateClient
+	*IntegrityClient
+	*SassClient
+}
+
+func (rs *Resources) SetupTemplateClient(tmpl Template) {
+	rs.TemplateClient = &TemplateClient{tmpl}
 }
 
 func (rs *Resources) GetResource(pathname string) (resources.Resource, error) {

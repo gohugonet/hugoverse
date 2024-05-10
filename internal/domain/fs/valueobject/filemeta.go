@@ -44,6 +44,11 @@ type FileMeta struct {
 
 	// Include only files or directories that match.
 	//InclusionFilter *glob.FilenameFilter
+
+	// Rename the name part of the file (not the directory).
+	// Returns the new name and a boolean indicating if the file
+	// should be included.
+	Rename func(name string, toFrom bool) (string, bool)
 }
 
 func NewFileMeta() *FileMeta {

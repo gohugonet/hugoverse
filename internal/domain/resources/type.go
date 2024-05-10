@@ -50,6 +50,10 @@ type Fs interface {
 	PublishFs() afero.Fs
 	ResourcesCacheFs() afero.Fs
 
+	AssetsFsRealFilename(rel string) string
+	AssetsFsRealDirs(from string) []string
+	AssetsFsMakePathRelative(filename string, checkExists bool) (string, bool)
+
 	NewBasePathFs(source afero.Fs, path string) afero.Fs
 	Glob(fs afero.Fs, pattern string, handle func(fi fsVO.FileMetaInfo) (bool, error)) error
 }

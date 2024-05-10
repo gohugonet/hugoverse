@@ -174,3 +174,7 @@ func (t *Template) extractPartials(templ template.Preparer) error {
 	}
 	return nil
 }
+
+func (t *Template) Parse(name, tpl string) (template.Preparer, error) {
+	return t.Parser.ParseWithLock(name, tpl)
+}

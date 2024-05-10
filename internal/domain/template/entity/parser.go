@@ -17,6 +17,14 @@ type Parser struct {
 	prototypeHTMLClone *htmltemplate.Template
 
 	Ast *AstTransformer
+
+	*sync.RWMutex
+}
+
+func (t *Parser) ParseWithLock(name, tpl string) (template.Preparer, error) {
+	t.Lock()
+	defer t.Unlock()
+	return t.PrototypeText.New(name).Parse(tpl)
 }
 
 func (t *Parser) ParseOverlap(overlay, base valueobject.TemplateInfo) (*valueobject.State, bool, error) {

@@ -43,3 +43,8 @@ var FilepathSeparator = string(filepath.Separator)
 type FilesystemUnwrapper interface {
 	UnwrapFilesystem() afero.Fs
 }
+
+// FilesystemsUnwrapper returns the underlying filesystems.
+type FilesystemsUnwrapper interface {
+	UnwrapFilesystems() []afero.Fs
+}

@@ -1,6 +1,11 @@
 package identity
 
-import "github.com/gohugonet/hugoverse/pkg/types"
+import (
+	"github.com/gohugonet/hugoverse/pkg/types"
+	"path"
+	"path/filepath"
+	"strings"
+)
 
 const (
 	// Anonymous is an Identity that can be used when identity doesn't matter.
@@ -173,4 +178,16 @@ type findFirstManagerIdentity struct {
 
 func (f findFirstManagerIdentity) FindFirstManagerIdentity() ManagerIdentity {
 	return f.ManagerIdentity
+}
+
+// CleanStringIdentity cleans s to be suitable as an identifier and wraps it in a StringIdentity.
+func CleanStringIdentity(s string) StringIdentity {
+	return StringIdentity(CleanString(s))
+}
+
+// CleanString cleans s to be suitable as an identifier.
+func CleanString(s string) string {
+	s = strings.ToLower(s)
+	s = strings.Trim(filepath.ToSlash(s), "/")
+	return "/" + path.Clean(s)
 }

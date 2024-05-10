@@ -22,6 +22,18 @@ func (ps *PathSpec) AssetsFs() afero.Fs {
 	return ps.BaseFs.SourceFilesystems.Assets.Fs
 }
 
+func (ps *PathSpec) AssetsFsRealFilename(rel string) string {
+	return ps.BaseFs.SourceFilesystems.Assets.RealFilename(rel)
+}
+
+func (ps *PathSpec) AssetsFsRealDirs(from string) []string {
+	return ps.BaseFs.SourceFilesystems.Assets.RealDirs(from)
+}
+
+func (ps *PathSpec) AssetsFsMakePathRelative(filename string, checkExists bool) (string, bool) {
+	return ps.BaseFs.SourceFilesystems.Assets.MakePathRelative(filename, checkExists)
+}
+
 func (ps *PathSpec) ResourcesCacheFs() afero.Fs {
 	return ps.BaseFs.SourceFilesystems.ResourcesCache
 }

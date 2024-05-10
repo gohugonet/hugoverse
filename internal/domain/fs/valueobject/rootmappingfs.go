@@ -22,6 +22,7 @@ import (
 type RootMappingFs struct {
 	afero.Fs
 	RootMapToReal *radixtree.Tree
+	RealMapToRoot *radixtree.Tree
 }
 
 func (m *RootMappingFs) Dirs(base string) ([]FileMetaInfo, error) {
@@ -328,4 +329,86 @@ func normalizeFilename(filename string) string {
 		return norm.NFC.String(filename)
 	}
 	return filename
+}
+
+func (m *RootMappingFs) Mounts(base string) ([]FileMetaInfo, error) {
+	base = dfs.FilepathSeparator + m.cleanName(base)
+	roots := m.getRootsWithPrefix(base)
+
+	if roots == nil {
+		return nil, nil
+	}
+
+	fss := make([]FileMetaInfo, len(roots))
+	for i, r := range roots {
+		// TODO: ignore single file mount
+		bfs := NewBasePathFs(m.Fs, r.To)
+		fs := bfs
+		// TODO: ignore InclusionFilter
+		fs = decorateDirs(fs, r.Meta)
+		fi, err := fs.Stat("")
+		if err != nil {
+			return nil, fmt.Errorf("RootMappingFs.Dirs: %w", err)
+		}
+		fss[i] = fi.(FileMetaInfo)
+	}
+
+	return fss, nil
+}
+
+// func (fs *RootMappingFs) ReverseStat(filename string) ([]FileMetaInfo, error)
+func (m *RootMappingFs) ReverseLookup(filename string) ([]ComponentPath, error) {
+	return m.ReverseLookupComponent("", filename)
+}
+
+func (m *RootMappingFs) ReverseLookupComponent(component, filename string) ([]ComponentPath, error) {
+	filename = m.cleanName(filename)
+	key := dfs.FilepathSeparator + filename
+
+	s, roots := m.getRootsReverse(key)
+
+	if len(roots) == 0 {
+		return nil, nil
+	}
+
+	var cps []ComponentPath
+
+	base := strings.TrimPrefix(key, s)
+	dir, name := filepath.Split(base)
+
+	for _, first := range roots {
+		if component != "" && first.FromBase != component {
+			continue
+		}
+
+		var filename string
+		if first.Meta.Rename != nil { // TODO, Rename is nil
+			// Single file mount.
+			if newname, ok := first.Meta.Rename(name, true); ok {
+				filename = dfs.FilepathSeparator + filepath.Join(first.path, dir, newname)
+			} else {
+				continue
+			}
+		} else {
+			// Now we know that this file _could_ be in this fs.
+			filename = dfs.FilepathSeparator + filepath.Join(first.path, dir, name)
+		}
+
+		cps = append(cps, ComponentPath{
+			Component: first.FromBase,
+			Path:      paths.ToSlashTrimLeading(filename),
+			Lang:      first.Meta.Lang,
+		})
+	}
+
+	return cps, nil
+}
+
+func (m *RootMappingFs) getRootsReverse(key string) (string, []RootMapping) {
+	tree := m.RealMapToRoot
+	s, v, found := tree.LongestPrefix(key)
+	if !found {
+		return "", nil
+	}
+	return s, v.([]RootMapping)
 }

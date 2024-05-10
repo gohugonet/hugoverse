@@ -3,7 +3,9 @@ package valueobject
 import (
 	"errors"
 	"fmt"
+	dfs "github.com/gohugonet/hugoverse/internal/domain/fs"
 	"github.com/gohugonet/hugoverse/pkg/loggers"
+	"github.com/gohugonet/hugoverse/pkg/overlayfs"
 	"github.com/spf13/afero"
 	"os"
 	"path/filepath"
@@ -188,4 +190,35 @@ func fileInfosToFileMetaInfos(fis []os.FileInfo) []FileMetaInfo {
 		fims[i] = v.(FileMetaInfo)
 	}
 	return fims
+}
+
+// WalkFn is the walk func for WalkFilesystems.
+type WalkFn func(fs afero.Fs) bool
+
+// WalkFilesystems walks fs recursively and calls fn.
+// If fn returns true, walking is stopped.
+func WalkFilesystems(fs afero.Fs, fn WalkFn) bool {
+	if fn(fs) {
+		return true
+	}
+
+	if afs, ok := fs.(dfs.FilesystemUnwrapper); ok {
+		if WalkFilesystems(afs.UnwrapFilesystem(), fn) {
+			return true
+		}
+	} else if bfs, ok := fs.(dfs.FilesystemsUnwrapper); ok {
+		for _, sf := range bfs.UnwrapFilesystems() {
+			if WalkFilesystems(sf, fn) {
+				return true
+			}
+		}
+	} else if cfs, ok := fs.(overlayfs.FilesystemIterator); ok {
+		for i := 0; i < cfs.NumFilesystems(); i++ {
+			if WalkFilesystems(cfs.Filesystem(i), fn) {
+				return true
+			}
+		}
+	}
+
+	return false
 }

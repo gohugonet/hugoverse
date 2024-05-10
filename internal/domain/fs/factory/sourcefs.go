@@ -11,11 +11,12 @@ import (
 	"strings"
 )
 
-func newSourceFilesystem(name string, fs afero.Fs, dirs []valueobject.FileMetaInfo) *valueobject.SourceFilesystem {
+func newSourceFilesystem(name string, fs, sourceFs afero.Fs, dirs []valueobject.FileMetaInfo) *valueobject.SourceFilesystem {
 	return &valueobject.SourceFilesystem{
-		Name: name,
-		Fs:   fs,
-		Dirs: dirs,
+		Name:     name,
+		Fs:       fs,
+		SourceFs: sourceFs,
+		Dirs:     dirs,
 	}
 }
 
@@ -40,7 +41,7 @@ func (b *sourceFilesystemsBuilder) Build() (*valueobject.SourceFilesystems, erro
 	createView := func(componentID string, ofs *overlayfs.OverlayFs) *valueobject.SourceFilesystem {
 		dirs := b.theBigFs.OverlayDirs[componentID]
 		log.Printf("create view for %s with dirs: %v", componentID, dirs)
-		return newSourceFilesystem(componentID, afero.NewBasePathFs(ofs, componentID), dirs)
+		return newSourceFilesystem(componentID, afero.NewBasePathFs(ofs, componentID), b.sourceFs, dirs)
 	}
 
 	b.result.Layouts = createView(module.ComponentFolderLayouts, b.theBigFs.OverlayMounts)

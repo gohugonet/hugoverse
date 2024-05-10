@@ -7,6 +7,7 @@ import (
 	htmltemplate "github.com/gohugonet/hugoverse/pkg/template/htmltemplate"
 	texttemplate "github.com/gohugonet/hugoverse/pkg/template/texttemplate"
 	"reflect"
+	"sync"
 )
 
 type builder struct {
@@ -20,7 +21,7 @@ func newBuilder() *builder {
 	return &builder{tmpl: &entity.Template{}}
 }
 
-func (b *builder) build() (template.Template, error) {
+func (b *builder) build() (*entity.Template, error) {
 	if err := b.tmpl.LoadTemplates(); err != nil {
 		return nil, err
 	}
@@ -122,6 +123,8 @@ func (b *builder) buildParser() *builder {
 		Ast: &entity.AstTransformer{
 			TransformNotFound: make(map[string]*valueobject.State),
 		},
+
+		RWMutex: &sync.RWMutex{},
 	}
 	return b
 }
