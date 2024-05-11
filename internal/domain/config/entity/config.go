@@ -21,7 +21,7 @@ type Config struct {
 	MediaType
 	OutputFormats
 
-	Minify
+	MinifyC
 }
 
 func (c *Config) Fs() afero.Fs {

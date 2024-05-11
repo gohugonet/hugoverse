@@ -63,6 +63,8 @@ func GenerateStaticSite() error {
 		ContentHub: ch,
 		Site:       s,
 		Resources:  resources,
+		Config:     c,
+		Fs:         fs,
 	})
 
 	resources.SetupTemplateClient(exec) // Expose template service to resources operations
@@ -108,6 +110,8 @@ type templateCustomizedFunctionsProvider struct {
 	contenthub.ContentHub
 	site.Site
 	*rsAgr.Resources
+	*configAgr.Config
+	*fsAgr.Fs
 }
 
 type siteConfig struct {

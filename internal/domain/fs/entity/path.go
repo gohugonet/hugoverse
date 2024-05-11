@@ -2,7 +2,10 @@ package entity
 
 import (
 	"github.com/gohugonet/hugoverse/internal/domain/fs/valueobject"
+	"github.com/gohugonet/hugoverse/pkg/paths"
 	"github.com/spf13/afero"
+	"path/filepath"
+	"strings"
 )
 
 // PathSpec holds methods that decides how paths in URLs and files in Hugo should look like.
@@ -36,4 +39,19 @@ func (ps *PathSpec) AssetsFsMakePathRelative(filename string, checkExists bool) 
 
 func (ps *PathSpec) ResourcesCacheFs() afero.Fs {
 	return ps.BaseFs.SourceFilesystems.ResourcesCache
+}
+
+func (ps *PathSpec) WorkFs() afero.Fs {
+	return ps.BaseFs.SourceFilesystems.Work
+}
+
+// RelPathify trims any WorkingDir prefix from the given filename. If
+// the filename is not considered to be absolute, the path is just cleaned.
+func (ps *PathSpec) RelPathify(filename string, workingDir string) string {
+	filename = filepath.Clean(filename)
+	if !filepath.IsAbs(filename) {
+		return filename
+	}
+
+	return strings.TrimPrefix(strings.TrimPrefix(filename, workingDir), paths.FilePathSeparator)
 }

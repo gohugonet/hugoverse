@@ -48,6 +48,7 @@ func (b *sourceFilesystemsBuilder) Build() (*valueobject.SourceFilesystems, erro
 	b.result.Assets = createView(module.ComponentFolderAssets, b.theBigFs.OverlayMounts)
 	b.result.ResourcesCache = b.theBigFs.OverlayResources
 	b.result.Content = createView(module.ComponentFolderContent, b.theBigFs.OverlayMountsContent)
+	b.result.Work = valueobject.NewReadOnlyFs(b.theBigFs.OverlayFull)
 
 	return b.result, nil
 }
@@ -57,6 +58,7 @@ func (b *sourceFilesystemsBuilder) createMainOverlayFs() (*valueobject.Filesyste
 		SourceProject:        b.sourceFs,
 		OverlayMounts:        overlayfs.New(overlayfs.Options{}),
 		OverlayMountsContent: overlayfs.New(overlayfs.Options{DirsMerger: valueobject.LanguageDirsMerger}),
+		OverlayFull:          overlayfs.New(overlayfs.Options{}),
 		OverlayResources:     overlayfs.New(overlayfs.Options{FirstWritable: true}),
 
 		OverlayDirs: make(map[string][]valueobject.FileMetaInfo),
@@ -111,6 +113,7 @@ func (b *sourceFilesystemsBuilder) createOverlayFs(collector *valueobject.Filesy
 
 		collector.OverlayMounts = collector.OverlayMounts.Append(rmfs)
 		collector.OverlayMountsContent = collector.OverlayMountsContent.Append(rmfsContent)
+		collector.OverlayFull = collector.OverlayFull.Append(valueobject.NewBasePathFs(collector.SourceProject, md.Dir()))
 		collector.OverlayResources = collector.OverlayResources.Append(
 			valueobject.NewBasePathFs(collector.SourceProject, absPathify(module.FolderResources)))
 	}

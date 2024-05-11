@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/gohugonet/hugoverse/pkg/template/funcs/collections"
 	"github.com/gohugonet/hugoverse/pkg/template/funcs/compare"
+	"github.com/gohugonet/hugoverse/pkg/template/funcs/os"
 	"github.com/gohugonet/hugoverse/pkg/template/funcs/resource"
 	"github.com/gohugonet/hugoverse/pkg/template/funcs/strings"
 	"github.com/gohugonet/hugoverse/pkg/template/funcs/transform"
@@ -73,4 +74,5 @@ type CustomizedFunctions interface {
 	collections.Language
 	strings.Title
 	resource.Resource
+	os.Os
 }

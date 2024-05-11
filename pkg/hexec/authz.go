@@ -30,9 +30,9 @@ var DefaultAuth = Auth{
 func (c Auth) CheckAllowedExec(name string) error {
 	if !c.Allow.Accept(name) {
 		return &AccessDeniedError{
-			name:     name,
-			path:     "security.exec.allow",
-			policies: c.ToTOML(),
+			Name:     name,
+			Path:     "security.exec.allow",
+			Policies: ToTOML(c),
 		}
 	}
 	return nil
@@ -43,8 +43,8 @@ func (c Auth) OSEnvAccept(name string) bool {
 }
 
 // ToTOML converts c to TOML with [security] as the root.
-func (c Auth) ToTOML() string {
-	sec := c.ToSecurityMap()
+func ToTOML(c any) string {
+	sec := ToSecurityMap(c)
 
 	var b bytes.Buffer
 
@@ -56,7 +56,7 @@ func (c Auth) ToTOML() string {
 }
 
 // ToSecurityMap converts c to a map with 'security' as the root key.
-func (c Auth) ToSecurityMap() map[string]any {
+func ToSecurityMap(c any) map[string]any {
 	// Take it to JSON and back to get proper casing etc.
 	asJson, err := json.Marshal(c)
 	herrors.Must(err)

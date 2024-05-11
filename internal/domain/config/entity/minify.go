@@ -7,15 +7,15 @@ import (
 	"io"
 )
 
-type Minify struct {
+type MinifyC struct {
 	valueobject.MinifyConfig
 }
 
-func (m Minify) IsMinifyPublish() bool {
+func (m MinifyC) IsMinifyPublish() bool {
 	return m.MinifyOutput
 }
 
-func (m Minify) GetMinifier(s string) minify.Minifier {
+func (m MinifyC) GetMinifier(s string) minify.Minifier {
 	switch {
 	case s == "css" && !m.DisableCSS:
 		return &m.Tdewolff.CSS
@@ -34,7 +34,7 @@ func (m Minify) GetMinifier(s string) minify.Minifier {
 	}
 }
 
-func (m Minify) Minifiers(mediaTypes media.Types, cb func(media.Type, minify.Minifier)) {
+func (m MinifyC) Minifiers(mediaTypes media.Types, cb func(media.Type, minify.Minifier)) {
 	for _, suffix := range []string{"css", "js", "json", "svg", "xml", "html"} {
 		types := mediaTypes.BySuffix(suffix)
 		mi := m.GetMinifier(suffix)

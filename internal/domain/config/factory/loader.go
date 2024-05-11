@@ -199,7 +199,7 @@ func (cl *ConfigLoader) decodeConfig(p config.Provider, target *entity.Config) e
 	if err != nil {
 		return err
 	}
-	target.Minify.MinifyConfig = mf
+	target.MinifyC.MinifyConfig = mf
 
 	m, err := valueobject.DecodeModuleConfig(p)
 	if err != nil {

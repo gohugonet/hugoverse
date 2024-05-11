@@ -16,6 +16,10 @@ func RegisterNamespaces() {
 	registerCast()
 	registerFmt()
 	registerLang()
+	registerSafe()
+	registerCrypto()
+	registerPath()
+	registerInflect()
 }
 
 func RegisterCallbackNamespaces(cb func(ctx context.Context, name string, data any) (tmpl, res string, err error)) {
@@ -28,6 +32,7 @@ func RegisterExtendedNamespaces(functions template.CustomizedFunctions) {
 	registerUrls(functions)
 	registerStrings(functions)
 	registerResources(functions)
+	registerOs(functions)
 }
 
 func RegisterLookerNamespaces(functions template.CustomizedFunctions, looker collections.FuncLooker) {
