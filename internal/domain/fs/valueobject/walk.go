@@ -7,6 +7,7 @@ import (
 	"github.com/gohugonet/hugoverse/pkg/loggers"
 	"github.com/gohugonet/hugoverse/pkg/overlayfs"
 	"github.com/spf13/afero"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -95,7 +96,7 @@ func (w *Walkway) walk(path string, info FileMetaInfo, dirEntries []FileMetaInfo
 			return walkFn(path, info, fmt.Errorf("walk: open %q (%q): %w", path, w.Root, err))
 		}
 
-		fis, err := f.Readdir(-1)
+		fis, err := f.(fs.ReadDirFile).ReadDir(-1)
 		f.Close()
 		if err != nil {
 			if w.checkErr(filename, err) {
@@ -104,7 +105,8 @@ func (w *Walkway) walk(path string, info FileMetaInfo, dirEntries []FileMetaInfo
 			return walkFn(path, info, fmt.Errorf("walk: Readdir: %w", err))
 		}
 
-		dirEntries = fileInfosToFileMetaInfos(fis)
+		dirEntries = DirEntriesToFileMetaInfos(fis)
+		//TODO PathInfo
 	}
 
 	// First add some metadata to the dir entries
@@ -182,14 +184,6 @@ func (w *Walkway) checkErr(filename string, err error) bool {
 	}
 
 	return false
-}
-
-func fileInfosToFileMetaInfos(fis []os.FileInfo) []FileMetaInfo {
-	fims := make([]FileMetaInfo, len(fis))
-	for i, v := range fis {
-		fims[i] = v.(FileMetaInfo)
-	}
-	return fims
 }
 
 // WalkFn is the walk func for WalkFilesystems.

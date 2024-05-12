@@ -1,33 +1,40 @@
 package valueobject
 
 import (
-	"github.com/gohugonet/hugoverse/internal/domain/fs"
+	"fmt"
 	"github.com/spf13/afero"
+	"io/fs"
 	"os"
-	"strings"
 )
 
 type FileMetaInfo interface {
+	fs.DirEntry
 	os.FileInfo
 	Meta() *FileMeta
 }
 
-func NewFileMetaInfo(fi os.FileInfo, m *FileMeta) FileMetaInfo {
+func NewFileMetaInfo(fi FileNameIsDir, m *FileMeta) FileMetaInfo {
 	if m == nil {
 		panic("FileMeta must be set")
 	}
-	if fim, ok := fi.(FileMetaInfo); ok {
+	if fim, ok := fi.(MetaProvider); ok {
 		m.Merge(fim.Meta())
 	}
-	return &fileInfoMeta{FileInfo: fi, m: m}
+	switch v := fi.(type) {
+	case fs.DirEntry:
+		return &dirEntryMeta{DirEntry: v, m: m}
+	case fs.FileInfo:
+		return &dirEntryMeta{DirEntry: dirEntry{v}, m: m}
+	case nil:
+		return &dirEntryMeta{DirEntry: dirEntry{}, m: m}
+	default:
+		panic(fmt.Sprintf("Unsupported type: %T", fi))
+	}
 }
 
-func DecorateFileInfo(fi os.FileInfo, metaFs afero.Fs, opener func() (afero.File, error),
-	filename, filepath string, inMeta *FileMeta) FileMetaInfo {
+func DecorateFileInfo(fi FileNameIsDir, opener func() (afero.File, error), filename string, inMeta *FileMeta) FileMetaInfo {
 	var meta *FileMeta
 	var fim FileMetaInfo
-
-	filepath = strings.TrimPrefix(filepath, fs.FilepathSeparator)
 
 	var ok bool
 	if fim, ok = fi.(FileMetaInfo); ok {
@@ -40,14 +47,8 @@ func DecorateFileInfo(fi os.FileInfo, metaFs afero.Fs, opener func() (afero.File
 	if opener != nil {
 		meta.OpenFunc = opener
 	}
-	if metaFs != nil {
-		meta.Fs = metaFs
-	}
-	nfilepath := normalizeFilename(filepath)
+
 	nfilename := normalizeFilename(filename)
-	if nfilepath != "" {
-		meta.Path = nfilepath
-	}
 	if nfilename != "" {
 		meta.Filename = nfilename
 	}

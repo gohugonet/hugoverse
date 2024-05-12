@@ -2,22 +2,23 @@ package valueobject
 
 import (
 	"fmt"
-	"github.com/gohugonet/hugoverse/internal/domain/fs"
 	"github.com/spf13/afero"
 	"os"
 	"path/filepath"
+
+	iofs "io/fs"
 )
 
 func decorateDirs(fs afero.Fs, meta *FileMeta) afero.Fs {
 	ffs := &BaseFileDecoratorFs{Fs: fs}
 
-	decorator := func(fi os.FileInfo, name string) (os.FileInfo, error) {
+	decorator := func(fi FileNameIsDir, name string) (FileNameIsDir, error) {
 		if !fi.IsDir() {
 			// Leave regular files as they are.
 			return fi, nil
 		}
 
-		return DecorateFileInfo(fi, fs, nil, "", "", meta), nil
+		return DecorateFileInfo(fi, nil, "", meta), nil
 	}
 
 	ffs.Decorate = decorator
@@ -27,7 +28,7 @@ func decorateDirs(fs afero.Fs, meta *FileMeta) afero.Fs {
 
 type BaseFileDecoratorFs struct {
 	afero.Fs
-	Decorate func(fi os.FileInfo, filename string) (os.FileInfo, error)
+	Decorate func(fi FileNameIsDir, name string) (FileNameIsDir, error)
 }
 
 func (fs *BaseFileDecoratorFs) UnwrapFilesystem() afero.Fs {
@@ -40,7 +41,11 @@ func (fs *BaseFileDecoratorFs) Stat(name string) (os.FileInfo, error) {
 		return nil, err
 	}
 
-	return fs.Decorate(fi, name)
+	fim, err := fs.Decorate(fi, name)
+	if err != nil {
+		return nil, err
+	}
+	return fim.(os.FileInfo), nil
 }
 
 func (fs *BaseFileDecoratorFs) LstatIfPossible(name string) (os.FileInfo, bool, error) {
@@ -60,9 +65,12 @@ func (fs *BaseFileDecoratorFs) LstatIfPossible(name string) (os.FileInfo, bool, 
 		return nil, false, err
 	}
 
-	fi, err = fs.Decorate(fi, name)
+	fim, err := fs.Decorate(fi, name)
+	if err != nil {
+		return nil, false, err
+	}
 
-	return fi, ok, err
+	return fim.(os.FileInfo), ok, err
 }
 
 func (fs *BaseFileDecoratorFs) Open(name string) (afero.File, error) {
@@ -78,35 +86,40 @@ type baseFileDecoratorFile struct {
 	fs *BaseFileDecoratorFs
 }
 
-func (l *baseFileDecoratorFile) Readdir(c int) (ofi []os.FileInfo, err error) {
-	dirnames, err := l.File.Readdirnames(c)
+func (l *baseFileDecoratorFile) ReadDir(n int) ([]iofs.DirEntry, error) {
+	fis, err := l.File.(iofs.ReadDirFile).ReadDir(-1)
 	if err != nil {
 		return nil, err
 	}
 
-	fisp := make([]os.FileInfo, 0, len(dirnames))
+	fisp := make([]iofs.DirEntry, len(fis))
 
-	for _, dirname := range dirnames {
-		filename := dirname
-
-		if l.Name() != "" && l.Name() != fs.FilepathSeparator {
-			filename = filepath.Join(l.Name(), dirname)
+	for i, fi := range fis {
+		filename := fi.Name()
+		if l.Name() != "" {
+			filename = filepath.Join(l.Name(), fi.Name())
 		}
 
-		// We need to resolve any symlink info.
-		fi, _, err := LstatIfPossible(l.fs.Fs, filename)
+		fid, err := l.fs.Decorate(fi, filename)
 		if err != nil {
-			if os.IsNotExist(err) {
-				continue
-			}
-			return nil, err
+			return nil, fmt.Errorf("decorate: %w", err)
 		}
-		fi, err = l.fs.Decorate(fi, filename)
-		if err != nil {
-			return nil, fmt.Errorf("Decorate: %w", err)
-		}
-		fisp = append(fisp, fi)
+
+		fisp[i] = fid.(iofs.DirEntry)
+
 	}
 
 	return fisp, err
+}
+
+func (l *baseFileDecoratorFile) Readdir(c int) (ofi []os.FileInfo, err error) {
+	dirEntry, err := l.ReadDir(c)
+	if err != nil {
+		return nil, err
+	}
+	var result []os.FileInfo
+	for _, d := range dirEntry {
+		result = append(result, d.(os.FileInfo))
+	}
+	return result, nil
 }

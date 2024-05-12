@@ -3,7 +3,6 @@ package factory
 import (
 	"github.com/gohugonet/hugoverse/internal/domain/fs/valueobject"
 	"github.com/spf13/afero"
-	"os"
 	"path/filepath"
 )
 
@@ -12,7 +11,7 @@ import (
 func NewBaseFileDecorator(originFs afero.Fs) afero.Fs {
 	ffs := &valueobject.BaseFileDecoratorFs{Fs: originFs}
 
-	decorator := func(fi os.FileInfo, filename string) (os.FileInfo, error) {
+	decorator := func(fi valueobject.FileNameIsDir, filename string) (valueobject.FileNameIsDir, error) {
 		// Store away the original in case it's a symlink.
 		meta := valueobject.NewFileMeta()
 		meta.Name = fi.Name()
@@ -25,12 +24,12 @@ func NewBaseFileDecorator(originFs afero.Fs) afero.Fs {
 					return nil, err
 				}
 
-				fi, err = ffs.Decorate(fi, joinedFilename)
+				fim, err := ffs.Decorate(fi, joinedFilename)
 				if err != nil {
 					return nil, err
 				}
 
-				return fi.(valueobject.FileMetaInfo), nil
+				return fim.(valueobject.FileMetaInfo), nil
 			}
 		}
 
@@ -38,7 +37,7 @@ func NewBaseFileDecorator(originFs afero.Fs) afero.Fs {
 			return ffs.Open(filename)
 		}
 
-		fim := valueobject.DecorateFileInfo(fi, ffs, opener, filename, "", meta)
+		fim := valueobject.DecorateFileInfo(fi, opener, filename, meta)
 
 		return fim, nil
 	}

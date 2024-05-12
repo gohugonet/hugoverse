@@ -4,10 +4,12 @@ import (
 	"fmt"
 	dfs "github.com/gohugonet/hugoverse/internal/domain/fs"
 	"github.com/gohugonet/hugoverse/pkg/htime"
+	"github.com/gohugonet/hugoverse/pkg/overlayfs"
 	"github.com/gohugonet/hugoverse/pkg/paths"
 	"github.com/gohugonet/hugoverse/pkg/radixtree"
 	"github.com/spf13/afero"
 	"golang.org/x/text/unicode/norm"
+	iofs "io/fs"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -64,15 +66,54 @@ func (m *RootMappingFs) Open(name string) (afero.File, error) {
 }
 
 func (m *RootMappingFs) newUnionFile(fis ...FileMetaInfo) (afero.File, error) {
-	meta := fis[0].Meta()
-	f, err := meta.Open()
-	if err != nil {
-		return nil, err
+	if len(fis) == 1 {
+		return fis[0].Meta().Open()
 	}
-	if len(fis) > 1 {
-		panic("not implemented when open file with multiple fis")
+
+	if !fis[0].IsDir() {
+		// Pick the last file mount.
+		return fis[len(fis)-1].Meta().Open()
 	}
-	return f, nil
+
+	openers := make([]func() (afero.File, error), len(fis))
+	for i := len(fis) - 1; i >= 0; i-- {
+		fi := fis[i]
+		openers[i] = func() (afero.File, error) {
+			meta := fi.Meta()
+			f, err := meta.Open()
+			if err != nil {
+				return nil, err
+			}
+			return &rootMappingDir{DirOnlyOps: f, fs: m, name: meta.Name, meta: meta}, nil
+		}
+	}
+
+	merge := func(lofi, bofi []iofs.DirEntry) []iofs.DirEntry {
+		// Ignore duplicate directory entries
+		for _, fi1 := range bofi {
+			var found bool
+			for _, fi2 := range lofi {
+				if !fi2.IsDir() {
+					continue
+				}
+				if fi1.Name() == fi2.Name() {
+					found = true
+					break
+				}
+			}
+			if !found {
+				lofi = append(lofi, fi1)
+			}
+		}
+
+		return lofi
+	}
+
+	info := func() (os.FileInfo, error) {
+		return fis[0], nil
+	}
+
+	return overlayfs.OpenDir(merge, info, openers...)
 }
 
 // Stat returns the os.FileInfo structure describing a given file.  If there is
@@ -169,7 +210,7 @@ func (m *RootMappingFs) statRoot(root RootMapping, name string) (FileMetaInfo, b
 		}
 	}
 
-	return DecorateFileInfo(fi, m.Fs, opener, "", "", root.Meta), b, nil
+	return DecorateFileInfo(fi, opener, "", root.Meta), b, nil
 }
 
 func (m *RootMappingFs) realDirOpener(name string, meta *FileMeta) func() (afero.File, error) {
@@ -178,14 +219,14 @@ func (m *RootMappingFs) realDirOpener(name string, meta *FileMeta) func() (afero
 		if err != nil {
 			return nil, err
 		}
-		return &rootMappingFile{name: name, meta: meta, fs: m, File: f}, nil
+		return &rootMappingDir{name: name, meta: meta, fs: m, DirOnlyOps: f}, nil
 	}
 }
 
-func (m *RootMappingFs) collectDirEntries(prefix string) ([]os.FileInfo, error) {
+func (m *RootMappingFs) collectDirEntries(prefix string) ([]iofs.DirEntry, error) {
 	prefix = paths.FilePathSeparator + m.cleanName(prefix)
 
-	var fis []os.FileInfo
+	var fis []iofs.DirEntry
 
 	seen := make(map[string]bool) // Prevent duplicate directories
 	level := strings.Count(prefix, paths.FilePathSeparator)
@@ -195,7 +236,7 @@ func (m *RootMappingFs) collectDirEntries(prefix string) ([]os.FileInfo, error) 
 		if err != nil {
 			return err
 		}
-		direntries, err := f.Readdir(-1)
+		direntries, err := f.(iofs.ReadDirFile).ReadDir(-1)
 		if err != nil {
 			f.Close()
 			return err

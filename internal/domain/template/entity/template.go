@@ -10,6 +10,7 @@ import (
 	texttemplate "github.com/gohugonet/hugoverse/pkg/template/texttemplate"
 	"path/filepath"
 	"strings"
+	"sync"
 )
 
 type Template struct {
@@ -20,6 +21,9 @@ type Template struct {
 
 	Main *Namespace
 	Fs   template.Fs
+
+	shortcodeOnce sync.Once
+	shortcode     *Shortcode
 }
 
 func (t *Template) LookupLayout(d template.LayoutDescriptor) (template.Preparer, bool, error) {
@@ -127,7 +131,7 @@ func (t *Template) PostTransform() error {
 
 	for _, v := range t.Main.Templates {
 		if v.Typ == template.TypeShortcode {
-			panic("not implemented for shortcode in PostTransform")
+			t.getShortcode().addShortcodeVariant(v)
 		}
 
 		if defineCheckedHTML && defineCheckedText {
@@ -157,6 +161,15 @@ func (t *Template) PostTransform() error {
 	}
 
 	return nil
+}
+
+func (t *Template) getShortcode() *Shortcode {
+	t.shortcodeOnce.Do(func() {
+		t.shortcode = &Shortcode{
+			shortcodes: map[string]*shortcodeTemplates{},
+		}
+	})
+	return t.shortcode
 }
 
 func isText(templ template.Preparer) bool {
