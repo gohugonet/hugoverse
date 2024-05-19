@@ -1,6 +1,7 @@
 package fs
 
 import (
+	"github.com/gohugonet/hugoverse/pkg/media"
 	"github.com/spf13/afero"
 	"path/filepath"
 )
@@ -8,6 +9,9 @@ import (
 type Dir interface {
 	WorkingDir() string
 	PublishDir() string
+	ResourceDir() string
+
+	MediaTypes() media.Types
 }
 
 type Fs interface {

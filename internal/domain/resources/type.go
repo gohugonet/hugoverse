@@ -107,6 +107,15 @@ type ResourceCopier interface {
 	CloneTo(targetPath string) Resource
 }
 
+const (
+	PostProcessPrefix = "__h_pp_l1"
+
+	// The suffix has an '=' in it to prevent the minifier to remove any enclosing
+	// quoutes around the attribute values.
+	// See issue #8884.
+	PostProcessSuffix = "__e="
+)
+
 type PostPublishedResource interface {
 	TypeProvider
 	LinksProvider

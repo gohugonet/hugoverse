@@ -16,6 +16,13 @@ type OriginFs struct {
 	// WorkingDirReadOnly is a read-only file system
 	// restricted to the project working dir.
 	WorkingDirReadOnly afero.Fs
+
+	// WorkingDirWritable is a writable file system
+	// restricted to the project working dir.
+	WorkingDirWritable afero.Fs
+
+	// Directories to store Resource related artifacts.
+	AbsResourcesDir string
 }
 
 func (f *OriginFs) Origin() afero.Fs {
