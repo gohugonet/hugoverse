@@ -23,10 +23,9 @@ func (fs *baseFs) Stat(name string) (os.FileInfo, error) {
 		return nil, err
 	}
 
-	fim := NewFileInfo(fi, name)
-	fim.OpenFunc = func() (afero.File, error) {
+	fim := NewFileInfoWithOpener(fi, name, func() (afero.File, error) {
 		return fs.open(name)
-	}
+	})
 
 	return fim, nil
 }

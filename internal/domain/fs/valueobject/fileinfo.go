@@ -19,6 +19,21 @@ func NewFileInfo(fi os.FileInfo, filename string) *FileInfo {
 	return info
 }
 
+func NewFileInfoWithOpener(fi os.FileInfo, filename string, opener func() (afero.File, error)) *FileInfo {
+	info := &FileInfo{
+		FileInfo:           fi,
+		normalizedFilename: normalizeFilename(filename),
+	}
+
+	if fi.IsDir() {
+		fmt.Println("NewFileInfo JoinStatFunc to be done")
+	}
+
+	info.OpenFunc = opener
+
+	return info
+}
+
 type FileInfo struct {
 	os.FileInfo
 

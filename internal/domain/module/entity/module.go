@@ -43,6 +43,10 @@ func (m *Module) All() []module.Module {
 	return modules
 }
 
+func (m *Module) IsProjMod(mod module.Module) bool {
+	return m.projMod.Module == mod
+}
+
 func (m *Module) Load() error {
 	defer m.Logger.PrintTimerIfDelayed(time.Now(), "hugoverse: collected modules")
 	d := debounce.New(2 * time.Second)

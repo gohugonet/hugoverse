@@ -8,6 +8,13 @@ import (
 type Fs struct {
 	*OriginFs
 	*PathSpec
+
+	Content    *valueobject.ComponentFs
+	Data       *valueobject.ComponentFs
+	I18n       *valueobject.ComponentFs
+	Layouts    *valueobject.ComponentFs
+	Archetypes *valueobject.ComponentFs
+	Assets     *valueobject.ComponentFs
 }
 
 func (f *Fs) NewBasePathFs(source afero.Fs, path string) afero.Fs {

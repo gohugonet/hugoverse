@@ -30,6 +30,7 @@ var (
 type Modules interface {
 	Proj() Module
 	All() []Module
+	IsProjMod(mod Module) bool
 }
 
 type Module interface {
