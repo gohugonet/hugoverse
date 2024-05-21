@@ -5,6 +5,7 @@ import (
 	"github.com/gohugonet/hugoverse/pkg/paths/files"
 	"github.com/gohugonet/hugoverse/pkg/radixtree"
 	"github.com/spf13/afero"
+	iofs "io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -43,6 +44,10 @@ func NewRootMappingFs(fs afero.Fs, rms ...RootMapping) (*RootMappingFs, error) {
 
 		// Do not support single file mount
 
+		if !fi.IsDir() {
+			panic("single file mount not supported yet, " + rm.To)
+		}
+		// fi: baseFs.Stat
 		rm.ToFi = NewFileInfo(fi, rm.To)
 
 		addMapping(paths.FilePathSeparator+rm.From, rm, rootMapToReal)
@@ -175,7 +180,7 @@ func (fs *RootMappingFs) statRoot(root RootMapping, filename string) (*FileInfo,
 				return nil, err
 			}
 
-			df := NewDirFile(f)
+			df := NewDirFileWithOpener(f, fs.collectDirEntries)
 			return df, nil
 		}
 	}
@@ -237,4 +242,112 @@ func (fs *RootMappingFs) getRoots(key string) (string, []RootMapping) {
 	}
 
 	return s, roots
+}
+
+func (fs *RootMappingFs) collectDirEntries(prefix string) ([]iofs.DirEntry, error) {
+	prefix = paths.FilePathSeparator + cleanName(prefix)
+
+	var fis []iofs.DirEntry
+
+	seen := make(map[string]bool) // Prevent duplicate directories
+	level := strings.Count(prefix, paths.FilePathSeparator)
+
+	collectDir := func(rm RootMapping, fi *FileInfo) error {
+		f, err := fi.Meta().Open()
+		if err != nil {
+			return err
+		}
+		direntries, err := f.(iofs.ReadDirFile).ReadDir(-1)
+		if err != nil {
+			f.Close()
+			return err
+		}
+
+		for _, fi := range direntries {
+			if fi.IsDir() {
+				name := fi.Name()
+				if seen[name] {
+					continue
+				}
+				seen[name] = true
+				opener := func() (afero.File, error) {
+					return fs.Open(filepath.Join(rm.From, name))
+				}
+				fi = newDirNameOnlyFileInfo(name, meta, opener)
+			}
+			fis = append(fis, fi)
+		}
+
+		f.Close()
+
+		return nil
+	}
+
+	// First add any real files/directories.
+	rms := fs.getRoot(prefix)
+	for _, rm := range rms {
+		if err := collectDir(rm, rm.ToFi); err != nil {
+			return nil, err
+		}
+	}
+
+	// Next add any file mounts inside the given directory.
+	prefixInside := prefix + filepathSeparator
+	fs.rootMapToReal.WalkPrefix(prefixInside, func(s string, v any) bool {
+		if (strings.Count(s, filepathSeparator) - level) != 1 {
+			// This directory is not part of the current, but we
+			// need to include the first name part to make it
+			// navigable.
+			path := strings.TrimPrefix(s, prefixInside)
+			parts := strings.Split(path, filepathSeparator)
+			name := parts[0]
+
+			if seen[name] {
+				return false
+			}
+			seen[name] = true
+			opener := func() (afero.File, error) {
+				return fs.Open(path)
+			}
+
+			fi := newDirNameOnlyFileInfo(name, nil, opener)
+			fis = append(fis, fi)
+
+			return false
+		}
+
+		rms := v.([]RootMapping)
+		for _, rm := range rms {
+			name := filepath.Base(rm.From)
+			if seen[name] {
+				continue
+			}
+			seen[name] = true
+			opener := func() (afero.File, error) {
+				return fs.Open(rm.From)
+			}
+			fi := newDirNameOnlyFileInfo(name, rm.Meta, opener)
+			fis = append(fis, fi)
+		}
+
+		return false
+	})
+
+	// Finally add any ancestor dirs with files in this directory.
+	ancestors := fs.getAncestors(prefix)
+	for _, root := range ancestors {
+		subdir := strings.TrimPrefix(prefix, root.key)
+		for _, rm := range root.roots {
+			if rm.fi.IsDir() {
+				fi, err := rm.fi.Meta().JoinStat(subdir)
+				if err == nil {
+					if err := collectDir(rm, fi); err != nil {
+						return nil, err
+					}
+				}
+			}
+		}
+	}
+
+	return fis, nil
 }

@@ -1,46 +1,51 @@
 package valueobject
 
 import (
-	"fmt"
+	"errors"
 	"github.com/spf13/afero"
+	"io/fs"
 	"os"
 )
 
 func NewFileInfo(fi os.FileInfo, filename string) *FileInfo {
 	info := &FileInfo{
-		FileInfo:           fi,
-		normalizedFilename: normalizeFilename(filename),
+		FileInfo: fi,
+		FileMeta: FileMeta{
+			Name:     filename,
+			OpenFunc: nil,
+		},
 	}
 
-	if fi.IsDir() {
-		fmt.Println("NewFileInfo JoinStatFunc to be done")
+	if fim, ok := fi.(MetaProvider); ok {
+		info.FileMeta.Merge(fim.Meta())
 	}
 
 	return info
 }
 
-func NewFileInfoWithOpener(fi os.FileInfo, filename string, opener func() (afero.File, error)) *FileInfo {
-	info := &FileInfo{
-		FileInfo:           fi,
-		normalizedFilename: normalizeFilename(filename),
-	}
-
-	if fi.IsDir() {
-		fmt.Println("NewFileInfo JoinStatFunc to be done")
-	}
-
+func NewFileInfoWithOpener(fi os.FileInfo, filename string, opener FileOpener) *FileInfo {
+	info := NewFileInfo(fi, filename)
 	info.OpenFunc = opener
 
 	return info
 }
 
 type FileInfo struct {
-	os.FileInfo
-
-	normalizedFilename string
-	OpenFunc           func() (afero.File, error)
+	fs.FileInfo
+	FileMeta
 }
 
 func (fi *FileInfo) Name() string {
 	return fi.FileInfo.Name()
+}
+
+func (fi *FileInfo) Open() (afero.File, error) {
+	if fi.OpenFunc == nil {
+		return nil, errors.New("OpenFunc not set")
+	}
+	return fi.OpenFunc()
+}
+
+func (fi *FileInfo) Meta() *FileMeta {
+	return &fi.FileMeta
 }

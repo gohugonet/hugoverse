@@ -24,6 +24,9 @@ func (fs *baseFs) Stat(name string) (os.FileInfo, error) {
 	}
 
 	fim := NewFileInfoWithOpener(fi, name, func() (afero.File, error) {
+		if fi.IsDir() {
+			return fs.openDir(name)
+		}
 		return fs.open(name)
 	})
 
@@ -40,4 +43,12 @@ func (fs *baseFs) open(name string) (afero.File, error) {
 		return nil, err
 	}
 	return NewFile(f), nil
+}
+
+func (fs *baseFs) openDir(name string) (afero.File, error) {
+	f, err := fs.open(name)
+	if err != nil {
+		return nil, err
+	}
+	return NewDirFile(f), nil
 }

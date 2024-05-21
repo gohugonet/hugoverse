@@ -3,52 +3,20 @@ package valueobject
 import (
 	"errors"
 	"github.com/gohugonet/hugoverse/pkg/hreflect"
-	"github.com/gohugonet/hugoverse/pkg/paths"
 	"github.com/spf13/afero"
-	"os"
 	"reflect"
 )
 
+type MetaProvider interface {
+	Meta() *FileMeta
+}
+
+type FileOpener func() (afero.File, error)
+
 type FileMeta struct {
-	PathInfo         *paths.Path
-	Name             string
-	Filename         string
-	Path             string
-	PathWalk         string
-	OriginalFilename string
-	BaseDir          string
+	Name string
 
-	SourceRoot string
-	MountRoot  string
-	Module     string
-
-	Weight     int
-	IsOrdered  bool
-	IsSymlink  bool
-	IsRootFile bool
-	IsProject  bool
-	Watch      bool
-
-	Classifier ContentClass
-
-	SkipDir bool
-
-	Lang                       string
-	TranslationBaseName        string
-	TranslationBaseNameWithExt string
-	Translations               []string
-
-	Fs           afero.Fs
-	OpenFunc     func() (afero.File, error)
-	JoinStatFunc func(name string) (FileMetaInfo, error)
-
-	// Include only files or directories that match.
-	//InclusionFilter *glob.FilenameFilter
-
-	// Rename the name part of the file (not the directory).
-	// Returns the new name and a boolean indicating if the file
-	// should be included.
-	Rename func(name string, toFrom bool) (string, bool)
+	OpenFunc FileOpener
 }
 
 func NewFileMeta() *FileMeta {
@@ -81,16 +49,13 @@ func (f *FileMeta) Merge(from *FileMeta) {
 	}
 }
 
+func (f *FileMeta) NormalizedFilename() string {
+	return normalizeFilename(f.Name)
+}
+
 func (f *FileMeta) Open() (afero.File, error) {
 	if f.OpenFunc == nil {
 		return nil, errors.New("OpenFunc not set")
 	}
 	return f.OpenFunc()
-}
-
-func (f *FileMeta) JoinStat(name string) (FileMetaInfo, error) {
-	if f.JoinStatFunc == nil {
-		return nil, os.ErrNotExist
-	}
-	return f.JoinStatFunc(name)
 }
