@@ -1,8 +1,6 @@
 package valueobject
 
 import (
-	"errors"
-	"github.com/spf13/afero"
 	"io/fs"
 	"os"
 )
@@ -10,8 +8,8 @@ import (
 func NewFileInfo(fi os.FileInfo, filename string) *FileInfo {
 	info := &FileInfo{
 		FileInfo: fi,
-		FileMeta: FileMeta{
-			Name:     filename,
+		FileMeta: &FileMeta{
+			FileName: filename,
 			OpenFunc: nil,
 		},
 	}
@@ -23,6 +21,22 @@ func NewFileInfo(fi os.FileInfo, filename string) *FileInfo {
 	return info
 }
 
+func NewFileInfoWithDirEntry(de fs.DirEntry) (*FileInfo, error) {
+	fi, err := de.Info()
+	if err != nil {
+		return nil, err
+	}
+	return NewFileInfo(fi, fi.Name()), nil
+}
+
+func NewFileInfoWithDirEntryOpener(de fs.DirEntry, opener FileOpener) (*FileInfo, error) {
+	fi, err := de.Info()
+	if err != nil {
+		return nil, err
+	}
+	return NewFileInfoWithOpener(fi, fi.Name(), opener), nil
+}
+
 func NewFileInfoWithOpener(fi os.FileInfo, filename string, opener FileOpener) *FileInfo {
 	info := NewFileInfo(fi, filename)
 	info.OpenFunc = opener
@@ -32,20 +46,17 @@ func NewFileInfoWithOpener(fi os.FileInfo, filename string, opener FileOpener) *
 
 type FileInfo struct {
 	fs.FileInfo
-	FileMeta
-}
-
-func (fi *FileInfo) Name() string {
-	return fi.FileInfo.Name()
-}
-
-func (fi *FileInfo) Open() (afero.File, error) {
-	if fi.OpenFunc == nil {
-		return nil, errors.New("OpenFunc not set")
-	}
-	return fi.OpenFunc()
+	*FileMeta
 }
 
 func (fi *FileInfo) Meta() *FileMeta {
-	return &fi.FileMeta
+	return fi.FileMeta
+}
+
+func (fi *FileInfo) Type() fs.FileMode {
+	return fi.FileInfo.Mode()
+}
+
+func (fi *FileInfo) Info() (fs.FileInfo, error) {
+	return fi.FileInfo, nil
 }

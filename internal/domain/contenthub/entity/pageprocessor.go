@@ -101,7 +101,7 @@ func (p *sitePagesProcessor) doProcess(item any) error {
 		p.log.Printf("doProcess --- %+v\n", meta)
 
 		switch classifier {
-		case fsVO.ContentClassContent: // basefs.go createOverlayFs
+		case fsVO.ContentClassContent: //  createOverlayFs
 			if err := p.m.AddFilesBundle(v); err != nil {
 				return err
 			}

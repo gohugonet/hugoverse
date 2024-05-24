@@ -5,11 +5,12 @@ import (
 )
 
 func NewFile(file afero.File) *File {
-	return &File{file}
+	return &File{File: file}
 }
 
 type File struct {
 	afero.File
+	filename string
 }
 
 func (f *File) Close() error {
@@ -17,8 +18,4 @@ func (f *File) Close() error {
 		return nil
 	}
 	return f.File.Close()
-}
-
-func (f *File) Name() string {
-	return f.File.Name()
 }

@@ -1,7 +1,6 @@
 package entity
 
 import (
-	"github.com/gohugonet/hugoverse/internal/domain/fs/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/paths"
 	"github.com/spf13/afero"
 	"path/filepath"
@@ -10,7 +9,6 @@ import (
 
 // PathSpec holds methods that decides how paths in URLs and files in Hugo should look like.
 type PathSpec struct {
-	*valueobject.BaseFs
 }
 
 func (ps *PathSpec) LayoutFs() afero.Fs {

@@ -3,6 +3,7 @@ package fs
 import (
 	"github.com/gohugonet/hugoverse/pkg/media"
 	"github.com/spf13/afero"
+	"io/fs"
 	"path/filepath"
 )
 
@@ -51,4 +52,13 @@ type FilesystemUnwrapper interface {
 // FilesystemsUnwrapper returns the underlying filesystems.
 type FilesystemsUnwrapper interface {
 	UnwrapFilesystems() []afero.Fs
+}
+
+type FileMetaInfo interface {
+	fs.FileInfo
+	FileMeta
+}
+
+type FileMeta interface {
+	Open() (afero.File, error)
 }

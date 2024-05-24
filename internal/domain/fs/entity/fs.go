@@ -15,6 +15,14 @@ type Fs struct {
 	Layouts    *valueobject.ComponentFs
 	Archetypes *valueobject.ComponentFs
 	Assets     *valueobject.ComponentFs
+
+	AssetsWithDuplicatesPreserved *valueobject.ComponentFs
+
+	// Writable filesystem on top the project's resources directory,
+	// with any sub module's resource fs layered below.
+	ResourcesCache afero.Fs
+
+	RootFss []*valueobject.RootMappingFs
 }
 
 func (f *Fs) NewBasePathFs(source afero.Fs, path string) afero.Fs {

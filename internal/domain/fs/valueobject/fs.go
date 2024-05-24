@@ -21,6 +21,10 @@ func cleanName(name string) string {
 	return name
 }
 
+func mapKey(name string) string {
+	return paths.FilePathSeparator + name
+}
+
 func normalizeFilename(filename string) string {
 	if filename == "" {
 		return ""

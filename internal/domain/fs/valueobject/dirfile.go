@@ -1,6 +1,7 @@
 package valueobject
 
 import (
+	"fmt"
 	"github.com/spf13/afero"
 	"io/fs"
 )
@@ -8,19 +9,17 @@ import (
 type DirOpener func(name string) ([]fs.DirEntry, error)
 
 type DirFile struct {
-	File
+	*File
 
-	opener DirOpener
+	virtualOpener DirOpener
+}
+
+func NewDirFileWithFile(f *File, opener DirOpener) *DirFile {
+	return &DirFile{File: f, virtualOpener: opener}
 }
 
 func NewDirFile(file afero.File) *DirFile {
-	return &DirFile{File: File{File: file}, opener: nil}
-}
-
-func NewDirFileWithOpener(file afero.File, opener DirOpener) *DirFile {
-	f := NewDirFile(file)
-	f.opener = opener
-	return f
+	return &DirFile{File: &File{File: file}, virtualOpener: nil}
 }
 
 func (f *DirFile) ReadDir(count int) ([]fs.DirEntry, error) {
@@ -32,11 +31,21 @@ func (f *DirFile) ReadDir(count int) ([]fs.DirEntry, error) {
 
 		var result []fs.DirEntry
 		for _, fi := range fis {
-			fim := NewDirInfo(fi)
+			fim, err := NewFileInfoWithDirEntry(fi)
+			if err != nil {
+				return nil, err
+			}
 			result = append(result, fim)
 		}
 		return result, nil
 	}
 
-	return f.opener(f.Name())
+	return f.readVirtualDir()
+}
+
+func (f *DirFile) readVirtualDir() ([]fs.DirEntry, error) {
+	if f.virtualOpener != nil {
+		return f.virtualOpener(f.filename)
+	}
+	return nil, fmt.Errorf("virtual dir opener not found")
 }
