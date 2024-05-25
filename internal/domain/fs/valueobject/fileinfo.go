@@ -9,7 +9,7 @@ func NewFileInfo(fi os.FileInfo, filename string) *FileInfo {
 	info := &FileInfo{
 		FileInfo: fi,
 		FileMeta: &FileMeta{
-			FileName: filename,
+			filename: filename,
 			OpenFunc: nil,
 		},
 	}

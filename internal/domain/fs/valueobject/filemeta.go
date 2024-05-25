@@ -14,7 +14,7 @@ type MetaProvider interface {
 type FileOpener func() (afero.File, error)
 
 type FileMeta struct {
-	FileName string
+	filename string
 
 	OpenFunc FileOpener
 }
@@ -50,7 +50,7 @@ func (f *FileMeta) Merge(from *FileMeta) {
 }
 
 func (f *FileMeta) NormalizedFilename() string {
-	return normalizeFilename(f.FileName)
+	return normalizeFilename(f.FileName())
 }
 
 func (f *FileMeta) Open() (afero.File, error) {
@@ -58,4 +58,8 @@ func (f *FileMeta) Open() (afero.File, error) {
 		return nil, errors.New("OpenFunc not set")
 	}
 	return f.OpenFunc()
+}
+
+func (f *FileMeta) FileName() string {
+	return f.filename
 }

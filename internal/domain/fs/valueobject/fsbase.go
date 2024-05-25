@@ -55,5 +55,5 @@ func (fs *baseFs) openDir(name string) (afero.File, error) {
 	if err != nil {
 		return nil, err
 	}
-	return NewDirFile(f), nil
+	return NewDirFile(f, fs), nil
 }

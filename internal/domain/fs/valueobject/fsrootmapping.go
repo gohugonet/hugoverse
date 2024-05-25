@@ -186,12 +186,12 @@ func (rmfs *RootMappingFs) statRoot(root RootMapping, filename string) (fs.FileM
 				return nil, err
 			}
 
-			df := NewDirFile(f)
+			df := NewDirFile(f, rmfs)
 			return df, nil
 		}
 	}
 
-	fim := NewFileInfoWithOpener(fi, "", opener)
+	fim := NewFileInfoWithOpener(fi, filename, opener)
 
 	return fim, nil
 }
@@ -399,16 +399,7 @@ func (rmfs *RootMappingFs) newUnionFile(fis ...fs.FileMetaInfo) (afero.File, err
 	for i := len(fis) - 1; i >= 0; i-- {
 		fi := fis[i]
 		openers[i] = func() (afero.File, error) {
-			f, err := fi.Open()
-			if err != nil {
-				return nil, err
-			}
-
-			if fi.IsDir() {
-				return NewDirFile(f), nil
-			}
-
-			return NewFile(f), nil
+			return fi.Open()
 		}
 	}
 
@@ -438,4 +429,86 @@ func (rmfs *RootMappingFs) newUnionFile(fis ...fs.FileMetaInfo) (afero.File, err
 	}
 
 	return overlayfs.OpenDir(merge, info, openers...)
+}
+
+func (rmfs *RootMappingFs) Mounts(base string) ([]fs.FileMetaInfo, error) {
+	base = mapKey(cleanName(base))
+	roots := rmfs.getRootsWithPrefix(base)
+
+	if roots == nil {
+		return nil, nil
+	}
+
+	fss := make([]fs.FileMetaInfo, len(roots))
+	for i, r := range roots {
+		fss[i] = r.ToFi
+	}
+
+	return fss, nil
+}
+
+func (rmfs *RootMappingFs) getRootsWithPrefix(prefix string) []RootMapping {
+	var roots []RootMapping
+	rmfs.rootMapToReal.WalkPrefix(prefix, func(b string, v any) bool {
+		roots = append(roots, v.([]RootMapping)...)
+		return false
+	})
+
+	return roots
+}
+
+func (rmfs *RootMappingFs) ReverseLookup(filename string) ([]ComponentPath, error) {
+	return rmfs.ReverseLookupComponent("", filename)
+}
+
+func (rmfs *RootMappingFs) ReverseLookupComponent(component, filename string) ([]ComponentPath, error) {
+	filename = cleanName(filename)
+	key := mapKey(filename)
+
+	s, roots := rmfs.getRootsReverse(key)
+
+	if len(roots) == 0 {
+		return nil, nil
+	}
+
+	var cps []ComponentPath
+
+	base := strings.TrimPrefix(key, s)
+	dir, name := filepath.Split(base)
+
+	for _, first := range roots {
+		if component != "" && first.FromBase != component {
+			continue
+		}
+
+		var filename string
+		if first.Meta.Rename != nil {
+			// Single file mount.
+			if newname, ok := first.Meta.Rename(name, true); ok {
+				filename = filepathSeparator + filepath.Join(first.path, dir, newname)
+			} else {
+				continue
+			}
+		} else {
+			// Now we know that this file _could_ be in this fs.
+			filename = filepathSeparator + filepath.Join(first.path, dir, name)
+		}
+
+		cps = append(cps, ComponentPath{
+			Component: first.FromBase,
+			Path:      paths.ToSlashTrimLeading(filename),
+			Lang:      first.Meta.Lang,
+		})
+	}
+
+	return cps, nil
+}
+
+func (rmfs *RootMappingFs) getRootsReverse(key string) (string, []RootMapping) {
+	tree := rmfs.realMapToRoot
+	s, v, found := tree.LongestPrefix(key)
+	if !found {
+		return "", nil
+	}
+	return s, v.([]RootMapping)
 }

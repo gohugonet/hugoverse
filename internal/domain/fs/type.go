@@ -61,4 +61,5 @@ type FileMetaInfo interface {
 
 type FileMeta interface {
 	Open() (afero.File, error)
+	FileName() string
 }

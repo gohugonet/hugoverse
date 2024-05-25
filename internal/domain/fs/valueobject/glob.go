@@ -3,6 +3,7 @@ package valueobject
 import (
 	"errors"
 	"fmt"
+	"github.com/gohugonet/hugoverse/internal/domain/fs"
 	"github.com/gohugonet/hugoverse/pkg/glob"
 	"github.com/gohugonet/hugoverse/pkg/loggers"
 	"github.com/spf13/afero"
@@ -12,7 +13,7 @@ import (
 
 // Glob walks the fs and passes all matches to the handle func.
 // The handle func can return true to signal a stop.
-func Glob(fs afero.Fs, pattern string, handle func(fi FileMetaInfo) (bool, error)) error {
+func Glob(afs afero.Fs, pattern string, handle func(fi fs.FileMetaInfo) (bool, error)) error {
 	pattern = glob.NormalizePathNoLower(pattern)
 	if pattern == "" {
 		return nil
@@ -34,7 +35,7 @@ func Glob(fs afero.Fs, pattern string, handle func(fi FileMetaInfo) (bool, error
 	// Signals that we're done.
 	done := errors.New("done")
 
-	wfn := func(p string, info FileMetaInfo, err error) error {
+	wfn := func(p string, info fs.FileMetaInfo, err error) error {
 		if err != nil {
 			fmt.Println("Glob --- ", p, err)
 		}
@@ -63,7 +64,7 @@ func Glob(fs afero.Fs, pattern string, handle func(fi FileMetaInfo) (bool, error
 	}
 
 	w := &Walkway{
-		Fs:     fs,
+		Fs:     afs,
 		Root:   root,
 		WalkFn: wfn,
 		Seen:   make(map[string]bool),

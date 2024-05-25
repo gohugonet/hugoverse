@@ -4,22 +4,27 @@ import (
 	"fmt"
 	"github.com/spf13/afero"
 	"io/fs"
+	"path/filepath"
 )
 
 type DirOpener func(name string) ([]fs.DirEntry, error)
 
 type DirFile struct {
 	*File
+	fs afero.Fs
 
 	virtualOpener DirOpener
+
+	filter func([]fs.DirEntry) ([]fs.DirEntry, error)
+	sorter func([]fs.DirEntry) []fs.DirEntry
 }
 
 func NewDirFileWithFile(f *File, opener DirOpener) *DirFile {
 	return &DirFile{File: f, virtualOpener: opener}
 }
 
-func NewDirFile(file afero.File) *DirFile {
-	return &DirFile{File: &File{File: file}, virtualOpener: nil}
+func NewDirFile(file afero.File, fs afero.Fs) *DirFile {
+	return &DirFile{File: &File{File: file}, fs: fs, virtualOpener: nil}
 }
 
 func (f *DirFile) ReadDir(count int) ([]fs.DirEntry, error) {
@@ -29,14 +34,33 @@ func (f *DirFile) ReadDir(count int) ([]fs.DirEntry, error) {
 			return nil, err
 		}
 
+		if f.filter != nil {
+			fis, err = f.filter(fis)
+			if err != nil {
+				return nil, err
+			}
+		}
+
 		var result []fs.DirEntry
 		for _, fi := range fis {
-			fim, err := NewFileInfoWithDirEntry(fi)
+			filename := fi.Name()
+			if f.File.File.Name() != "" {
+				filename = filepath.Join(f.File.File.Name(), fi.Name())
+			}
+
+			fim, err := NewFileInfoWithDirEntryOpener(fi, func() (afero.File, error) {
+				return f.fs.Open(filename)
+			})
 			if err != nil {
 				return nil, err
 			}
 			result = append(result, fim)
 		}
+
+		if f.sorter != nil {
+			result = f.sorter(result)
+		}
+
 		return result, nil
 	}
 

@@ -35,7 +35,9 @@ func New(dir fs.Dir, mods module.Modules) (*entity.Fs, error) {
 	f.Data = newComponentFs(files.ComponentFolderData, overlayMountsPreserveDupes)
 	f.I18n = newComponentFs(files.ComponentFolderI18n, overlayMountsPreserveDupes)
 	f.AssetsWithDuplicatesPreserved = newComponentFs(files.ComponentFolderAssets, overlayMountsPreserveDupes)
-	
+
+	f.Work = valueobject.NewReadOnlyFs(collector.OverlayFull)
+
 	//bfs, err := NewBaseFS(dir, f.OriginFs, mods)
 	//if err != nil {
 	//	return nil, err
