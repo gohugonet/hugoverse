@@ -3,187 +3,229 @@ package valueobject
 import (
 	"errors"
 	"fmt"
-	dfs "github.com/gohugonet/hugoverse/internal/domain/fs"
+	"github.com/gohugonet/hugoverse/pkg/herrors"
 	"github.com/gohugonet/hugoverse/pkg/loggers"
 	"github.com/gohugonet/hugoverse/pkg/overlayfs"
-	"github.com/spf13/afero"
-	"io/fs"
-	"os"
+	"github.com/gohugonet/hugoverse/pkg/paths"
+	iofs "io/fs"
 	"path/filepath"
+	"sort"
 	"strings"
-)
 
-type (
-	WalkFunc func(path string, info FileMetaInfo, err error) error
+	"github.com/spf13/afero"
+
+	"github.com/gohugonet/hugoverse/internal/domain/fs"
 )
 
 type Walkway struct {
-	Fs       afero.Fs
-	Root     string
-	basePath string
+	// The filesystem to walk.
+	Fs afero.Fs
 
-	// May be pre-set
-	fi         FileMetaInfo
-	dirEntries []FileMetaInfo
+	// The root to start from in Fs.
+	Root string
 
-	WalkFn WalkFunc
+	cb *WalkCallback
 
-	// We may traverse symbolic links and bite ourself.
-	Seen map[string]bool
+	logger loggers.Logger
+
+	// Prevent a walkway to be walked more than once.
+	walked bool
+
+	// Config from client.
+	cfg WalkwayConfig
+}
+
+type WalkCallback struct {
+	// Will be called in order.
+	HookPre  fs.WalkHook // Optional.
+	WalkFn   fs.WalkFunc
+	HookPost fs.WalkHook // Optional.
+}
+
+func (w *WalkCallback) WalkHook() fs.WalkFunc { return w.WalkFn }
+func (w *WalkCallback) PreHook() fs.WalkHook  { return w.HookPre }
+func (w *WalkCallback) PostHook() fs.WalkHook { return w.HookPost }
+
+type WalkwayConfig struct {
+	// One or both of these may be pre-set.
+	Info       fs.FileMetaInfo            // The start info.
+	DirEntries []fs.FileMetaInfo          // The start info's dir entries.
+	IgnoreFile func(filename string) bool // Optional
 
 	// Some optional flags.
 	FailOnNotExist bool // If set, return an error if a directory is not found.
-
-	Log loggers.Logger
+	SortDirEntries bool // If set, sort the dir entries by Name before calling the WalkFn, default is ReaDir order.
 }
 
-func NewWalkway(fs afero.Fs, root string, walker WalkFunc) *Walkway {
-	return &Walkway{
-		Fs:     fs,
-		Root:   root,
-		WalkFn: walker,
-		Seen:   make(map[string]bool),
-
-		Log: loggers.NewDefault(),
+func NewWalkway(fs afero.Fs, cb fs.WalkCallback) (*Walkway, error) {
+	if fs == nil {
+		return nil, errors.New("fs must be set")
 	}
+	if cb.WalkHook() == nil {
+		return nil, errors.New("walkFn must be set")
+	}
+
+	return &Walkway{
+		Fs: fs,
+		cb: &WalkCallback{
+			HookPre:  cb.PreHook(),
+			WalkFn:   cb.WalkHook(),
+			HookPost: cb.PostHook(),
+		},
+
+		logger: loggers.NewDefault(),
+	}, nil
+}
+
+func (w *Walkway) WalkWith(root string, cfg WalkwayConfig) error {
+	w.cfg = cfg
+	w.Root = root
+	return w.Walk()
 }
 
 func (w *Walkway) Walk() error {
-	var fi FileMetaInfo
-	if w.fi != nil {
-		fi = w.fi
-	} else {
-		info, _, err := LstatIfPossible(w.Fs, w.Root)
-		if err != nil {
-			if os.IsNotExist(err) {
-				return err
-			}
-			return w.WalkFn(w.Root, nil, fmt.Errorf("walk: %q: %w", w.Root, err))
-		}
-		fi = info.(FileMetaInfo)
+	if w.walked {
+		panic("this walkway is already walked")
+	}
+	w.walked = true
+
+	if w.Fs == NoOpFs {
+		return nil
 	}
 
-	if !fi.IsDir() {
-		return w.WalkFn(w.Root, nil, errors.New("file to walk must be a directory"))
+	return w.walk(w.Root, w.cfg.Info, w.cfg.DirEntries)
+}
+
+// checkErr returns true if the error is handled.
+func (w *Walkway) checkErr(filename string, err error) bool {
+	if herrors.IsNotExist(err) && !w.cfg.FailOnNotExist {
+		// The file may be removed in process.
+		// This may be a ERROR situation, but it is not possible
+		// to determine as a general case.
+		w.logger.Warnf("File %q not found, skipping.", filename)
+		return true
 	}
 
-	return w.walk(w.Root, fi, w.dirEntries, w.WalkFn)
+	return false
 }
 
 // walk recursively descends path, calling walkFn.
-// It follows symlinks if supported by the filesystem, but only the same path once.
-func (w *Walkway) walk(path string, info FileMetaInfo, dirEntries []FileMetaInfo, walkFn WalkFunc) error {
-	err := walkFn(path, info, nil)
+func (w *Walkway) walk(path string, info fs.FileMetaInfo, dirEntries []fs.FileMetaInfo) error {
+	pathRel := strings.TrimPrefix(path, w.Root)
+
+	if info == nil {
+		var err error
+		fi, err := w.Fs.Stat(path)
+		if err != nil {
+			if path == w.Root && herrors.IsNotExist(err) {
+				return nil
+			}
+			if w.checkErr(path, err) {
+				return nil
+			}
+			return fmt.Errorf("walk: stat: %s", err)
+		}
+		info = fi.(fs.FileMetaInfo)
+	}
+
+	err := w.cb.WalkFn(path, info)
 	if err != nil {
 		if info.IsDir() && errors.Is(err, filepath.SkipDir) {
 			return nil
 		}
 		return err
 	}
+
 	if !info.IsDir() {
 		return nil
 	}
 
-	meta := info.Meta()
-	filename := meta.Filename
-
 	if dirEntries == nil {
 		f, err := w.Fs.Open(path)
+		fmt.Println("555 open file: ", path)
 		if err != nil {
 			if w.checkErr(path, err) {
 				return nil
 			}
-			return walkFn(path, info, fmt.Errorf("walk: open %q (%q): %w", path, w.Root, err))
+			return fmt.Errorf("walk: open: path: %q filename: %q: %s", path, info.FileName(), err)
 		}
+		fis, err := f.(iofs.ReadDirFile).ReadDir(-1)
 
-		fis, err := f.(fs.ReadDirFile).ReadDir(-1)
-		f.Close()
+		_ = f.Close()
 		if err != nil {
-			if w.checkErr(filename, err) {
+			if w.checkErr(path, err) {
 				return nil
 			}
-			return walkFn(path, info, fmt.Errorf("walk: Readdir: %w", err))
+			return fmt.Errorf("walk: Readdir: %w", err)
 		}
 
 		dirEntries = DirEntriesToFileMetaInfos(fis)
-		//TODO PathInfo
+		for _, fi := range dirEntries {
+			if fi.Path() == nil {
+				fi.SetPath(paths.Parse("", filepath.Join(pathRel, fi.Name())))
+			}
+		}
+
+		if w.cfg.SortDirEntries {
+			sort.Slice(dirEntries, func(i, j int) bool {
+				return dirEntries[i].Name() < dirEntries[j].Name()
+			})
+		}
+
 	}
 
-	// First add some metadata to the dir entries
-	for _, fi := range dirEntries {
-		fim := fi.(FileMetaInfo)
-
-		meta := fim.Meta()
-
-		// Note that we use the original TmplName even if it's a symlink.
-		name := meta.Name
-		if name == "" {
-			name = fim.Name()
+	if w.cfg.IgnoreFile != nil {
+		n := 0
+		for _, fi := range dirEntries {
+			if !w.cfg.IgnoreFile(fi.FileName()) {
+				dirEntries[n] = fi
+				n++
+			}
 		}
-
-		if name == "" {
-			panic(fmt.Sprintf("[%s] no name set in %v", path, meta))
-		}
-		pathn := filepath.Join(path, name)
-
-		pathMeta := pathn
-		if w.basePath != "" {
-			pathMeta = strings.TrimPrefix(pathn, w.basePath)
-		}
-
-		meta.Path = normalizeFilename(pathMeta)
-		meta.PathWalk = pathn
-
-		if fim.IsDir() && meta.IsSymlink && w.isSeen(meta.Filename) {
-			// Prevent infinite recursion
-			// Possible cyclic reference
-			meta.SkipDir = true
-		}
+		dirEntries = dirEntries[:n]
 	}
 
-	for _, fi := range dirEntries {
-		fim := fi.(FileMetaInfo)
-		meta := fim.Meta()
-
-		if meta.SkipDir {
-			continue
-		}
-
-		err := w.walk(meta.PathWalk, fim, nil, walkFn)
+	if w.cb.HookPre != nil {
+		var err error
+		dirEntries, err = w.cb.HookPre(info, path, dirEntries)
 		if err != nil {
-			if !fi.IsDir() || !errors.Is(err, filepath.SkipDir) {
+			if errors.Is(err, filepath.SkipDir) {
+				return nil
+			}
+			return err
+		}
+	}
+
+	for _, fim := range dirEntries {
+		nextPath := filepath.Join(path, fim.Name())
+		err := w.walk(nextPath, fim, nil)
+		if err != nil {
+			if !fim.IsDir() || !errors.Is(err, filepath.SkipDir) {
 				return err
 			}
 		}
 	}
 
+	if w.cb.HookPost != nil {
+		var err error
+		dirEntries, err = w.cb.HookPost(info, path, dirEntries)
+		if err != nil {
+			if errors.Is(err, filepath.SkipDir) {
+				return nil
+			}
+			return err
+		}
+	}
 	return nil
 }
 
-func (w *Walkway) isSeen(filename string) bool {
-	if filename == "" {
-		return false
+func DirEntriesToFileMetaInfos(fis []iofs.DirEntry) []fs.FileMetaInfo {
+	fims := make([]fs.FileMetaInfo, len(fis))
+	for i, v := range fis {
+		fim := v.(fs.FileMetaInfo)
+		fims[i] = fim
 	}
-
-	if w.Seen[filename] {
-		return true
-	}
-
-	w.Seen[filename] = true
-	return false
-}
-
-// checkErr returns true if the error is handled.
-func (w *Walkway) checkErr(filename string, err error) bool {
-	if os.IsNotExist(err) && !w.FailOnNotExist {
-		// The file may be removed in process.
-		// This may be a ERROR situation, but it is not possible
-		// to determine as a general case.
-		fmt.Printf("File %q not found, skipping.", filename)
-		return true
-	}
-
-	return false
+	return fims
 }
 
 // WalkFn is the walk func for WalkFilesystems.
@@ -191,22 +233,22 @@ type WalkFn func(fs afero.Fs) bool
 
 // WalkFilesystems walks fs recursively and calls fn.
 // If fn returns true, walking is stopped.
-func WalkFilesystems(fs afero.Fs, fn WalkFn) bool {
-	if fn(fs) {
+func WalkFilesystems(afs afero.Fs, fn WalkFn) bool {
+	if fn(afs) {
 		return true
 	}
 
-	if afs, ok := fs.(dfs.FilesystemUnwrapper); ok {
+	if afs, ok := afs.(fs.FilesystemUnwrapper); ok {
 		if WalkFilesystems(afs.UnwrapFilesystem(), fn) {
 			return true
 		}
-	} else if bfs, ok := fs.(dfs.FilesystemsUnwrapper); ok {
+	} else if bfs, ok := afs.(fs.FilesystemsUnwrapper); ok {
 		for _, sf := range bfs.UnwrapFilesystems() {
 			if WalkFilesystems(sf, fn) {
 				return true
 			}
 		}
-	} else if cfs, ok := fs.(overlayfs.FilesystemIterator); ok {
+	} else if cfs, ok := afs.(overlayfs.FilesystemIterator); ok {
 		for i := 0; i < cfs.NumFilesystems(); i++ {
 			if WalkFilesystems(cfs.Filesystem(i), fn) {
 				return true

@@ -2,6 +2,7 @@ package fs
 
 import (
 	"github.com/gohugonet/hugoverse/pkg/media"
+	"github.com/gohugonet/hugoverse/pkg/paths"
 	"github.com/spf13/afero"
 	"io/fs"
 	"path/filepath"
@@ -62,4 +63,18 @@ type FileMetaInfo interface {
 type FileMeta interface {
 	Open() (afero.File, error)
 	FileName() string
+
+	Path() *paths.Path
+	SetPath(path *paths.Path)
+}
+
+type (
+	WalkFunc func(path string, info FileMetaInfo) error
+	WalkHook func(dir FileMetaInfo, path string, readdir []FileMetaInfo) ([]FileMetaInfo, error)
+)
+
+type WalkCallback interface {
+	PreHook() WalkHook // Optional.
+	WalkHook() WalkFunc
+	PostHook() WalkHook // Optional.
 }

@@ -65,3 +65,11 @@ func (f *FileMeta) Open() (afero.File, error) {
 func (f *FileMeta) FileName() string {
 	return f.filename
 }
+
+func (f *FileMeta) Path() *paths.Path {
+	return f.PathInfo
+}
+
+func (f *FileMeta) SetPath(path *paths.Path) {
+	f.PathInfo = path
+}
