@@ -3,6 +3,7 @@ package valueobject
 import (
 	"errors"
 	"github.com/gohugonet/hugoverse/pkg/hreflect"
+	"github.com/gohugonet/hugoverse/pkg/paths"
 	"github.com/spf13/afero"
 	"reflect"
 )
@@ -17,6 +18,7 @@ type FileMeta struct {
 	filename string
 
 	OpenFunc FileOpener
+	PathInfo *paths.Path
 }
 
 func NewFileMeta() *FileMeta {

@@ -18,9 +18,6 @@ type ComponentFs struct {
 	Component string
 
 	OverlayFs afero.Fs
-
-	// The parser used to parse paths provided by this filesystem.
-	PathParser *paths.PathParser
 }
 
 func (cfs *ComponentFs) UnwrapFilesystem() afero.Fs {
@@ -38,10 +35,21 @@ func (cfs *ComponentFs) Stat(name string) (os.FileInfo, error) {
 		opener := func() (afero.File, error) {
 			return cfs.Open(name)
 		}
-		return NewFileInfoWithOpener(fi, name, opener), nil
+		meta := &FileMeta{
+			filename: name,
+			OpenFunc: opener,
+			PathInfo: cfs.pathResolver(name),
+		}
+		return NewFileInfoWithMeta(fi, meta), nil
 	}
 
 	return fi, nil
+}
+
+func (cfs *ComponentFs) pathResolver(name string) *paths.Path {
+	p := paths.NewPathParser()
+
+	return p.Parse(cfs.Component, name)
 }
 
 func (cfs *ComponentFs) Open(name string) (afero.File, error) {
@@ -60,6 +68,7 @@ func (cfs *ComponentFs) Open(name string) (afero.File, error) {
 		df := NewDirFile(f, cfs)
 		df.filter = symlinkFilter
 		df.sorter = sorter
+		df.pathResolver = cfs.pathResolver
 	}
 
 	return f, nil

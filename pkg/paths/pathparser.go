@@ -14,6 +14,7 @@
 package paths
 
 import (
+	"fmt"
 	"github.com/gohugonet/hugoverse/pkg/identity"
 	"github.com/gohugonet/hugoverse/pkg/paths/files"
 	"github.com/gohugonet/hugoverse/pkg/types"
@@ -27,12 +28,10 @@ import (
 var defaultPathParser PathParser
 
 // PathParser parses a path into a Path.
-type PathParser struct {
-	// Maps the language code to its index in the languages/sites slice.
-	LanguageIndex map[string]int
+type PathParser struct{}
 
-	// Reports whether the given language is disabled.
-	IsLangDisabled func(string) bool
+func NewPathParser() *PathParser {
+	return &PathParser{}
 }
 
 // Parse parses component c with path s into Path using the default path parser.
@@ -119,8 +118,6 @@ func (pp *PathParser) parse(component, s string) (*Path, error) {
 }
 
 func (pp *PathParser) doParse(component, s string, p *Path) (*Path, error) {
-	hasLang := pp.LanguageIndex != nil
-	hasLang = hasLang && (component == files.ComponentFolderContent || component == files.ComponentFolderLayouts)
 
 	if runtime.GOOS == "windows" {
 		s = path.Clean(filepath.ToSlash(s))
@@ -164,21 +161,7 @@ func (pp *PathParser) doParse(component, s string, p *Path) (*Path, error) {
 					// Check for a valid language.
 					s := p.s[id.Low:id.High]
 
-					if hasLang {
-						var disabled bool
-						_, langFound := pp.LanguageIndex[s]
-						if !langFound {
-							disabled = pp.IsLangDisabled != nil && pp.IsLangDisabled(s)
-							if disabled {
-								p.disabled = true
-								langFound = true
-							}
-						}
-						if langFound {
-							p.posIdentifierLanguage = 1
-							p.identifiers = append(p.identifiers, id)
-						}
-					}
+					fmt.Println("file name with language inside not supported yet: ", s, p.Path())
 				}
 			}
 		case '/':

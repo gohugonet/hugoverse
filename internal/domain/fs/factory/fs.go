@@ -7,7 +7,6 @@ import (
 	"github.com/gohugonet/hugoverse/internal/domain/module"
 	"github.com/gohugonet/hugoverse/pkg/loggers"
 	"github.com/gohugonet/hugoverse/pkg/overlayfs"
-	"github.com/gohugonet/hugoverse/pkg/paths"
 	"github.com/gohugonet/hugoverse/pkg/paths/files"
 )
 
@@ -52,9 +51,8 @@ func New(dir fs.Dir, mods module.Modules) (*entity.Fs, error) {
 
 func newComponentFs(component string, overlayFs *overlayfs.OverlayFs) *valueobject.ComponentFs {
 	return &valueobject.ComponentFs{
-		Component:  component,
-		OverlayFs:  overlayFs,
-		Fs:         valueobject.NewBasePathFs(overlayFs, component),
-		PathParser: &paths.PathParser{},
+		Component: component,
+		OverlayFs: overlayFs,
+		Fs:        valueobject.NewBasePathFs(overlayFs, component),
 	}
 }

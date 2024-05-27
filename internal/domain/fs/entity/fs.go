@@ -68,7 +68,7 @@ func (f *Fs) AssetsFsRealDirs(from string) []string {
 }
 
 func (f *Fs) AssetsFsMakePathRelative(filename string, checkExists bool) (string, bool) {
-	return ps.BaseFs.SourceFilesystems.Assets.MakePathRelative(filename, checkExists)
+	return f.Assets.MakePathRelative(filename, checkExists)
 }
 
 func (f *Fs) ResourcesCacheFs() afero.Fs {

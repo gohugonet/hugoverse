@@ -2,6 +2,7 @@ package valueobject
 
 import (
 	"fmt"
+	"github.com/gohugonet/hugoverse/pkg/paths"
 	"github.com/spf13/afero"
 	"io/fs"
 	"path/filepath"
@@ -15,8 +16,9 @@ type DirFile struct {
 
 	virtualOpener DirOpener
 
-	filter func([]fs.DirEntry) ([]fs.DirEntry, error)
-	sorter func([]fs.DirEntry) []fs.DirEntry
+	filter       func([]fs.DirEntry) ([]fs.DirEntry, error)
+	sorter       func([]fs.DirEntry) []fs.DirEntry
+	pathResolver func(name string) *paths.Path
 }
 
 func NewDirFileWithFile(f *File, opener DirOpener) *DirFile {
@@ -48,9 +50,18 @@ func (f *DirFile) ReadDir(count int) ([]fs.DirEntry, error) {
 				filename = filepath.Join(f.File.File.Name(), fi.Name())
 			}
 
-			fim, err := NewFileInfoWithDirEntryOpener(fi, func() (afero.File, error) {
-				return f.fs.Open(filename)
+			var path *paths.Path
+			if f.pathResolver != nil {
+				path = f.pathResolver(filename)
+			}
+			fim, err := NewFileInfoWithDirEntryMeta(fi, &FileMeta{
+				filename: filename,
+				OpenFunc: func() (afero.File, error) {
+					return f.fs.Open(filename)
+				},
+				PathInfo: path,
 			})
+
 			if err != nil {
 				return nil, err
 			}
