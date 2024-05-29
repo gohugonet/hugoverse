@@ -48,19 +48,3 @@ func RealFilename(cfs *ComponentFs, rel string) string {
 
 	return rel
 }
-
-// RealDirs gets a list of absolute paths to directories starting from the given
-// path.
-func RealDirs(from string) []string {
-	var dirnames []string
-	for _, m := range d.mounts() {
-		if !m.IsDir() {
-			continue
-		}
-		dirname := filepath.Join(m.Meta().Filename, from)
-		if _, err := d.SourceFs.Stat(dirname); err == nil {
-			dirnames = append(dirnames, dirname)
-		}
-	}
-	return dirnames
-}

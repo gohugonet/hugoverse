@@ -46,3 +46,7 @@ func (rm RootMapping) filename(name string) string {
 	}
 	return filepath.Join(rm.To, strings.TrimPrefix(name, rm.From))
 }
+
+func (rm RootMapping) path() string {
+	return strings.TrimPrefix(strings.TrimPrefix(rm.From, rm.FromBase), paths.FilePathSeparator)
+}

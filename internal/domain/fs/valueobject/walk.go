@@ -24,7 +24,7 @@ type Walkway struct {
 	// The root to start from in Fs.
 	Root string
 
-	cb *WalkCallback
+	cb fs.WalkCallback
 
 	logger loggers.Logger
 
@@ -32,52 +32,26 @@ type Walkway struct {
 	walked bool
 
 	// Config from client.
-	cfg WalkwayConfig
-}
-
-type WalkCallback struct {
-	// Will be called in order.
-	HookPre  fs.WalkHook // Optional.
-	WalkFn   fs.WalkFunc
-	HookPost fs.WalkHook // Optional.
-}
-
-func (w *WalkCallback) WalkHook() fs.WalkFunc { return w.WalkFn }
-func (w *WalkCallback) PreHook() fs.WalkHook  { return w.HookPre }
-func (w *WalkCallback) PostHook() fs.WalkHook { return w.HookPost }
-
-type WalkwayConfig struct {
-	// One or both of these may be pre-set.
-	Info       fs.FileMetaInfo            // The start info.
-	DirEntries []fs.FileMetaInfo          // The start info's dir entries.
-	IgnoreFile func(filename string) bool // Optional
-
-	// Some optional flags.
-	FailOnNotExist bool // If set, return an error if a directory is not found.
-	SortDirEntries bool // If set, sort the dir entries by Name before calling the WalkFn, default is ReaDir order.
+	cfg fs.WalkwayConfig
 }
 
 func NewWalkway(fs afero.Fs, cb fs.WalkCallback) (*Walkway, error) {
 	if fs == nil {
 		return nil, errors.New("fs must be set")
 	}
-	if cb.WalkHook() == nil {
+	if cb.WalkFn == nil {
 		return nil, errors.New("walkFn must be set")
 	}
 
 	return &Walkway{
 		Fs: fs,
-		cb: &WalkCallback{
-			HookPre:  cb.PreHook(),
-			WalkFn:   cb.WalkHook(),
-			HookPost: cb.PostHook(),
-		},
+		cb: cb,
 
 		logger: loggers.NewDefault(),
 	}, nil
 }
 
-func (w *Walkway) WalkWith(root string, cfg WalkwayConfig) error {
+func (w *Walkway) WalkWith(root string, cfg fs.WalkwayConfig) error {
 	w.cfg = cfg
 	w.Root = root
 	return w.Walk()

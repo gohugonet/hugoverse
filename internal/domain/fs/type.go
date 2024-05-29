@@ -73,8 +73,20 @@ type (
 	WalkHook func(dir FileMetaInfo, path string, readdir []FileMetaInfo) ([]FileMetaInfo, error)
 )
 
-type WalkCallback interface {
-	PreHook() WalkHook // Optional.
-	WalkHook() WalkFunc
-	PostHook() WalkHook // Optional.
+type WalkCallback struct {
+	// Will be called in order.
+	HookPre  WalkHook // Optional.
+	WalkFn   WalkFunc
+	HookPost WalkHook // Optional.
+}
+
+type WalkwayConfig struct {
+	// One or both of these may be pre-set.
+	Info       FileMetaInfo               // The start info.
+	DirEntries []FileMetaInfo             // The start info's dir entries.
+	IgnoreFile func(filename string) bool // Optional
+
+	// Some optional flags.
+	FailOnNotExist bool // If set, return an error if a directory is not found.
+	SortDirEntries bool // If set, sort the dir entries by Name before calling the WalkFn, default is ReaDir order.
 }

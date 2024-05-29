@@ -6,11 +6,11 @@ import (
 	"github.com/spf13/afero"
 )
 
-func (f *Fs) WalkAssets(start string, cb fs.WalkCallback, conf valueobject.WalkwayConfig) error {
+func (f *Fs) WalkAssets(start string, cb fs.WalkCallback, conf fs.WalkwayConfig) error {
 	return f.Walk(f.Assets, start, cb, conf)
 }
 
-func (f *Fs) Walk(fs afero.Fs, start string, cb fs.WalkCallback, conf valueobject.WalkwayConfig) error {
+func (f *Fs) Walk(fs afero.Fs, start string, cb fs.WalkCallback, conf fs.WalkwayConfig) error {
 	w, err := valueobject.NewWalkway(fs, cb)
 	if err != nil {
 		return err

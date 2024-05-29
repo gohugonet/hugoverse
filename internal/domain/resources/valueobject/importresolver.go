@@ -4,7 +4,7 @@ import (
 	"fmt"
 	godartsassv1 "github.com/bep/godartsass"
 	"github.com/bep/godartsass/v2"
-	fsVO "github.com/gohugonet/hugoverse/internal/domain/fs/valueobject"
+	"github.com/gohugonet/hugoverse/internal/domain/fs"
 	"github.com/gohugonet/hugoverse/internal/domain/resources"
 	"github.com/gohugonet/hugoverse/pkg/identity"
 	"github.com/gohugonet/hugoverse/pkg/paths"
@@ -77,9 +77,9 @@ func (t ImportResolver) CanonicalizeURL(url string) (string, error) {
 		filenameToCheck := filepath.Join(basePath, fmt.Sprintf(namePattern, name))
 		fi, err := t.FsService.AssetsFs().Stat(filenameToCheck)
 		if err == nil {
-			if fim, ok := fi.(fsVO.FileMetaInfo); ok {
+			if fim, ok := fi.(fs.FileMetaInfo); ok {
 				t.DependencyManager.AddIdentity(identity.CleanStringIdentity(filenameToCheck))
-				return "file://" + filepath.ToSlash(fim.Meta().Filename), nil
+				return "file://" + filepath.ToSlash(fim.FileName()), nil
 			}
 		}
 	}

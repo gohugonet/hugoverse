@@ -481,22 +481,9 @@ func (rmfs *RootMappingFs) ReverseLookupComponent(component, filename string) ([
 			continue
 		}
 
-		var filename string
-		if first.Meta.Rename != nil {
-			// Single file mount.
-			if newname, ok := first.Meta.Rename(name, true); ok {
-				filename = filepathSeparator + filepath.Join(first.path, dir, newname)
-			} else {
-				continue
-			}
-		} else {
-			// Now we know that this file _could_ be in this fs.
-			filename = filepathSeparator + filepath.Join(first.path, dir, name)
-		}
-
 		cps = append(cps, ComponentPath{
 			Component: first.FromBase,
-			Path:      paths.ToSlashTrimLeading(filename),
+			Path:      paths.ToSlashTrimLeading(paths.FilePathSeparator + filepath.Join(first.path(), dir, name)),
 			Lang:      first.Meta.Lang,
 		})
 	}
