@@ -30,10 +30,7 @@ func GenerateStaticSite() error {
 		return err
 	}
 
-	fs, err := fsFact.New(&fsDir{
-		workingDir: c.WorkingDir(),
-		publishDir: c.PublishDir(),
-	}, mods)
+	fs, err := fsFact.New(c, mods)
 	if err != nil {
 		return err
 	}

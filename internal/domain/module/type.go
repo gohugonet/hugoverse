@@ -43,6 +43,7 @@ type Mount interface {
 	Source() string
 	Target() string
 	Lang() string
+	Marshal() string
 }
 
 type LoadInfo interface {
@@ -54,8 +55,10 @@ type Workspace interface {
 	Fs() afero.Fs
 	WorkingDir() string
 	ThemesDir() string
-	GetDefaultDirs(names []string) ([]Component, error)
-	GetOtherLanguagesContentDirs(name string) ([]Component, error)
+
+	DefaultLanguageKey() string
+	OtherLanguageKeys() []string
+	GetRelDir(name string, langKey string) (dir string, err error)
 }
 
 type Component interface {

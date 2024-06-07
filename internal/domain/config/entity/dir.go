@@ -18,6 +18,8 @@ func (c *Config) PublishDir() string {
 	return c.Root.RootConfig.BaseDirs.PublishDir
 }
 
+func (c *Config) ResourceDir() string { return c.Root.RootConfig.ResourceDir }
+
 func (c *Config) AbsoluteResourcesDir() string {
 	absResourcesDir := paths.AbsPathify(c.WorkingDir(), c.Root.RootConfig.ResourceDir)
 	if !strings.HasSuffix(absResourcesDir, paths.FilePathSeparator) {

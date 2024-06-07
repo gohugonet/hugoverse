@@ -1,11 +1,11 @@
 package valueobject
 
 import (
-	"os"
+	"github.com/gohugonet/hugoverse/pkg/paths"
 	"strings"
 )
 
-var fileSeparator = string(os.PathSeparator)
+var fileSeparator = string(paths.FilePathSeparator)
 
 type Mount struct {
 	// Relative path in source repo, e.g. "scss".
@@ -16,16 +16,9 @@ type Mount struct {
 
 	// Any file in this mount will be associated with this language.
 	Language string
-
-	// Include only files matching the given Glob patterns (string or slice).
-	IncludeFiles any
-
-	// Exclude all files matching the given Glob patterns (string or slice).
-	ExcludeFiles any
 }
 
-// Used as key to remove duplicates.
-func (m Mount) key() string {
+func (m Mount) Marshal() string {
 	return strings.Join([]string{m.Language, m.SourcePath, m.TargetPath}, "/")
 }
 

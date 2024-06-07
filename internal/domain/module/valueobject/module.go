@@ -53,6 +53,10 @@ func (m *Module) Mounts() []module.Mount {
 	return mounts
 }
 
+func (m *Module) AppendMount(mount Mount) {
+	m.MountDirs = append(m.MountDirs, mount)
+}
+
 func (m *Module) Dir() string {
 	return m.AbsDir
 }

@@ -87,18 +87,39 @@ func (m *Module) collect() error {
 }
 
 func (m *Module) applyProjMounts() error {
+	defaultLangKey := m.DirService.DefaultLanguageKey()
+	for _, component := range module.ComponentFolders {
+		dir, err := m.DirService.GetRelDir(component, defaultLangKey)
+		if err != nil {
+			return err
+		}
+		if dir == "" {
+			continue
+		}
 
-	projDirs, err := m.DirService.GetDefaultDirs(module.ComponentFolders)
-	if err != nil {
-		return err
-	}
-	otherContentDirs, err := m.DirService.GetOtherLanguagesContentDirs(module.ComponentFolderContent)
-	if err != nil {
-		return err
+		m.projMod.AppendMount(valueobject.Mount{
+			SourcePath: dir,
+			TargetPath: component,
+			Language:   defaultLangKey,
+		})
 	}
 
-	dirs := append(projDirs, otherContentDirs...)
-	m.projMod.ApplyComponentsMounts(dirs)
+	otherLangKeys := m.DirService.OtherLanguageKeys()
+	for _, l := range otherLangKeys {
+		dir, err := m.DirService.GetRelDir(module.ComponentFolderContent, l)
+		if err != nil {
+			return err
+		}
+		if dir == "" {
+			continue
+		}
+
+		m.projMod.AppendMount(valueobject.Mount{
+			SourcePath: dir,
+			TargetPath: module.ComponentFolderContent,
+			Language:   l,
+		})
+	}
 
 	return nil
 }

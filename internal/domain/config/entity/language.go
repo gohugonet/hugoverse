@@ -3,7 +3,6 @@ package entity
 import (
 	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/config/valueobject"
-	"github.com/gohugonet/hugoverse/internal/domain/module"
 	"golang.org/x/exp/maps"
 )
 
@@ -17,39 +16,27 @@ func (l Language) Languages() []valueobject.LanguageConfig {
 	return maps.Values(l.Configs)
 }
 
-func (l Language) GetDefaultDirs(names []string) ([]module.Component, error) {
-	var components []module.Component
-
-	root, ok := l.RootConfigs[l.Default]
-	if !ok {
-		return nil, l.defaultLangError()
-	}
-	for _, name := range names {
-		components = append(components, &valueobject.Component{
-			ComName: name,
-			ComDir:  root.CommonDirs.GetDirectoryByName(name),
-			ComLang: l.Default,
-		})
-	}
-
-	return components, nil
+func (l Language) DefaultLanguageKey() string {
+	return l.Default
 }
 
-func (l Language) GetOtherLanguagesContentDirs(name string) ([]module.Component, error) {
-	var components []module.Component
-	for lang, config := range l.RootConfigs {
-		if lang == l.Default {
-			continue
+func (l Language) OtherLanguageKeys() []string {
+	var keys []string
+	for k := range l.Configs {
+		if k != l.Default {
+			keys = append(keys, k)
 		}
+	}
+	return keys
+}
 
-		components = append(components, &valueobject.Component{
-			ComName: name,
-			ComDir:  config.CommonDirs.GetDirectoryByName(name),
-			ComLang: lang,
-		})
+func (l Language) GetRelDir(name string, langKey string) (dir string, err error) {
+	root, ok := l.RootConfigs[langKey]
+	if !ok {
+		return "", fmt.Errorf("language %q not found", langKey)
 	}
 
-	return components, nil
+	return root.CommonDirs.GetDirectoryByName(name), nil
 }
 
 func (l Language) Validate() error {

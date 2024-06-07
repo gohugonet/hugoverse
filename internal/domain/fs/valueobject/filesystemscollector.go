@@ -42,11 +42,12 @@ func (c *FilesystemsCollector) Collect(mods module.Modules) error {
 		}
 
 		for _, mount := range md.Mounts() {
-			base, filename := absPathify(mount.Source())
+			base, absFilename := absPathify(mount.Source())
 
 			rm := RootMapping{
-				From:   mount.Target(),
-				To:     filename,
+				From: mount.Target(),
+
+				To:     absFilename,
 				ToBase: base,
 			}
 
