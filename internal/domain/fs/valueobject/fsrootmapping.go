@@ -165,7 +165,7 @@ func (rmfs *RootMappingFs) doDoStat(name string) ([]fs.FileMetaInfo, error) {
 }
 
 func (rmfs *RootMappingFs) statRoot(root RootMapping, filename string) (fs.FileMetaInfo, error) {
-	filename = root.filename(filename)
+	filename = root.absFilename(filename)
 	fi, err := rmfs.Fs.Stat(filename)
 	if err != nil {
 		return nil, err
@@ -173,8 +173,6 @@ func (rmfs *RootMappingFs) statRoot(root RootMapping, filename string) (fs.FileM
 
 	var opener func() (afero.File, error)
 	if !fi.IsDir() {
-		// Open the file directly.
-		// Opens the real file directly.
 		opener = func() (afero.File, error) {
 			return rmfs.Fs.Open(filename)
 		}
@@ -484,7 +482,6 @@ func (rmfs *RootMappingFs) ReverseLookupComponent(component, filename string) ([
 		cps = append(cps, ComponentPath{
 			Component: first.FromBase,
 			Path:      paths.ToSlashTrimLeading(paths.FilePathSeparator + filepath.Join(first.path(), dir, name)),
-			Lang:      first.Meta.Lang,
 		})
 	}
 

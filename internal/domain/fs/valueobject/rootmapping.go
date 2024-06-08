@@ -40,7 +40,7 @@ func (rm RootMapping) clean() {
 	rm.To = filepath.Clean(rm.To)
 }
 
-func (rm RootMapping) filename(name string) string {
+func (rm RootMapping) absFilename(name string) string {
 	if name == "" {
 		return rm.To
 	}

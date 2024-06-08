@@ -10,7 +10,7 @@ func NewBaseFs(fs afero.Fs) afero.Fs {
 }
 
 type baseFs struct {
-	afero.Fs
+	afero.Fs // osFs
 }
 
 func (fs *baseFs) UnwrapFilesystem() afero.Fs {
