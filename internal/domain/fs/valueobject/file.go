@@ -4,8 +4,8 @@ import (
 	"github.com/spf13/afero"
 )
 
-func NewFile(file afero.File) *File {
-	return &File{File: file}
+func NewFile(file afero.File, filename string) *File {
+	return &File{File: file, filename: filename}
 }
 
 type File struct {

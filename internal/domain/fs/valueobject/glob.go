@@ -2,10 +2,8 @@ package valueobject
 
 import (
 	"errors"
-	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/fs"
 	"github.com/gohugonet/hugoverse/pkg/glob"
-	"github.com/gohugonet/hugoverse/pkg/loggers"
 	"github.com/spf13/afero"
 	"path/filepath"
 	"strings"
@@ -35,10 +33,7 @@ func Glob(afs afero.Fs, pattern string, handle func(fi fs.FileMetaInfo) (bool, e
 	// Signals that we're done.
 	done := errors.New("done")
 
-	wfn := func(p string, info fs.FileMetaInfo, err error) error {
-		if err != nil {
-			fmt.Println("Glob --- ", p, err)
-		}
+	wfn := func(p string, info fs.FileMetaInfo) error {
 		p = glob.NormalizePath(p)
 		if info.IsDir() {
 			if !hasSuperAsterisk {
@@ -63,17 +58,19 @@ func Glob(afs afero.Fs, pattern string, handle func(fi fs.FileMetaInfo) (bool, e
 		return nil
 	}
 
-	w := &Walkway{
-		Fs:     afs,
-		Root:   root,
-		WalkFn: wfn,
-		Seen:   make(map[string]bool),
+	w, err := NewWalkway(afs, fs.WalkCallback{
+		HookPre:  nil,
+		WalkFn:   wfn,
+		HookPost: nil,
+	})
 
-		Log:            loggers.NewDefault(),
-		FailOnNotExist: true,
+	if err != nil {
+		return err
 	}
 
-	err = w.Walk()
+	err = w.WalkWith(root, fs.WalkwayConfig{
+		FailOnNotExist: true,
+	})
 
 	if !errors.Is(done, err) {
 		return err

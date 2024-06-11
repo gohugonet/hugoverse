@@ -84,18 +84,6 @@ func GenerateStaticSite() error {
 	//return nil
 }
 
-type fsDir struct {
-	workingDir string
-	publishDir string
-}
-
-func (fs *fsDir) WorkingDir() string {
-	return fs.workingDir
-}
-func (fs *fsDir) PublishDir() string {
-	return fs.publishDir
-}
-
 type resourcesWorkspaceProvider struct {
 	*configAgr.Config
 	*fsAgr.Fs

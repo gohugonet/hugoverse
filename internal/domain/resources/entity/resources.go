@@ -1,7 +1,7 @@
 package entity
 
 import (
-	fsVO "github.com/gohugonet/hugoverse/internal/domain/fs/valueobject"
+	"github.com/gohugonet/hugoverse/internal/domain/fs"
 	"github.com/gohugonet/hugoverse/internal/domain/resources"
 	"github.com/gohugonet/hugoverse/internal/domain/resources/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/cache/dynacache"
@@ -56,7 +56,7 @@ func (rs *Resources) GetResource(pathname string) (resources.Resource, error) {
 		}
 
 		// TODO, refactor PathInfo
-		pi := fi.(fsVO.FileMetaInfo).Meta().PathInfo
+		pi := fi.(fs.FileMetaInfo).Path()
 
 		sd, err := valueobject.NewResourceSourceDescriptor(
 			pathname, pi, rs.MediaService,
@@ -89,18 +89,18 @@ func (rs *Resources) match(name, pattern string, matchFunc func(r resources.Reso
 	return rs.Cache.GetOrCreateResources(key, func() ([]resources.Resource, error) {
 		var res []resources.Resource
 
-		handle := func(info fsVO.FileMetaInfo) (bool, error) {
-			meta := info.Meta()
+		handle := func(info fs.FileMetaInfo) (bool, error) {
+			pinfo := info.Path()
 
 			r, err := rs.newResource(&valueobject.ResourceSourceDescriptor{
 				LazyPublish: true,
 				OpenReadSeekCloser: func() (io.ReadSeekCloser, error) {
 					return meta.Open()
 				},
-				NameNormalized: meta.PathInfo.Path(),
-				NameOriginal:   meta.PathInfo.Unnormalized().Path(),
-				GroupIdentity:  meta.PathInfo,
-				TargetPath:     meta.PathInfo.Unnormalized().Path(),
+				NameNormalized: pinfo.Path(),
+				NameOriginal:   pinfo.Unnormalized().Path(),
+				GroupIdentity:  pinfo,
+				TargetPath:     pinfo.Unnormalized().Path(),
 			})
 			if err != nil {
 				return true, err

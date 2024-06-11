@@ -5,7 +5,7 @@ import (
 	godartsassv1 "github.com/bep/godartsass"
 	"github.com/bep/godartsass/v2"
 	"github.com/bep/logg"
-	fsVO "github.com/gohugonet/hugoverse/internal/domain/fs/valueobject"
+	"github.com/gohugonet/hugoverse/internal/domain/fs"
 	"github.com/gohugonet/hugoverse/internal/domain/resources"
 	"github.com/gohugonet/hugoverse/internal/domain/resources/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/helpers"
@@ -204,7 +204,7 @@ func (t *scssTransformation) Transform(ctx *valueobject.ResourceTransformationCt
 	for _, ip := range opts.IncludePaths {
 		info, err := t.c.FsService.AssetsFs().Stat(filepath.Clean(ip))
 		if err == nil {
-			filename := info.(fsVO.FileMetaInfo).Meta().Filename
+			filename := info.(fs.FileMetaInfo).FileName()
 			args.IncludePaths = append(args.IncludePaths, filename)
 		}
 	}

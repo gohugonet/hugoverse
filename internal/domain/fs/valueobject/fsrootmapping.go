@@ -159,8 +159,11 @@ func (rmfs *RootMappingFs) doDoStat(name string) ([]fs.FileMetaInfo, error) {
 
 	return []fs.FileMetaInfo{NewFileInfoWithOpener(roots[0].ToFi, name,
 		func() (afero.File, error) {
-			return NewDirFileWithFile(
-				&File{File: nil, filename: name}, rmfs.collectDirEntries), nil
+			return NewDirFileWithVirtualOpener(
+				&File{File: nil, filename: name},
+				func() ([]iofs.DirEntry, error) {
+					return rmfs.collectRootDirEntries(name)
+				}), nil
 		})}, nil
 }
 
@@ -184,7 +187,7 @@ func (rmfs *RootMappingFs) statRoot(root RootMapping, filename string) (fs.FileM
 				return nil, err
 			}
 
-			df := NewDirFile(f, rmfs)
+			df := NewDirFile(f, filename, rmfs)
 			return df, nil
 		}
 	}
@@ -248,7 +251,7 @@ func (rmfs *RootMappingFs) getRoots(key string) (string, []RootMapping) {
 	return s, roots
 }
 
-func (rmfs *RootMappingFs) collectDirEntries(prefix string) ([]iofs.DirEntry, error) {
+func (rmfs *RootMappingFs) collectRootDirEntries(prefix string) ([]iofs.DirEntry, error) {
 	prefix = mapKey(prefix)
 
 	var fis []iofs.DirEntry
@@ -463,7 +466,7 @@ func (rmfs *RootMappingFs) ReverseLookupComponent(component, filename string) ([
 	filename = cleanName(filename)
 	key := mapKey(filename)
 
-	s, roots := rmfs.getRootsReverse(key)
+	longestPrefix, roots := rmfs.getRootsReverse(key)
 
 	if len(roots) == 0 {
 		return nil, nil
@@ -471,7 +474,7 @@ func (rmfs *RootMappingFs) ReverseLookupComponent(component, filename string) ([
 
 	var cps []ComponentPath
 
-	base := strings.TrimPrefix(key, s)
+	base := strings.TrimPrefix(key, longestPrefix)
 	dir, name := filepath.Split(base)
 
 	for _, first := range roots {

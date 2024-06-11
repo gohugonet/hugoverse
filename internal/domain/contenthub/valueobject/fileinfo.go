@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
+	"github.com/gohugonet/hugoverse/internal/domain/fs"
 	fsVO "github.com/gohugonet/hugoverse/internal/domain/fs/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/paths"
 	"path/filepath"
@@ -16,7 +17,7 @@ type File struct {
 	contenthub.File
 }
 
-func NewFileInfo(fi fsVO.FileMetaInfo) (*File, error) {
+func NewFileInfo(fi fs.FileMetaInfo) (*File, error) {
 	baseFi, err := newFileInfo(fi)
 	if err != nil {
 		return nil, err
@@ -29,7 +30,7 @@ func NewFileInfo(fi fsVO.FileMetaInfo) (*File, error) {
 	return f, nil
 }
 
-func newFileInfo(fi fsVO.FileMetaInfo) (*FileInfo, error) {
+func newFileInfo(fi fs.FileMetaInfo) (*FileInfo, error) {
 	m := fi.Meta()
 
 	filename := m.Filename

@@ -2,7 +2,7 @@ package valueobject
 
 import (
 	"fmt"
-	"github.com/gohugonet/hugoverse/internal/domain/fs/valueobject"
+	"github.com/gohugonet/hugoverse/internal/domain/fs"
 	"github.com/gohugonet/hugoverse/internal/domain/template"
 	"github.com/gohugonet/hugoverse/pkg/herrors"
 	"io"
@@ -24,16 +24,15 @@ var DefaultParseInfo = ParseInfo{
 	Config: DefaultParseConfig,
 }
 
-func LoadTemplate(name string, fim valueobject.FileMetaInfo) (TemplateInfo, error) {
-	meta := fim.Meta()
-	f, err := meta.Open()
+func LoadTemplate(name string, fim fs.FileMetaInfo) (TemplateInfo, error) {
+	f, err := fim.Open()
 	if err != nil {
-		return TemplateInfo{Meta: meta}, err
+		return TemplateInfo{Fi: fim}, err
 	}
 	defer f.Close()
 	b, err := io.ReadAll(f)
 	if err != nil {
-		return TemplateInfo{Meta: meta}, err
+		return TemplateInfo{Fi: fim}, err
 	}
 
 	s := removeLeadingBOM(string(b))
@@ -45,7 +44,7 @@ func LoadTemplate(name string, fim valueobject.FileMetaInfo) (TemplateInfo, erro
 		Name:     name,
 		IsText:   isText,
 		Template: s,
-		Meta:     meta,
+		Fi:       fim,
 	}, nil
 }
 
@@ -78,7 +77,7 @@ type TemplateInfo struct {
 	IsText     bool // HTML or plain text template.
 	IsEmbedded bool
 
-	Meta *valueobject.FileMeta
+	Fi fs.FileMetaInfo
 }
 
 func (info TemplateInfo) IdentifierBase() string {
@@ -87,8 +86,8 @@ func (info TemplateInfo) IdentifierBase() string {
 
 func (info TemplateInfo) ErrWithFileContext(what string, err error) error {
 	err = fmt.Errorf(what+": %w", err)
-	fe := herrors.NewFileErrorFromName(err, info.Meta.Filename)
-	f, err := info.Meta.Open()
+	fe := herrors.NewFileErrorFromName(err, info.Fi.FileName())
+	f, err := info.Fi.Open()
 	if err != nil {
 		return err
 	}

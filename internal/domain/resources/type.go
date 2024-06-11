@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/bep/gowebp/libwebp/webpoptions"
 	"github.com/disintegration/gift"
-	fsVO "github.com/gohugonet/hugoverse/internal/domain/fs/valueobject"
+	"github.com/gohugonet/hugoverse/internal/domain/fs"
 	"github.com/gohugonet/hugoverse/pkg/hexec"
 	"github.com/gohugonet/hugoverse/pkg/images/exif"
 	pio "github.com/gohugonet/hugoverse/pkg/io"
@@ -55,7 +55,7 @@ type Fs interface {
 	AssetsFsMakePathRelative(filename string, checkExists bool) (string, bool)
 
 	NewBasePathFs(source afero.Fs, path string) afero.Fs
-	Glob(fs afero.Fs, pattern string, handle func(fi fsVO.FileMetaInfo) (bool, error)) error
+	Glob(fs afero.Fs, pattern string, handle func(fi fs.FileMetaInfo) (bool, error)) error
 }
 
 type CacheConfig interface {

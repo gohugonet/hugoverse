@@ -3,7 +3,7 @@ package contenthub
 import (
 	"bytes"
 	"context"
-	fsVO "github.com/gohugonet/hugoverse/internal/domain/fs/valueobject"
+	"github.com/gohugonet/hugoverse/internal/domain/fs"
 	"github.com/gohugonet/hugoverse/internal/domain/markdown"
 	"github.com/gohugonet/hugoverse/internal/domain/template"
 	"github.com/spf13/afero"
@@ -152,7 +152,7 @@ type FileWithoutOverlap interface {
 	// Hugo content files being one of them, considered to be unique.
 	UniqueID() string
 
-	FileInfo() fsVO.FileMetaInfo
+	FileInfo() fs.FileMetaInfo
 }
 
 // Page is the core interface in Hugo.

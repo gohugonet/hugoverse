@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 )
 
-type DirOpener func(name string) ([]fs.DirEntry, error)
+type DirOpener func() ([]fs.DirEntry, error)
 
 type DirFile struct {
 	*File
@@ -21,12 +21,12 @@ type DirFile struct {
 	pathResolver func(name string) *paths.Path
 }
 
-func NewDirFileWithFile(f *File, opener DirOpener) *DirFile {
+func NewDirFileWithVirtualOpener(f *File, opener DirOpener) *DirFile {
 	return &DirFile{File: f, virtualOpener: opener}
 }
 
-func NewDirFile(file afero.File, fs afero.Fs) *DirFile {
-	return &DirFile{File: &File{File: file}, fs: fs, virtualOpener: nil}
+func NewDirFile(file afero.File, filename string, fs afero.Fs) *DirFile {
+	return &DirFile{File: &File{File: file, filename: filename}, fs: fs, virtualOpener: nil}
 }
 
 func (f *DirFile) ReadDir(count int) ([]fs.DirEntry, error) {
@@ -45,10 +45,7 @@ func (f *DirFile) ReadDir(count int) ([]fs.DirEntry, error) {
 
 		var result []fs.DirEntry
 		for _, fi := range fis {
-			filename := fi.Name()
-			if f.File.File.Name() != "" {
-				filename = filepath.Join(f.File.File.Name(), fi.Name())
-			}
+			filename := filepath.Join(f.File.filename, fi.Name())
 
 			var path *paths.Path
 			if f.pathResolver != nil {
@@ -80,7 +77,7 @@ func (f *DirFile) ReadDir(count int) ([]fs.DirEntry, error) {
 
 func (f *DirFile) readVirtualDir() ([]fs.DirEntry, error) {
 	if f.virtualOpener != nil {
-		return f.virtualOpener(f.filename)
+		return f.virtualOpener()
 	}
 	return nil, fmt.Errorf("virtual dir opener not found")
 }
