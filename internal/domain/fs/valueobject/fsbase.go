@@ -17,8 +17,8 @@ func (fs *baseFs) UnwrapFilesystem() afero.Fs {
 	return fs.Fs
 }
 
-func (fs *baseFs) Stat(name string) (os.FileInfo, error) {
-	fi, err := fs.Fs.Stat(name)
+func (fs *baseFs) Stat(absName string) (os.FileInfo, error) {
+	fi, err := fs.Fs.Stat(absName)
 	if err != nil {
 		return nil, err
 	}
@@ -26,13 +26,13 @@ func (fs *baseFs) Stat(name string) (os.FileInfo, error) {
 	var ofi os.FileInfo
 
 	if fi.IsDir() {
-		ofi = NewFileInfoWithOpener(fi, name, func() (afero.File, error) {
-			return fs.openDir(name)
+		ofi = NewFileInfoWithOpener(fi, absName, func() (afero.File, error) {
+			return fs.openDir(absName)
 		})
 	}
 
-	ofi = NewFileInfoWithOpener(fi, name, func() (afero.File, error) {
-		return fs.open(name)
+	ofi = NewFileInfoWithOpener(fi, absName, func() (afero.File, error) {
+		return fs.open(absName)
 	})
 
 	return ofi, nil

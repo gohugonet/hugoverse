@@ -30,20 +30,18 @@ func (cfs *ComponentFs) Stat(name string) (os.FileInfo, error) {
 		return nil, err
 	}
 
-	if fi.IsDir() {
-		name = normalizeFilename(name)
-		opener := func() (afero.File, error) {
-			return cfs.Open(name)
-		}
-		meta := &FileMeta{
-			filename: name,
-			OpenFunc: opener,
-			PathInfo: cfs.pathResolver(name),
-		}
-		return NewFileInfoWithMeta(fi, meta), nil
+	meta := &FileMeta{
+		filename: name,
+		PathInfo: cfs.pathResolver(name),
 	}
 
-	return fi, nil
+	if fi.IsDir() {
+		meta.OpenFunc = func() (afero.File, error) {
+			return cfs.Open(name)
+		}
+	}
+
+	return NewFileInfoWithMeta(fi, meta), nil
 }
 
 func (cfs *ComponentFs) pathResolver(name string) *paths.Path {
@@ -65,10 +63,12 @@ func (cfs *ComponentFs) Open(name string) (afero.File, error) {
 	}
 
 	if fi.IsDir() {
-		df := NewDirFile(f, cfs)
+		df := NewDirFile(f, name, cfs)
 		df.filter = symlinkFilter
 		df.sorter = sorter
 		df.pathResolver = cfs.pathResolver
+
+		return df, nil
 	}
 
 	return f, nil

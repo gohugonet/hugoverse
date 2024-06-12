@@ -167,8 +167,8 @@ func (rmfs *RootMappingFs) doDoStat(name string) ([]fs.FileMetaInfo, error) {
 		})}, nil
 }
 
-func (rmfs *RootMappingFs) statRoot(root RootMapping, filename string) (fs.FileMetaInfo, error) {
-	filename = root.absFilename(filename)
+func (rmfs *RootMappingFs) statRoot(root RootMapping, name string) (fs.FileMetaInfo, error) {
+	filename := root.absFilename(name)
 	fi, err := rmfs.Fs.Stat(filename)
 	if err != nil {
 		return nil, err
