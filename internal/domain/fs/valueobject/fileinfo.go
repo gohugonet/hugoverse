@@ -44,6 +44,13 @@ func NewFileInfoWithOpener(fi os.FileInfo, filename string, opener FileOpener) *
 	return info
 }
 
+func NewFileInfoWithAbsFilename(fi os.FileInfo, filename string, opener FileOpener) *FileInfo {
+	info := NewFileInfoWithOpener(fi, filename, opener)
+	info.FileMeta.absFilename = filename
+
+	return info
+}
+
 func NewFileInfoWithMeta(fi os.FileInfo, meta *FileMeta) *FileInfo {
 	info := NewFileInfo(fi, meta.FileName())
 	info.FileMeta = meta

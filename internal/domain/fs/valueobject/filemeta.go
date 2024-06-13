@@ -15,7 +15,8 @@ type MetaProvider interface {
 type FileOpener func() (afero.File, error)
 
 type FileMeta struct {
-	filename string // absolute path name
+	filename    string
+	absFilename string
 
 	OpenFunc FileOpener
 	PathInfo *paths.Path
@@ -23,6 +24,10 @@ type FileMeta struct {
 
 func NewFileMeta() *FileMeta {
 	return &FileMeta{}
+}
+
+func (f *FileMeta) AbsFileName() string {
+	return f.absFilename
 }
 
 func (f *FileMeta) Copy() *FileMeta {
