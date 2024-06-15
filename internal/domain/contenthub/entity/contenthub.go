@@ -1,8 +1,12 @@
 package entity
 
 import (
+	"context"
 	"fmt"
+	"github.com/bep/logg"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
+	"github.com/gohugonet/hugoverse/pkg/loggers"
+	"time"
 )
 
 type ContentHub struct {
@@ -14,8 +18,11 @@ type ContentHub struct {
 	*PageCollections
 
 	*Title
-	
+
 	*render
+
+	Log      loggers.Logger `json:"-"`
+	pagesLog logg.LevelLogger
 }
 
 func (ch *ContentHub) SetTemplateExecutor(exec contenthub.TemplateExecutor) {
@@ -23,6 +30,9 @@ func (ch *ContentHub) SetTemplateExecutor(exec contenthub.TemplateExecutor) {
 }
 
 func (ch *ContentHub) CollectPages() error {
+	ch.pagesLog = ch.Log.InfoCommand("ContentHub.CollectPages")
+	defer loggers.TimeTrackf(ch.pagesLog, time.Now(), nil, "")
+
 	if err := ch.process(); err != nil {
 		return fmt.Errorf("process: %w", err)
 	}
@@ -35,15 +45,17 @@ func (ch *ContentHub) CollectPages() error {
 }
 
 func (ch *ContentHub) process() error {
-	if err := ch.readAndProcessContent(); err != nil {
-		return fmt.Errorf("readAndProcessContent: %w", err)
-	}
-	return nil
-}
+	processLog := ch.pagesLog.WithField("step", "process")
+	defer loggers.TimeTrackf(processLog, time.Now(), nil, "")
 
-func (ch *ContentHub) readAndProcessContent() error {
-	proc := newPagesProcessor(ch.PageCollections.PageMap)
-	c := newPagesCollector(proc, ch.Fs.ContentFs())
+	c := &pagesCollector{
+		m:  ch.PageCollections.PageMap,
+		fs: ch.Fs,
+
+		ctx:        context.Background(),
+		infoLogger: ch.pagesLog,
+	}
+
 	if err := c.Collect(); err != nil {
 		return err
 	}

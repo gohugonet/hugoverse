@@ -192,7 +192,7 @@ func (rmfs *RootMappingFs) statRoot(root RootMapping, name string) (fs.FileMetaI
 		}
 	}
 
-	fim := NewFileInfoWithAbsFilename(fi, filename, opener)
+	fim := NewFileInfoWithRoot(fi, filename, root.To, opener)
 
 	return fim, nil
 }

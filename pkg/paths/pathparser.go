@@ -283,9 +283,9 @@ func (p *Path) reset() {
 }
 
 // TrimLeadingSlash returns a copy of the Path with the leading slash removed.
-func (p Path) TrimLeadingSlash() *Path {
+func (p *Path) TrimLeadingSlash() Path {
 	p.trimLeadingSlash = true
-	return &p
+	return *p
 }
 
 func (p *Path) norm(s string) string {
@@ -523,9 +523,9 @@ func (p *Path) IsLeafBundle() bool {
 	return p.bundleType == PathTypeLeaf
 }
 
-func (p Path) ForBundleType(t PathType) *Path {
+func (p *Path) ForBundleType(t PathType) *Path {
 	p.bundleType = t
-	return &p
+	return p
 }
 
 func (p *Path) identifierAsString(i int) string {

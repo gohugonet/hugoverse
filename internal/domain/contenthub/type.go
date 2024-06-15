@@ -51,6 +51,8 @@ var AllKindsInPages = []string{KindPage, KindHome, KindSection}
 type Fs interface {
 	LayoutFs() afero.Fs
 	ContentFs() afero.Fs
+
+	WalkContent(start string, cb fs.WalkCallback, conf fs.WalkwayConfig) error
 }
 
 type TemplateExecutor interface {

@@ -4,10 +4,13 @@ import (
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub/entity"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub/valueobject"
+	"github.com/gohugonet/hugoverse/pkg/loggers"
 	"github.com/gohugonet/hugoverse/pkg/radixtree"
 )
 
 func New(fs contenthub.Fs) (contenthub.ContentHub, error) {
+	log := loggers.NewDefault()
+
 	cs, err := newContentSpec()
 	if err != nil {
 		return nil, err
@@ -16,14 +19,18 @@ func New(fs contenthub.Fs) (contenthub.ContentHub, error) {
 	ch := &entity.ContentHub{
 		Fs:               fs,
 		TemplateExecutor: nil,
-		PageCollections: newPageCollections(
-			&entity.PageMap{
+		PageCollections: &entity.PageCollections{
+			PageMap: &entity.PageMap{
 				ContentMap:  newContentMap(),
 				ContentSpec: cs,
-			}),
+
+				Log: log,
+			},
+		},
 		Title: &entity.Title{
 			Style: entity.StyleAP,
 		},
+		Log: log,
 	}
 
 	return ch, nil
@@ -68,16 +75,6 @@ func newConverterRegistry() (contenthub.ConverterRegistry, error) {
 	return &valueobject.ConverterRegistry{
 		Converters: converters,
 	}, nil
-}
-
-func newPageCollections(m *entity.PageMap) *entity.PageCollections {
-	if m == nil {
-		panic("must provide a pageMap")
-	}
-
-	c := &entity.PageCollections{PageMap: m}
-
-	return c
 }
 
 func newContentMap() *entity.ContentMap {

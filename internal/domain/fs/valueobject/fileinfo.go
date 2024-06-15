@@ -44,9 +44,9 @@ func NewFileInfoWithOpener(fi os.FileInfo, filename string, opener FileOpener) *
 	return info
 }
 
-func NewFileInfoWithAbsFilename(fi os.FileInfo, filename string, opener FileOpener) *FileInfo {
+func NewFileInfoWithRoot(fi os.FileInfo, filename, root string, opener FileOpener) *FileInfo {
 	info := NewFileInfoWithOpener(fi, filename, opener)
-	info.FileMeta.absFilename = filename
+	info.FileMeta.root = root
 
 	return info
 }

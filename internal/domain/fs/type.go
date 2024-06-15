@@ -62,7 +62,9 @@ type FileMetaInfo interface {
 
 type FileMeta interface {
 	Open() (afero.File, error)
+
 	FileName() string
+	Root() string
 
 	Path() *paths.Path
 	SetPath(path *paths.Path)
