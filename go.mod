@@ -13,6 +13,7 @@ require (
 	github.com/BurntSushi/toml v1.3.2 // indirect
 	github.com/RoaringBitmap/roaring v0.4.23 // indirect
 	github.com/alecthomas/chroma/v2 v2.13.0 // indirect
+	github.com/armon/go-radix v1.0.0 // indirect
 	github.com/bep/clocks v0.5.0 // indirect
 	github.com/bep/debounce v1.2.1 // indirect
 	github.com/bep/godartsass v1.2.0 // indirect

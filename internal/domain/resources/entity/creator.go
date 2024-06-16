@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/gohugonet/hugoverse/internal/domain/resources"
 	"github.com/gohugonet/hugoverse/internal/domain/resources/valueobject"
+	"github.com/gohugonet/hugoverse/pkg/cache/stale"
 	"github.com/gohugonet/hugoverse/pkg/paths"
 	"os"
 	"path"
@@ -26,7 +27,7 @@ func (rs *Resources) newResource(rd *valueobject.ResourceSourceDescriptor) (reso
 	}
 
 	gr := &Resource{
-		Staler: &valueobject.AtomicStaler{},
+		Staler: &stale.AtomicStaler{},
 		h:      &valueobject.ResourceHash{},
 
 		paths:  rp,

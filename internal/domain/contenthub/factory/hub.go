@@ -4,8 +4,8 @@ import (
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub/entity"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub/valueobject"
+	"github.com/gohugonet/hugoverse/pkg/doctree"
 	"github.com/gohugonet/hugoverse/pkg/loggers"
-	"github.com/gohugonet/hugoverse/pkg/radixtree"
 )
 
 func New(fs contenthub.Fs) (contenthub.ContentHub, error) {
@@ -21,8 +21,8 @@ func New(fs contenthub.Fs) (contenthub.ContentHub, error) {
 		TemplateExecutor: nil,
 		PageCollections: &entity.PageCollections{
 			PageMap: &entity.PageMap{
-				ContentMap:  newContentMap(),
 				ContentSpec: cs,
+				PageTrees:   newPageTree(),
 
 				Log: log,
 			},
@@ -52,6 +52,31 @@ func newContentSpec() (*entity.ContentSpec, error) {
 	return spec, nil
 }
 
+func newPageTree() *entity.PageTrees {
+	ns := &entity.ContentNodeShifter{
+		NumLanguages: 2, // TODO: get this from config
+	}
+
+	treeConfig := doctree.Config[contenthub.ContentNode]{
+		Shifter: ns,
+	}
+
+	pageTrees := &entity.PageTrees{
+		TreePages: doctree.New(
+			treeConfig,
+		),
+		TreeResources: doctree.New(
+			treeConfig,
+		),
+		TreeTaxonomyEntries: doctree.NewTreeShiftTree[contenthub.WeightedContentNode](
+			doctree.DimensionLanguage.Index(), 2), // TODO: get this from config
+	}
+
+	pageTrees.CreateMutableTrees()
+
+	return pageTrees
+}
+
 func newConverterRegistry() (contenthub.ConverterRegistry, error) {
 	converters := make(map[string]contenthub.ConverterProvider)
 
@@ -75,21 +100,4 @@ func newConverterRegistry() (contenthub.ConverterRegistry, error) {
 	return &valueobject.ConverterRegistry{
 		Converters: converters,
 	}, nil
-}
-
-func newContentMap() *entity.ContentMap {
-	m := &entity.ContentMap{
-		Pages:    &entity.ContentTree{Name: "pages", Tree: radixtree.New()},
-		Sections: &entity.ContentTree{Name: "sections", Tree: radixtree.New()},
-	}
-
-	m.PageTrees = []*entity.ContentTree{
-		m.Pages, m.Sections,
-	}
-
-	m.BundleTrees = []*entity.ContentTree{
-		m.Pages, m.Sections,
-	}
-
-	return m
 }

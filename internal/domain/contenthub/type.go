@@ -6,6 +6,8 @@ import (
 	"github.com/gohugonet/hugoverse/internal/domain/fs"
 	"github.com/gohugonet/hugoverse/internal/domain/markdown"
 	"github.com/gohugonet/hugoverse/internal/domain/template"
+	"github.com/gohugonet/hugoverse/pkg/cache/stale"
+	"github.com/gohugonet/hugoverse/pkg/identity"
 	"github.com/spf13/afero"
 	goTmpl "html/template"
 	"io"
@@ -58,6 +60,25 @@ type Fs interface {
 type TemplateExecutor interface {
 	ExecuteWithContext(ctx context.Context, tmpl template.Preparer, wr io.Writer, data any) error
 	LookupLayout(d template.LayoutDescriptor) (template.Preparer, bool, error)
+}
+
+type BuildStateReseter interface {
+	ResetBuildState()
+}
+
+type ContentNode interface {
+	identity.IdentityProvider
+	identity.ForEeachIdentityProvider
+	stale.Marker
+	BuildStateReseter
+
+	Path() string
+	IsContentNodeBranch() bool
+}
+
+type WeightedContentNode interface {
+	ContentNode
+	Weight() int
 }
 
 type ContentConvertProvider interface {
