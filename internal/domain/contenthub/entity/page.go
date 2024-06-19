@@ -2,6 +2,7 @@ package entity
 
 import (
 	"fmt"
+	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
 	"github.com/gohugonet/hugoverse/pkg/cache/stale"
 	"github.com/gohugonet/hugoverse/pkg/lazy"
 	"github.com/gohugonet/hugoverse/pkg/maps"
@@ -11,6 +12,14 @@ import (
 	"sync"
 	"sync/atomic"
 )
+
+type Page struct {
+	*PageSource
+
+	contenthub.File
+
+	bundled bool // Set if this page is bundled inside another.
+}
 
 var pageIDCounter atomic.Uint64
 

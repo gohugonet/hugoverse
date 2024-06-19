@@ -3,6 +3,7 @@ package entity
 import (
 	"fmt"
 	"github.com/bep/logg"
+	"github.com/gohugonet/hugoverse/internal/domain/contenthub/valueobject"
 	"github.com/gohugonet/hugoverse/internal/domain/fs"
 	"github.com/gohugonet/hugoverse/pkg/io"
 	"github.com/gohugonet/hugoverse/pkg/loggers"
@@ -45,11 +46,7 @@ func (m *PageMap) AddFi(fi fs.FileMetaInfo) error {
 			// Create the page now as we need it at assemembly time.
 			// The other resources are created if needed.
 			pageResource, pi, err := newPage(
-				&pageMeta{
-					f:        source.NewFileInfo(fim),
-					pathInfo: pi,
-					bundled:  true,
-				},
+				newBundledPageMeta(valueobject.NewFileInfo(fim), pi),
 			)
 			if err != nil {
 				return err

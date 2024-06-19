@@ -26,6 +26,7 @@ type Module struct {
 
 	projMod *valueobject.ProjectModule
 	modules []*valueobject.Module
+	*Lang
 
 	collector *valueobject.Collector
 }

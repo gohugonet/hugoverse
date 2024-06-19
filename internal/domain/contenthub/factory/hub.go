@@ -8,7 +8,7 @@ import (
 	"github.com/gohugonet/hugoverse/pkg/loggers"
 )
 
-func New(fs contenthub.Fs) (contenthub.ContentHub, error) {
+func New(fs contenthub.Fs) (*entity.ContentHub, error) {
 	log := loggers.NewDefault()
 
 	cs, err := newContentSpec()

@@ -40,6 +40,9 @@ func New(info module.LoadInfo) (module.Modules, error) {
 	if err := ms.Load(); err != nil {
 		return nil, err
 	}
+
+	ms.Lang = entity.NewLang(ms.All())
+
 	return ms, nil
 }
 
