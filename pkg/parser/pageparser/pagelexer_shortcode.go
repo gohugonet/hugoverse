@@ -22,7 +22,6 @@ type lexerShortcodeState struct {
 	elementStepNum     int             // step number in element
 	paramElements      int             // number of elements (name + value = 2) found first
 	openShortcodes     map[string]bool // set of shortcodes in open state
-
 }
 
 // Shortcode syntax
@@ -40,7 +39,7 @@ func (l *pageLexer) isShortCodeStart() bool {
 	return l.hasPrefix(leftDelimScWithMarkup) || l.hasPrefix(leftDelimScNoMarkup)
 }
 
-func lexShortcodeLeftDelim(l *pageLexer) StateFunc {
+func lexShortcodeLeftDelim(l *pageLexer) stateFunc {
 	l.pos += len(l.currentLeftShortcodeDelim())
 	if l.hasPrefix(leftComment) {
 		return lexShortcodeComment
@@ -51,7 +50,7 @@ func lexShortcodeLeftDelim(l *pageLexer) StateFunc {
 	return lexInsideShortcode
 }
 
-func lexShortcodeComment(l *pageLexer) StateFunc {
+func lexShortcodeComment(l *pageLexer) stateFunc {
 	posRightComment := l.index(append(rightComment, l.currentRightShortcodeDelim()...))
 	if posRightComment <= 1 {
 		return l.errorf("comment must be closed")
@@ -69,7 +68,7 @@ func lexShortcodeComment(l *pageLexer) StateFunc {
 	return lexMainSection
 }
 
-func lexShortcodeRightDelim(l *pageLexer) StateFunc {
+func lexShortcodeRightDelim(l *pageLexer) stateFunc {
 	l.closingState = 0
 	l.pos += len(l.currentRightShortcodeDelim())
 	l.emit(l.currentRightShortcodeDelimItem())
@@ -83,7 +82,7 @@ func lexShortcodeRightDelim(l *pageLexer) StateFunc {
 // 4. param="Some \"escaped\" text"
 // 5. `param`
 // 6. param=`123`
-func lexShortcodeParam(l *pageLexer, escapedQuoteStart bool) StateFunc {
+func lexShortcodeParam(l *pageLexer, escapedQuoteStart bool) stateFunc {
 	first := true
 	nextEq := false
 
@@ -139,13 +138,13 @@ func lexShortcodeParam(l *pageLexer, escapedQuoteStart bool) StateFunc {
 	return lexInsideShortcode
 }
 
-func lexShortcodeParamVal(l *pageLexer) StateFunc {
+func lexShortcodeParamVal(l *pageLexer) stateFunc {
 	l.consumeToSpace()
 	l.emit(tScParamVal)
 	return lexInsideShortcode
 }
 
-func lexShortCodeParamRawStringVal(l *pageLexer, typ ItemType) StateFunc {
+func lexShortCodeParamRawStringVal(l *pageLexer, typ ItemType) stateFunc {
 	openBacktickFound := false
 
 Loop:
@@ -171,7 +170,7 @@ Loop:
 	return lexInsideShortcode
 }
 
-func lexShortcodeQuotedParamVal(l *pageLexer, escapedQuotedValuesAllowed bool, typ ItemType) StateFunc {
+func lexShortcodeQuotedParamVal(l *pageLexer, escapedQuotedValuesAllowed bool, typ ItemType) stateFunc {
 	openQuoteFound := false
 	escapedInnerQuoteFound := false
 	escapedQuoteState := 0
@@ -240,7 +239,7 @@ Loop:
 var inlineIdentifier = []byte("inline ")
 
 // scans an alphanumeric inside shortcode
-func lexIdentifierInShortcode(l *pageLexer) StateFunc {
+func lexIdentifierInShortcode(l *pageLexer) stateFunc {
 	lookForEnd := false
 Loop:
 	for {
@@ -282,7 +281,7 @@ Loop:
 	return lexInsideShortcode
 }
 
-func lexEndOfShortcode(l *pageLexer) StateFunc {
+func lexEndOfShortcode(l *pageLexer) stateFunc {
 	l.isInline = false
 	if l.hasPrefix(l.currentRightShortcodeDelim()) {
 		return lexShortcodeRightDelim
@@ -297,7 +296,7 @@ func lexEndOfShortcode(l *pageLexer) StateFunc {
 }
 
 // scans the elements inside shortcode tags
-func lexInsideShortcode(l *pageLexer) StateFunc {
+func lexInsideShortcode(l *pageLexer) stateFunc {
 	if l.hasPrefix(l.currentRightShortcodeDelim()) {
 		return lexShortcodeRightDelim
 	}

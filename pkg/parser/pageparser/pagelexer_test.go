@@ -11,8 +11,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package pageparser provides a parser for Hugo content files (Markdown, HTML etc.) in Hugo.
-// This implementation is highly inspired by the great talk given by Rob Pike called "Lexical Scanning in Go"
-// It's on YouTube, Google it!.
-// See slides here: https://go.dev/talks/2011/lex.slide#1
 package pageparser
+
+import (
+	"testing"
+
+	qt "github.com/frankban/quicktest"
+)
+
+func TestMinIndex(t *testing.T) {
+	c := qt.New(t)
+	c.Assert(minIndex(4, 1, 2, 3), qt.Equals, 1)
+	c.Assert(minIndex(4, 0, -2, 2, 5), qt.Equals, 0)
+	c.Assert(minIndex(), qt.Equals, -1)
+	c.Assert(minIndex(-2, -3), qt.Equals, -1)
+}

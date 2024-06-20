@@ -13,7 +13,7 @@
 
 package pageparser
 
-func LexIntroSection(l *pageLexer) StateFunc {
+func lexIntroSection(l *pageLexer) stateFunc {
 	l.summaryDivider = summaryDivider
 
 LOOP:
@@ -35,19 +35,6 @@ LOOP:
 		case r == byteOrderMark:
 			l.emit(TypeIgnore)
 		case !isSpace(r) && !isEndOfLine(r):
-			if r == '<' {
-				l.backup()
-				if l.hasPrefix(htmlCommentStart) {
-					// This may be commented out front matter, which should
-					// still be read.
-					l.consumeToNextLine()
-					l.isInHTMLComment = true
-					l.emit(TypeIgnore)
-					continue LOOP
-				} else {
-					return l.errorf("plain HTML documents not supported")
-				}
-			}
 			break LOOP
 		}
 	}
@@ -56,20 +43,7 @@ LOOP:
 	return lexMainSection
 }
 
-func lexEndFrontMatterHTMLComment(l *pageLexer) StateFunc {
-	l.isInHTMLComment = false
-	right := l.index(htmlCommentEnd)
-	if right == -1 {
-		return l.errorf("starting HTML comment with no end")
-	}
-	l.pos += right + len(htmlCommentEnd)
-	l.emit(TypeIgnore)
-
-	// Now move on to the shortcodes.
-	return lexMainSection
-}
-
-func lexFrontMatterJSON(l *pageLexer) StateFunc {
+func lexFrontMatterJSON(l *pageLexer) stateFunc {
 	// Include the left delimiter
 	l.backup()
 
@@ -112,7 +86,7 @@ func lexFrontMatterJSON(l *pageLexer) StateFunc {
 	return lexMainSection
 }
 
-func lexFrontMatterOrgMode(l *pageLexer) StateFunc {
+func lexFrontMatterOrgMode(l *pageLexer) stateFunc {
 	/*
 		#+TITLE: Test File For chaseadamsio/goorgeous
 		#+AUTHOR: Chase Adams
@@ -150,7 +124,7 @@ LOOP:
 }
 
 // Handle YAML or TOML front matter.
-func (l *pageLexer) lexFrontMatterSection(tp ItemType, delimr rune, name string, delim []byte) StateFunc {
+func (l *pageLexer) lexFrontMatterSection(tp ItemType, delimr rune, name string, delim []byte) stateFunc {
 	for i := 0; i < 2; i++ {
 		if r := l.next(); r != delimr {
 			return l.errorf("invalid %s delimiter", name)

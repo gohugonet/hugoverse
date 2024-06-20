@@ -26,6 +26,7 @@ func New(fs contenthub.Fs) (*entity.ContentHub, error) {
 
 				Log: log,
 			},
+			Cache: valueobject.NewCache(),
 		},
 		Title: &entity.Title{
 			Style: entity.StyleAP,

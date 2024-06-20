@@ -2,10 +2,10 @@ package entity
 
 import (
 	"fmt"
-	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
 	"github.com/gohugonet/hugoverse/pkg/cache/stale"
 	"github.com/gohugonet/hugoverse/pkg/lazy"
 	"github.com/gohugonet/hugoverse/pkg/maps"
+	"github.com/gohugonet/hugoverse/pkg/parser/pageparser"
 	"github.com/gohugonet/hugoverse/pkg/paths"
 	"github.com/gohugonet/hugoverse/pkg/paths/files"
 	"path/filepath"
@@ -13,15 +13,45 @@ import (
 	"sync/atomic"
 )
 
+var pageIDCounter atomic.Uint64
+
 type Page struct {
 	*PageSource
+	*FrontMatter
 
-	contenthub.File
+	id uint64
+
+	kind string
 
 	bundled bool // Set if this page is bundled inside another.
 }
 
-var pageIDCounter atomic.Uint64
+func newBundledPage(source *PageSource) (*Page, error) {
+	p := &Page{
+		PageSource: source,
+		FrontMatter: &FrontMatter{
+			Params: maps.Params{},
+		},
+
+		id:      pageIDCounter.Add(1),
+		bundled: true,
+	}
+
+	sourceContent, err := p.PageSource.contentSource()
+	if err != nil {
+		return nil, err
+	}
+
+	items, err := pageparser.ParseBytes(
+		sourceContent,
+		pageparser.Config{},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return p, nil
+}
 
 func newPage(m *pageMeta) (*pageState, *paths.Path, error) {
 	m.Staler = &stale.AtomicStaler{}

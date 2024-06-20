@@ -192,7 +192,6 @@ const (
 	TypeFrontMatterTOML
 	TypeFrontMatterJSON
 	TypeFrontMatterORG
-	TypeEmoji
 	TypeIgnore // // The BOM Unicode byte order marker and possibly others
 
 	// shortcode items
@@ -215,7 +214,7 @@ const (
 )
 
 var (
-	boolRe  = regexp.MustCompile(`^(true$)|(false$)`)
+	boolRe  = regexp.MustCompile(`^(true|false)$`)
 	intRe   = regexp.MustCompile(`^[-+]?\d+$`)
 	floatRe = regexp.MustCompile(`^[-+]?\d*\.\d+$`)
 )

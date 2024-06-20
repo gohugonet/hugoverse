@@ -13,6 +13,7 @@ import (
 // PageCollections contains the page collections for a site.
 type PageCollections struct {
 	PageMap *PageMap
+	Cache   *valueobject.Cache
 }
 
 type PageMap struct {

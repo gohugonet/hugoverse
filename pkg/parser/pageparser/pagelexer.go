@@ -22,12 +22,13 @@ import (
 
 const eof = -1
 
-type StateFunc func(*pageLexer) StateFunc
+// returns the next state in scanner.
+type stateFunc func(*pageLexer) stateFunc
 
 type pageLexer struct {
 	input      []byte
-	stateStart StateFunc
-	state      StateFunc
+	stateStart stateFunc
+	state      stateFunc
 	pos        int // input position
 	start      int // item start position
 	width      int // width of last element
@@ -42,13 +43,14 @@ type pageLexer struct {
 	summaryDivider []byte
 	// Set when we have parsed any summary divider
 	summaryDividerChecked bool
-	// Whether we're in a HTML comment.
-	isInHTMLComment bool
 
 	lexerShortcodeState
 
 	// items delivered to client
 	items Items
+
+	// error delivered to the client
+	err error
 }
 
 // Implement the Result interface
@@ -60,13 +62,11 @@ func (l *pageLexer) Input() []byte {
 	return l.input
 }
 
-type Config struct {
-	EnableEmoji bool
-}
+type Config struct{}
 
 // note: the input position here is normally 0 (start), but
 // can be set if position of first shortcode is known
-func newPageLexer(input []byte, stateStart StateFunc, cfg Config) *pageLexer {
+func newPageLexer(input []byte, stateStart stateFunc, cfg Config) *pageLexer {
 	lexer := &pageLexer{
 		input:      input,
 		stateStart: stateStart,
@@ -100,10 +100,6 @@ var (
 	delimTOML         = []byte("+++")
 	delimYAML         = []byte("---")
 	delimOrg          = []byte("#+")
-	htmlCommentStart  = []byte("<!--")
-	htmlCommentEnd    = []byte("-->")
-
-	emojiDelim = byte(':')
 )
 
 func (l *pageLexer) next() rune {
@@ -167,7 +163,6 @@ func (l *pageLexer) emit(t ItemType) {
 	}
 
 	l.append(Item{Type: t, low: l.start, high: l.pos})
-
 }
 
 // sends a string item back to the client.
@@ -193,7 +188,12 @@ func (l *pageLexer) ignoreEscapesAndEmit(t ItemType, isString bool) {
 			if i > k {
 				segments = append(segments, lowHigh{k, i})
 			}
-			l.append(Item{Type: TypeIgnore, low: i, high: i + w})
+			// See issue #10236.
+			// We don't send the backslash back to the client,
+			// which makes the end parsing simpler.
+			// This means that we cannot render the AST back to be
+			// exactly the same as the input,
+			// but that was also the situation before we introduced the issue in #10236.
 			k = i + w
 		}
 		i += w
@@ -208,7 +208,6 @@ func (l *pageLexer) ignoreEscapesAndEmit(t ItemType, isString bool) {
 	}
 
 	l.start = l.pos
-
 }
 
 // gets the current value (for debugging and error handling)
@@ -224,8 +223,8 @@ func (l *pageLexer) ignore() {
 var lf = []byte("\n")
 
 // nil terminates the parser
-func (l *pageLexer) errorf(format string, args ...any) StateFunc {
-	l.append(Item{Type: tError, Err: fmt.Errorf(format, args...)})
+func (l *pageLexer) errorf(format string, args ...any) stateFunc {
+	l.append(Item{Type: tError, Err: fmt.Errorf(format, args...), low: l.start, high: l.pos})
 	return nil
 }
 
@@ -239,15 +238,6 @@ func (l *pageLexer) consumeCRLF() bool {
 		}
 	}
 	return consumed
-}
-
-func (l *pageLexer) consumeToNextLine() {
-	for {
-		r := l.next()
-		if r == eof || isEndOfLine(r) {
-			return
-		}
-	}
 }
 
 func (l *pageLexer) consumeToSpace() {
@@ -268,34 +258,6 @@ func (l *pageLexer) consumeSpace() {
 			return
 		}
 	}
-}
-
-// lex a string starting at ":"
-func lexEmoji(l *pageLexer) StateFunc {
-	pos := l.pos + 1
-	valid := false
-
-	for i := pos; i < len(l.input); i++ {
-		if i > pos && l.input[i] == emojiDelim {
-			pos = i + 1
-			valid = true
-			break
-		}
-		r, _ := utf8.DecodeRune(l.input[i:])
-		if !(isAlphaNumericOrHyphen(r) || r == '+') {
-			break
-		}
-	}
-
-	if valid {
-		l.pos = pos
-		l.emit(TypeEmoji)
-	} else {
-		l.pos++
-		l.emit(tText)
-	}
-
-	return lexMainSection
 }
 
 type sectionHandlers struct {
@@ -333,6 +295,41 @@ func (s *sectionHandlers) skip() int {
 }
 
 func createSectionHandlers(l *pageLexer) *sectionHandlers {
+	shortCodeHandler := &sectionHandler{
+		l: l,
+		skipFunc: func(l *pageLexer) int {
+			return l.index(leftDelimSc)
+		},
+		lexFunc: func(origin stateFunc, l *pageLexer) (stateFunc, bool) {
+			if !l.isShortCodeStart() {
+				return origin, false
+			}
+
+			if l.isInline {
+				// If we're inside an inline shortcode, the only valid shortcode markup is
+				// the markup which closes it.
+				b := l.input[l.pos+3:]
+				end := indexNonWhiteSpace(b, '/')
+				if end != len(l.input)-1 {
+					b = bytes.TrimSpace(b[end+1:])
+					if end == -1 || !bytes.HasPrefix(b, []byte(l.currShortcodeName+" ")) {
+						return l.errorf("inline shortcodes do not support nesting"), true
+					}
+				}
+			}
+
+			if l.hasPrefix(leftDelimScWithMarkup) {
+				l.currLeftDelimItem = tLeftDelimScWithMarkup
+				l.currRightDelimItem = tRightDelimScWithMarkup
+			} else {
+				l.currLeftDelimItem = tLeftDelimScNoMarkup
+				l.currRightDelimItem = tRightDelimScNoMarkup
+			}
+
+			return lexShortcodeLeftDelim, true
+		},
+	}
+
 	summaryDividerHandler := &sectionHandler{
 		l: l,
 		skipFunc: func(l *pageLexer) int {
@@ -341,7 +338,7 @@ func createSectionHandlers(l *pageLexer) *sectionHandlers {
 			}
 			return l.index(l.summaryDivider)
 		},
-		lexFunc: func(origin StateFunc, l *pageLexer) (StateFunc, bool) {
+		lexFunc: func(origin stateFunc, l *pageLexer) (stateFunc, bool) {
 			if !l.hasPrefix(l.summaryDivider) {
 				return origin, false
 			}
@@ -356,21 +353,7 @@ func createSectionHandlers(l *pageLexer) *sectionHandlers {
 		},
 	}
 
-	handlers := []*sectionHandler{summaryDividerHandler}
-
-	if l.cfg.EnableEmoji {
-		emojiHandler := &sectionHandler{
-			l: l,
-			skipFunc: func(l *pageLexer) int {
-				return l.indexByte(emojiDelim)
-			},
-			lexFunc: func(origin StateFunc, l *pageLexer) (StateFunc, bool) {
-				return lexEmoji, true
-			},
-		}
-
-		handlers = append(handlers, emojiHandler)
-	}
+	handlers := []*sectionHandler{shortCodeHandler, summaryDividerHandler}
 
 	return &sectionHandlers{
 		l:           l,
@@ -379,7 +362,7 @@ func createSectionHandlers(l *pageLexer) *sectionHandlers {
 	}
 }
 
-func (s *sectionHandlers) lex(origin StateFunc) StateFunc {
+func (s *sectionHandlers) lex(origin stateFunc) stateFunc {
 	if s.skipAll {
 		return nil
 	}
@@ -418,7 +401,7 @@ type sectionHandler struct {
 	// a bool telling if this section was handled.
 	// Note that returning nil as the next state will terminate the
 	// lexer.
-	lexFunc func(origin StateFunc, l *pageLexer) (StateFunc, bool)
+	lexFunc func(origin stateFunc, l *pageLexer) (stateFunc, bool)
 }
 
 func (s *sectionHandler) skip() int {
@@ -433,13 +416,9 @@ func (s *sectionHandler) skip() int {
 	return idx
 }
 
-func lexMainSection(l *pageLexer) StateFunc {
+func lexMainSection(l *pageLexer) stateFunc {
 	if l.isEOF() {
 		return lexDone
-	}
-
-	if l.isInHTMLComment {
-		return lexEndFrontMatterHTMLComment
 	}
 
 	// Fast forward as far as possible.
@@ -461,7 +440,7 @@ func lexMainSection(l *pageLexer) StateFunc {
 	return lexDone
 }
 
-func lexDone(l *pageLexer) StateFunc {
+func lexDone(l *pageLexer) stateFunc {
 	// Done!
 	if l.pos > l.start {
 		l.emit(tText)
@@ -470,6 +449,7 @@ func lexDone(l *pageLexer) StateFunc {
 	return nil
 }
 
+//lint:ignore U1000 useful for debugging
 func (l *pageLexer) printCurrentInput() {
 	fmt.Printf("input[%d:]: %q", l.pos, string(l.input[l.pos:]))
 }
@@ -478,10 +458,6 @@ func (l *pageLexer) printCurrentInput() {
 
 func (l *pageLexer) index(sep []byte) int {
 	return bytes.Index(l.input[l.pos:], sep)
-}
-
-func (l *pageLexer) indexByte(sep byte) int {
-	return bytes.IndexByte(l.input[l.pos:], sep)
 }
 
 func (l *pageLexer) hasPrefix(prefix []byte) bool {
