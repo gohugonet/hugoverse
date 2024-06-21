@@ -208,4 +208,7 @@ type PageMetaProvider interface {
 	// Type is a discriminator used to select layouts etc. It is typically set
 	// in front matter, but will fall back to the root section.
 	Type() string
+
+	Lang() string
+	Path() string
 }

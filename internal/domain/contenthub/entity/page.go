@@ -5,7 +5,6 @@ import (
 	"github.com/gohugonet/hugoverse/pkg/cache/stale"
 	"github.com/gohugonet/hugoverse/pkg/lazy"
 	"github.com/gohugonet/hugoverse/pkg/maps"
-	"github.com/gohugonet/hugoverse/pkg/parser/pageparser"
 	"github.com/gohugonet/hugoverse/pkg/paths"
 	"github.com/gohugonet/hugoverse/pkg/paths/files"
 	"path/filepath"
@@ -37,16 +36,15 @@ func newBundledPage(source *PageSource) (*Page, error) {
 		bundled: true,
 	}
 
-	sourceContent, err := p.PageSource.contentSource()
-	if err != nil {
+	if err := p.PageSource.parse(); err != nil {
 		return nil, err
 	}
 
-	items, err := pageparser.ParseBytes(
-		sourceContent,
-		pageparser.Config{},
-	)
-	if err != nil {
+	if err := p.PageSource.mapItems(p.FrontMatter.frontMatterMap); err != nil {
+		return nil, err
+	}
+
+	if err := p.FrontMatter.parse(); err != nil {
 		return nil, err
 	}
 
