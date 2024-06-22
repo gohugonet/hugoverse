@@ -10,7 +10,7 @@ import (
 )
 
 type ContentHub struct {
-	Fs contenthub.Fs
+	Fs contenthub.FsService
 
 	// ExecTemplate handling.
 	TemplateExecutor contenthub.TemplateExecutor

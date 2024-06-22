@@ -2,6 +2,7 @@ package entity
 
 import (
 	"fmt"
+	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
 	"github.com/gohugonet/hugoverse/pkg/cache/stale"
 	"github.com/gohugonet/hugoverse/pkg/lazy"
 	"github.com/gohugonet/hugoverse/pkg/maps"
@@ -25,11 +26,14 @@ type Page struct {
 	bundled bool // Set if this page is bundled inside another.
 }
 
-func newBundledPage(source *PageSource) (*Page, error) {
+func newBundledPage(source *PageSource, langSer contenthub.LangService) (*Page, error) {
 	p := &Page{
 		PageSource: source,
 		FrontMatter: &FrontMatter{
-			Params: maps.Params{},
+			Params:     maps.Params{},
+			Customized: maps.Params{},
+
+			langService: langSer,
 		},
 
 		id:      pageIDCounter.Add(1),
@@ -43,7 +47,6 @@ func newBundledPage(source *PageSource) (*Page, error) {
 	if err := p.PageSource.mapItems(p.FrontMatter.frontMatterMap); err != nil {
 		return nil, err
 	}
-
 	if err := p.FrontMatter.parse(); err != nil {
 		return nil, err
 	}

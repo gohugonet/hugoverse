@@ -19,7 +19,7 @@ import (
 
 type pagesCollector struct {
 	m  *PageMap
-	fs contenthub.Fs
+	fs contenthub.FsService
 
 	infoLogger logg.LevelLogger
 

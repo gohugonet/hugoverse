@@ -20,6 +20,11 @@ func (l Language) DefaultLanguageKey() string {
 	return l.Default
 }
 
+func (l Language) IsLanguageValid(lang string) bool {
+	_, found := l.Configs[lang]
+	return found
+}
+
 func (l Language) OtherLanguageKeys() []string {
 	var keys []string
 	for k := range l.Configs {

@@ -3,6 +3,7 @@ package entity
 import (
 	"fmt"
 	"github.com/bep/logg"
+	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub/valueobject"
 	"github.com/gohugonet/hugoverse/internal/domain/fs"
 	"github.com/gohugonet/hugoverse/pkg/io"
@@ -13,7 +14,6 @@ import (
 // PageCollections contains the page collections for a site.
 type PageCollections struct {
 	PageMap *PageMap
-	Cache   *valueobject.Cache
 }
 
 type PageMap struct {
@@ -21,6 +21,10 @@ type PageMap struct {
 
 	// Main storage for all pages.
 	*PageTrees
+
+	Cache *valueobject.Cache
+
+	LangService contenthub.LangService
 
 	Log loggers.Logger
 }
@@ -42,10 +46,20 @@ func (m *PageMap) AddFi(fi fs.FileMetaInfo) error {
 			return fim.Open()
 		}
 
+		ps, err := newPageSource(fim, m.Cache)
+		if err != nil {
+			return err
+		}
+
 		var rs *resourceSource
 		if pi.IsContent() {
 			// Create the page now as we need it at assemembly time.
 			// The other resources are created if needed.
+			p, err := newBundledPage(ps, m.LangService)
+			if err != nil {
+				return err
+			}
+
 			pageResource, pi, err := newPage(
 				newBundledPageMeta(valueobject.NewFileInfo(fim), pi),
 			)
@@ -59,11 +73,11 @@ func (m *PageMap) AddFi(fi fs.FileMetaInfo) error {
 			key = pi.Base()
 
 			rs = &resourceSource{r: pageResource}
+			tree.InsertIntoValuesDimension(key, p)
 		} else {
 			rs = &resourceSource{path: pi, opener: r, fi: fim}
+			tree.InsertIntoValuesDimension(key, ps)
 		}
-
-		tree.InsertIntoValuesDimension(key, rs)
 
 		return nil
 	}

@@ -50,11 +50,20 @@ const (
 
 var AllKindsInPages = []string{KindPage, KindHome, KindSection}
 
-type Fs interface {
+type Services interface {
+	LangService
+	FsService
+}
+
+type FsService interface {
 	LayoutFs() afero.Fs
 	ContentFs() afero.Fs
 
 	WalkContent(start string, cb fs.WalkCallback, conf fs.WalkwayConfig) error
+}
+
+type LangService interface {
+	IsLanguageValid(lang string) bool
 }
 
 type TemplateExecutor interface {

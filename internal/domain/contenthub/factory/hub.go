@@ -8,7 +8,7 @@ import (
 	"github.com/gohugonet/hugoverse/pkg/loggers"
 )
 
-func New(fs contenthub.Fs) (*entity.ContentHub, error) {
+func New(services contenthub.Services) (*entity.ContentHub, error) {
 	log := loggers.NewDefault()
 
 	cs, err := newContentSpec()
@@ -17,16 +17,16 @@ func New(fs contenthub.Fs) (*entity.ContentHub, error) {
 	}
 
 	ch := &entity.ContentHub{
-		Fs:               fs,
+		Fs:               services,
 		TemplateExecutor: nil,
 		PageCollections: &entity.PageCollections{
 			PageMap: &entity.PageMap{
 				ContentSpec: cs,
 				PageTrees:   newPageTree(),
 
-				Log: log,
+				Cache: valueobject.NewCache(),
+				Log:   log,
 			},
-			Cache: valueobject.NewCache(),
 		},
 		Title: &entity.Title{
 			Style: entity.StyleAP,
