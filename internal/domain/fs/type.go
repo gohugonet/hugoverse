@@ -2,7 +2,6 @@ package fs
 
 import (
 	"github.com/gohugonet/hugoverse/pkg/media"
-	"github.com/gohugonet/hugoverse/pkg/paths"
 	"github.com/spf13/afero"
 	"io/fs"
 	"path/filepath"
@@ -64,10 +63,8 @@ type FileMeta interface {
 	Open() (afero.File, error)
 
 	FileName() string
+	Component() string
 	Root() string
-
-	Path() *paths.Path
-	SetPath(path *paths.Path)
 }
 
 type (

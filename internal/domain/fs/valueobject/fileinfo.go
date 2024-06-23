@@ -5,6 +5,23 @@ import (
 	"os"
 )
 
+type FileInfo struct {
+	fs.FileInfo
+	*FileMeta
+}
+
+func (fi *FileInfo) Meta() *FileMeta {
+	return fi.FileMeta
+}
+
+func (fi *FileInfo) Type() fs.FileMode {
+	return fi.FileInfo.Mode()
+}
+
+func (fi *FileInfo) Info() (fs.FileInfo, error) {
+	return fi.FileInfo, nil
+}
+
 func NewFileInfo(fi os.FileInfo, filename string) *FileInfo {
 	info := &FileInfo{
 		FileInfo: fi,
@@ -56,21 +73,4 @@ func NewFileInfoWithMeta(fi os.FileInfo, meta *FileMeta) *FileInfo {
 	info.FileMeta = meta
 
 	return info
-}
-
-type FileInfo struct {
-	fs.FileInfo
-	*FileMeta
-}
-
-func (fi *FileInfo) Meta() *FileMeta {
-	return fi.FileMeta
-}
-
-func (fi *FileInfo) Type() fs.FileMode {
-	return fi.FileInfo.Mode()
-}
-
-func (fi *FileInfo) Info() (fs.FileInfo, error) {
-	return fi.FileInfo, nil
 }

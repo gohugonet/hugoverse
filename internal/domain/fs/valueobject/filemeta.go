@@ -3,7 +3,6 @@ package valueobject
 import (
 	"errors"
 	"github.com/gohugonet/hugoverse/pkg/hreflect"
-	"github.com/gohugonet/hugoverse/pkg/paths"
 	"github.com/spf13/afero"
 	"reflect"
 )
@@ -15,15 +14,19 @@ type MetaProvider interface {
 type FileOpener func() (afero.File, error)
 
 type FileMeta struct {
-	filename string
-	root     string
+	filename  string
+	root      string
+	component string
 
 	OpenFunc FileOpener
-	PathInfo *paths.Path
 }
 
 func NewFileMeta() *FileMeta {
 	return &FileMeta{}
+}
+
+func (f *FileMeta) Component() string {
+	return f.component
 }
 
 func (f *FileMeta) Root() string {
@@ -69,12 +72,4 @@ func (f *FileMeta) Open() (afero.File, error) {
 
 func (f *FileMeta) FileName() string {
 	return f.filename
-}
-
-func (f *FileMeta) Path() *paths.Path {
-	return f.PathInfo
-}
-
-func (f *FileMeta) SetPath(path *paths.Path) {
-	f.PathInfo = path
 }

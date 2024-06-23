@@ -45,6 +45,10 @@ func (fm *FrontMatter) parse() error {
 	if err := fm.parseCascade(); err != nil {
 		return err
 	}
+
+	if err := fm.parseCustomized(); err != nil {
+		return err
+	}
 	return nil
 }
 

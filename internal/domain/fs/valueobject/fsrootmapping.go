@@ -160,7 +160,7 @@ func (rmfs *RootMappingFs) doDoStat(name string) ([]fs.FileMetaInfo, error) {
 	return []fs.FileMetaInfo{NewFileInfoWithOpener(roots[0].ToFi, name,
 		func() (afero.File, error) {
 			return NewDirFileWithVirtualOpener(
-				&File{File: nil, filename: name},
+				&File{File: nil, FileMeta: FileMeta{filename: name}},
 				func() ([]iofs.DirEntry, error) {
 					return rmfs.collectRootDirEntries(name)
 				}), nil
@@ -187,7 +187,10 @@ func (rmfs *RootMappingFs) statRoot(root RootMapping, name string) (fs.FileMetaI
 				return nil, err
 			}
 
-			df := NewDirFile(f, filename, rmfs)
+			df := NewDirFile(f, FileMeta{
+				filename: filename,
+				root:     root.To,
+			}, rmfs)
 			return df, nil
 		}
 	}

@@ -2,7 +2,6 @@ package valueobject
 
 import (
 	"fmt"
-	"github.com/gohugonet/hugoverse/pkg/paths"
 	"github.com/spf13/afero"
 	"io/fs"
 	"path/filepath"
@@ -16,17 +15,16 @@ type DirFile struct {
 
 	virtualOpener DirOpener
 
-	filter       func([]fs.DirEntry) ([]fs.DirEntry, error)
-	sorter       func([]fs.DirEntry) []fs.DirEntry
-	pathResolver func(name string) *paths.Path
+	filter func([]fs.DirEntry) ([]fs.DirEntry, error)
+	sorter func([]fs.DirEntry) []fs.DirEntry
 }
 
 func NewDirFileWithVirtualOpener(f *File, opener DirOpener) *DirFile {
 	return &DirFile{File: f, virtualOpener: opener}
 }
 
-func NewDirFile(file afero.File, filename string, fs afero.Fs) *DirFile {
-	return &DirFile{File: &File{File: file, filename: filename}, fs: fs, virtualOpener: nil}
+func NewDirFile(file afero.File, meta FileMeta, fs afero.Fs) *DirFile {
+	return &DirFile{File: &File{File: file, FileMeta: meta}, fs: fs, virtualOpener: nil}
 }
 
 func (f *DirFile) ReadDir(count int) ([]fs.DirEntry, error) {
@@ -47,17 +45,15 @@ func (f *DirFile) ReadDir(count int) ([]fs.DirEntry, error) {
 		for _, fi := range fis {
 			filename := filepath.Join(f.File.filename, fi.Name())
 
-			var path *paths.Path
-			if f.pathResolver != nil {
-				path = f.pathResolver(filename)
-			}
-			fim, err := NewFileInfoWithDirEntryMeta(fi, &FileMeta{
+			meta := &FileMeta{
 				filename: filename,
 				OpenFunc: func() (afero.File, error) {
 					return f.fs.Open(filename)
 				},
-				PathInfo: path,
-			})
+			}
+			meta.Merge(&f.File.FileMeta)
+
+			fim, err := NewFileInfoWithDirEntryMeta(fi, meta)
 
 			if err != nil {
 				return nil, err

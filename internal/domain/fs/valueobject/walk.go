@@ -6,13 +6,10 @@ import (
 	"github.com/gohugonet/hugoverse/pkg/herrors"
 	"github.com/gohugonet/hugoverse/pkg/loggers"
 	"github.com/gohugonet/hugoverse/pkg/overlayfs"
-	"github.com/gohugonet/hugoverse/pkg/paths"
+	"github.com/spf13/afero"
 	iofs "io/fs"
 	"path/filepath"
 	"sort"
-	"strings"
-
-	"github.com/spf13/afero"
 
 	"github.com/gohugonet/hugoverse/internal/domain/fs"
 )
@@ -85,8 +82,6 @@ func (w *Walkway) checkErr(filename string, err error) bool {
 
 // walk recursively descends path, calling walkFn.
 func (w *Walkway) walk(path string, info fs.FileMetaInfo, dirEntries []fs.FileMetaInfo) error {
-	pathRel := strings.TrimPrefix(path, w.Root)
-
 	if info == nil {
 		var err error
 		fi, err := w.Fs.Stat(path)
@@ -134,11 +129,6 @@ func (w *Walkway) walk(path string, info fs.FileMetaInfo, dirEntries []fs.FileMe
 		}
 
 		dirEntries = DirEntriesToFileMetaInfos(fis)
-		for _, fi := range dirEntries {
-			if fi.Path() == nil {
-				fi.SetPath(paths.Parse("", filepath.Join(pathRel, fi.Name())))
-			}
-		}
 
 		if w.cfg.SortDirEntries {
 			sort.Slice(dirEntries, func(i, j int) bool {

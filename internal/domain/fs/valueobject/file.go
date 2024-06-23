@@ -4,13 +4,9 @@ import (
 	"github.com/spf13/afero"
 )
 
-func NewFile(file afero.File, filename string) *File {
-	return &File{File: file, filename: filename}
-}
-
 type File struct {
 	afero.File
-	filename string
+	FileMeta
 }
 
 func (f *File) Close() error {
@@ -18,4 +14,8 @@ func (f *File) Close() error {
 		return nil
 	}
 	return f.File.Close()
+}
+
+func NewFile(file afero.File, filename string) *File {
+	return &File{File: file, FileMeta: FileMeta{filename: filename}}
 }

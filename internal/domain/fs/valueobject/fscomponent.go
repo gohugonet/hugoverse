@@ -3,7 +3,6 @@ package valueobject
 import (
 	"github.com/gohugonet/hugoverse/internal/domain/fs"
 	"github.com/gohugonet/hugoverse/pkg/herrors"
-	"github.com/gohugonet/hugoverse/pkg/paths"
 	"github.com/spf13/afero"
 	iofs "io/fs"
 	"os"
@@ -31,8 +30,8 @@ func (cfs *ComponentFs) Stat(name string) (os.FileInfo, error) {
 	}
 
 	meta := &FileMeta{
-		filename: name,
-		PathInfo: cfs.pathResolver(name),
+		filename:  name,
+		component: cfs.Component,
 	}
 
 	if fi.IsDir() {
@@ -42,12 +41,6 @@ func (cfs *ComponentFs) Stat(name string) (os.FileInfo, error) {
 	}
 
 	return NewFileInfoWithMeta(fi, meta), nil
-}
-
-func (cfs *ComponentFs) pathResolver(name string) *paths.Path {
-	p := paths.NewPathParser()
-
-	return p.Parse(cfs.Component, name)
 }
 
 func (cfs *ComponentFs) Open(name string) (afero.File, error) {
@@ -63,10 +56,9 @@ func (cfs *ComponentFs) Open(name string) (afero.File, error) {
 	}
 
 	if fi.IsDir() {
-		df := NewDirFile(f, name, cfs)
+		df := NewDirFile(f, FileMeta{filename: name, component: cfs.Component}, cfs)
 		df.filter = symlinkFilter
 		df.sorter = sorter
-		df.pathResolver = cfs.pathResolver
 
 		return df, nil
 	}

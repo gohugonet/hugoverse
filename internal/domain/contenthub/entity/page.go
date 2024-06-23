@@ -18,6 +18,7 @@ var pageIDCounter atomic.Uint64
 type Page struct {
 	*PageSource
 	*FrontMatter
+	*PagePath
 
 	id uint64
 
@@ -49,6 +50,13 @@ func newBundledPage(source *PageSource, langSer contenthub.LangService) (*Page, 
 	}
 	if err := p.FrontMatter.parse(); err != nil {
 		return nil, err
+	}
+
+	pi := paths.Parse(p.PageSource.fi.Component(), p.PageSource.fi.FileName())
+	if p.FrontMatter.Path != "" {
+		p.PagePath = newPathFromConfig(p.FrontMatter.Path, p.FrontMatter.Kind, pi)
+	} else {
+		p.PagePath = &PagePath{pathInfo: pi}
 	}
 
 	return p, nil
