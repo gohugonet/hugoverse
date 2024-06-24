@@ -26,6 +26,9 @@ func New(services contenthub.Services) (*entity.ContentHub, error) {
 
 				Cache: valueobject.NewCache(),
 				Log:   log,
+
+				LangSvc:     services,
+				TaxonomySvc: services,
 			},
 		},
 		Title: &entity.Title{

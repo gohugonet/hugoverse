@@ -38,3 +38,7 @@ func newPathFromConfig(path string, kind string, pi *paths.Path) *PagePath {
 		pathInfo: pathInfo,
 	}
 }
+
+func (p *PagePath) Path() string {
+	return p.pathInfo.Base()
+}

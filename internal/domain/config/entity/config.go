@@ -22,6 +22,8 @@ type Config struct {
 	OutputFormats
 
 	MinifyC
+
+	Taxonomy
 }
 
 func (c *Config) Fs() afero.Fs {

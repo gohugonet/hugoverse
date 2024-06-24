@@ -53,6 +53,7 @@ var AllKindsInPages = []string{KindPage, KindHome, KindSection}
 type Services interface {
 	LangService
 	FsService
+	TaxonomyService
 }
 
 type FsService interface {
@@ -64,6 +65,14 @@ type FsService interface {
 
 type LangService interface {
 	IsLanguageValid(lang string) bool
+	GetSourceLang(source string) (string, bool)
+	DefaultLang() string
+}
+
+type TaxonomyService interface {
+	IsZero(s string) bool
+	Singular(s string) string
+	PluralTreeKey(s string) string
 }
 
 type TemplateExecutor interface {

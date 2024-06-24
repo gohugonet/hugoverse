@@ -24,7 +24,8 @@ type PageMap struct {
 
 	Cache *valueobject.Cache
 
-	LangService contenthub.LangService
+	LangSvc     contenthub.LangService
+	TaxonomySvc contenthub.TaxonomyService
 
 	Log loggers.Logger
 }
@@ -34,8 +35,9 @@ func (m *PageMap) AddFi(fi fs.FileMetaInfo) error {
 		return nil
 	}
 
+	pi := paths.Parse(fi.Component(), fi.FileName())
+
 	insertResource := func(fim fs.FileMetaInfo) error {
-		pi := fi.Path()
 		key := pi.Base()
 		tree := m.TreeResources
 
@@ -51,38 +53,30 @@ func (m *PageMap) AddFi(fi fs.FileMetaInfo) error {
 			return err
 		}
 
-		var rs *resourceSource
 		if pi.IsContent() {
 			// Create the page now as we need it at assemembly time.
 			// The other resources are created if needed.
-			p, err := newBundledPage(ps, m.LangService)
+			p, err := newBundledPage(ps, m.LangSvc, m.TaxonomySvc)
 			if err != nil {
 				return err
 			}
 
-			pageResource, pi, err := newPage(
-				newBundledPageMeta(valueobject.NewFileInfo(fim), pi),
-			)
 			if err != nil {
 				return err
 			}
-			if pageResource == nil {
+			if p == nil {
 				// Disabled page.
 				return nil
 			}
 			key = pi.Base()
 
-			rs = &resourceSource{r: pageResource}
 			tree.InsertIntoValuesDimension(key, p)
 		} else {
-			rs = &resourceSource{path: pi, opener: r, fi: fim}
 			tree.InsertIntoValuesDimension(key, ps)
 		}
 
 		return nil
 	}
-
-	pi := fi.Path()
 
 	switch pi.BundleType() {
 	case paths.PathTypeFile, paths.PathTypeContentResource:

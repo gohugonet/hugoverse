@@ -3,6 +3,7 @@ package entity
 import (
 	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
+	"github.com/gohugonet/hugoverse/internal/domain/contenthub/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/cache/stale"
 	"github.com/gohugonet/hugoverse/pkg/lazy"
 	"github.com/gohugonet/hugoverse/pkg/maps"
@@ -22,12 +23,18 @@ type Page struct {
 
 	id uint64
 
-	kind string
+	lang string
+
+	kind     string
+	singular string
+	term     string
+
+	taxonomyService contenthub.TaxonomyService
 
 	bundled bool // Set if this page is bundled inside another.
 }
 
-func newBundledPage(source *PageSource, langSer contenthub.LangService) (*Page, error) {
+func newBundledPage(source *PageSource, langSer contenthub.LangService, taxSer contenthub.TaxonomyService) (*Page, error) {
 	p := &Page{
 		PageSource: source,
 		FrontMatter: &FrontMatter{
@@ -39,6 +46,8 @@ func newBundledPage(source *PageSource, langSer contenthub.LangService) (*Page, 
 
 		id:      pageIDCounter.Add(1),
 		bundled: true,
+
+		taxonomyService: taxSer,
 	}
 
 	if err := p.PageSource.parse(); err != nil {
@@ -52,14 +61,54 @@ func newBundledPage(source *PageSource, langSer contenthub.LangService) (*Page, 
 		return nil, err
 	}
 
+	p.setupPagePath()
+	p.setupLang()
+	p.setupKind()
+
+	return p, nil
+}
+
+func (p *Page) setupPagePath() {
 	pi := paths.Parse(p.PageSource.fi.Component(), p.PageSource.fi.FileName())
 	if p.FrontMatter.Path != "" {
 		p.PagePath = newPathFromConfig(p.FrontMatter.Path, p.FrontMatter.Kind, pi)
 	} else {
 		p.PagePath = &PagePath{pathInfo: pi}
 	}
+}
 
-	return p, nil
+func (p *Page) setupLang() {
+	l, ok := p.FrontMatter.langService.GetSourceLang(p.PageSource.fi.Root())
+	if ok {
+		p.lang = l
+	} else {
+		p.lang = p.FrontMatter.langService.DefaultLang()
+	}
+}
+
+func (p *Page) setupKind() {
+	p.kind = p.FrontMatter.Kind
+	if p.FrontMatter.Kind == "" {
+		p.Kind = valueobject.KindSection
+		if p.PagePath.pathInfo.Base() == "/" {
+			p.Kind = valueobject.KindHome
+		} else if p.PagePath.pathInfo.IsBranchBundle() {
+			// A section, taxonomy or term.
+			if !p.taxonomyService.IsZero(p.PagePath.Path()) {
+				// Either a taxonomy or a term.
+				if p.taxonomyService.PluralTreeKey(p.PagePath.Path()) == p.PagePath.Path() {
+					p.Kind = valueobject.KindTaxonomy
+					p.singular = p.taxonomyService.Singular(p.PagePath.Path())
+				} else {
+					p.Kind = valueobject.KindTerm
+					p.singular = p.taxonomyService.Singular(p.PagePath.Path())
+					p.term = p.PagePath.pathInfo.Unnormalized().BaseNameNoIdentifier()
+				}
+			}
+		} else {
+			p.Kind = valueobject.KindPage
+		}
+	}
 }
 
 func newPage(m *pageMeta) (*pageState, *paths.Path, error) {

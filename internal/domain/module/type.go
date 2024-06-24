@@ -31,6 +31,8 @@ type Modules interface {
 	Proj() Module
 	All() []Module
 	IsProjMod(mod Module) bool
+
+	GetSourceLang(source string) (string, bool)
 }
 
 type Module interface {

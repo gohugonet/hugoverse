@@ -294,5 +294,8 @@ func (cl *ConfigLoader) decodeConfig(p config.Provider, target *entity.Config) e
 	}
 	target.Language.RootConfigs = langConfigMap
 
+	target.Taxonomy.Taxonomies = maps.CleanConfigStringMapString(p.GetStringMapString("taxonomies"))
+	target.Taxonomy.SetupViews()
+
 	return nil
 }

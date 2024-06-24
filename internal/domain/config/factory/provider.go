@@ -57,6 +57,8 @@ func LoadConfig() (*entity.Config, error) {
 		Language:  entity.Language{},
 		Imaging:   entity.Imaging{},
 		MediaType: entity.MediaType{},
+
+		Taxonomy: entity.Taxonomy{},
 	}
 
 	if err := l.assembleConfig(c); err != nil {
