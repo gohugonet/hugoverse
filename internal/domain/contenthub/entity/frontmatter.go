@@ -25,7 +25,7 @@ type FrontMatter struct {
 	langService contenthub.LangService
 }
 
-func (fm *FrontMatter) frontMatterMap(it pageparser.Item, source []byte) error {
+func (fm *FrontMatter) frontMatterHandler(it pageparser.Item, source []byte) error {
 	f := pageparser.FormatFromFrontMatterType(it.Type)
 
 	m, err := metadecoders.Default.UnmarshalToMap(it.Val(source), f)

@@ -17,9 +17,11 @@ import (
 var pageIDCounter atomic.Uint64
 
 type Page struct {
-	*PageSource
+	*Source
 	*FrontMatter
-	*PagePath
+	*Path
+	*Shortcodes
+	*Content
 
 	id uint64
 
@@ -34,15 +36,22 @@ type Page struct {
 	bundled bool // Set if this page is bundled inside another.
 }
 
-func newBundledPage(source *PageSource, langSer contenthub.LangService, taxSer contenthub.TaxonomyService) (*Page, error) {
+func newBundledPage(source *Source, langSer contenthub.LangService, taxSer contenthub.TaxonomyService) (*Page, error) {
+	contentBytes, err := source.contentSource()
+	if err != nil {
+		return nil, err
+	}
+
 	p := &Page{
-		PageSource: source,
+		Source: source,
 		FrontMatter: &FrontMatter{
 			Params:     maps.Params{},
 			Customized: maps.Params{},
 
 			langService: langSer,
 		},
+		Shortcodes: &Shortcodes{source: contentBytes, ordinal: 0},
+		Content:    &Content{source: contentBytes},
 
 		id:      pageIDCounter.Add(1),
 		bundled: true,
@@ -50,13 +59,13 @@ func newBundledPage(source *PageSource, langSer contenthub.LangService, taxSer c
 		taxonomyService: taxSer,
 	}
 
-	if err := p.PageSource.parse(); err != nil {
+	p.Source.registerHandler(p.FrontMatter.frontMatterHandler,
+		p.Content.summaryHandler, p.Content.bytesHandler)
+
+	if err := p.Source.parse(); err != nil {
 		return nil, err
 	}
 
-	if err := p.PageSource.mapItems(p.FrontMatter.frontMatterMap); err != nil {
-		return nil, err
-	}
 	if err := p.FrontMatter.parse(); err != nil {
 		return nil, err
 	}
@@ -69,16 +78,16 @@ func newBundledPage(source *PageSource, langSer contenthub.LangService, taxSer c
 }
 
 func (p *Page) setupPagePath() {
-	pi := paths.Parse(p.PageSource.fi.Component(), p.PageSource.fi.FileName())
+	pi := paths.Parse(p.Source.fi.Component(), p.Source.fi.FileName())
 	if p.FrontMatter.Path != "" {
-		p.PagePath = newPathFromConfig(p.FrontMatter.Path, p.FrontMatter.Kind, pi)
+		p.Path = newPathFromConfig(p.FrontMatter.Path, p.FrontMatter.Kind, pi)
 	} else {
-		p.PagePath = &PagePath{pathInfo: pi}
+		p.Path = &Path{pathInfo: pi}
 	}
 }
 
 func (p *Page) setupLang() {
-	l, ok := p.FrontMatter.langService.GetSourceLang(p.PageSource.fi.Root())
+	l, ok := p.FrontMatter.langService.GetSourceLang(p.Source.fi.Root())
 	if ok {
 		p.lang = l
 	} else {
@@ -90,19 +99,19 @@ func (p *Page) setupKind() {
 	p.kind = p.FrontMatter.Kind
 	if p.FrontMatter.Kind == "" {
 		p.Kind = valueobject.KindSection
-		if p.PagePath.pathInfo.Base() == "/" {
+		if p.Path.pathInfo.Base() == "/" {
 			p.Kind = valueobject.KindHome
-		} else if p.PagePath.pathInfo.IsBranchBundle() {
+		} else if p.Path.pathInfo.IsBranchBundle() {
 			// A section, taxonomy or term.
-			if !p.taxonomyService.IsZero(p.PagePath.Path()) {
+			if !p.taxonomyService.IsZero(p.Path.Path()) {
 				// Either a taxonomy or a term.
-				if p.taxonomyService.PluralTreeKey(p.PagePath.Path()) == p.PagePath.Path() {
+				if p.taxonomyService.PluralTreeKey(p.Path.Path()) == p.Path.Path() {
 					p.Kind = valueobject.KindTaxonomy
-					p.singular = p.taxonomyService.Singular(p.PagePath.Path())
+					p.singular = p.taxonomyService.Singular(p.Path.Path())
 				} else {
 					p.Kind = valueobject.KindTerm
-					p.singular = p.taxonomyService.Singular(p.PagePath.Path())
-					p.term = p.PagePath.pathInfo.Unnormalized().BaseNameNoIdentifier()
+					p.singular = p.taxonomyService.Singular(p.Path.Path())
+					p.term = p.Path.pathInfo.Unnormalized().BaseNameNoIdentifier()
 				}
 			}
 		} else {

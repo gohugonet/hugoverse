@@ -6,11 +6,11 @@ import (
 	"github.com/gohugonet/hugoverse/pkg/paths/files"
 )
 
-type PagePath struct {
+type Path struct {
 	pathInfo *paths.Path
 }
 
-func newPathFromConfig(path string, kind string, pi *paths.Path) *PagePath {
+func newPathFromConfig(path string, kind string, pi *paths.Path) *Path {
 	s := path
 	if !paths.HasExt(s) {
 		var (
@@ -34,11 +34,11 @@ func newPathFromConfig(path string, kind string, pi *paths.Path) *PagePath {
 	}
 	pathInfo := paths.Parse(files.ComponentFolderContent, s)
 
-	return &PagePath{
+	return &Path{
 		pathInfo: pathInfo,
 	}
 }
 
-func (p *PagePath) Path() string {
+func (p *Path) Path() string {
 	return p.pathInfo.Base()
 }
