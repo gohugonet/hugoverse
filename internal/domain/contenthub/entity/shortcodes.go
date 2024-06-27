@@ -3,8 +3,11 @@ package entity
 import (
 	"errors"
 	"fmt"
+	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub/valueobject"
+	"github.com/gohugonet/hugoverse/internal/domain/template"
 	"github.com/gohugonet/hugoverse/pkg/parser/pageparser"
+	"strconv"
 	"sync"
 )
 
@@ -21,40 +24,46 @@ type Shortcodes struct {
 
 	source []byte
 
+	pid     uint64
 	ordinal int
 	level   int
 
 	contentStore shortcodeContentStore
+	tmplSvc      contenthub.Template
 }
 
-func (s *Shortcodes) shortcodeHandler(pt *pageparser.Iterator) error {
+func (s *Shortcodes) shortcodeHandler(it pageparser.Item, pt *pageparser.Iterator) error {
 	currShortcode, err := s.extractShortcode(s.ordinal, 0, pt)
 	if err != nil {
-		return fail(err, it)
+		return err
 	}
 
-	currShortcode.pos = it.Pos()
-	currShortcode.length = iter.Current().Pos() - it.Pos()
-	if currShortcode.placeholder == "" {
-		currShortcode.placeholder = createShortcodePlaceholder("s", rn.pid, currShortcode.ordinal)
+	currShortcode.Pos = it.Pos()
+	currShortcode.Length = pt.Current().Pos() - it.Pos()
+
+	if currShortcode.Name != "" {
+		s.addName(currShortcode.Name)
 	}
 
-	if currShortcode.name != "" {
-		s.addName(currShortcode.name)
-	}
-
-	if currShortcode.params == nil {
+	if currShortcode.Params == nil {
 		var s []string
-		currShortcode.params = s
+		currShortcode.Params = s
 	}
 
-	currShortcode.placeholder = createShortcodePlaceholder("s", rn.pid, ordinal)
+	currShortcode.Placeholder = createShortcodePlaceholder("s", s.pid, s.ordinal)
 	s.ordinal++
 	s.shortcodes = append(s.shortcodes, currShortcode)
 
 	s.contentStore.AddShortcode(currShortcode)
 
 	return nil
+}
+
+// Note - this value must not contain any markup syntax
+const shortcodePlaceholderPrefix = "HAHAHUGOSHORTCODE"
+
+func createShortcodePlaceholder(sid string, id uint64, ordinal int) string {
+	return shortcodePlaceholderPrefix + strconv.FormatUint(id, 10) + sid + strconv.Itoa(ordinal) + "HBHB"
 }
 
 // pageTokens state:
@@ -120,7 +129,7 @@ Loop:
 			// we trust the template on this:
 			// if there's no inner, we're done
 			if !sc.IsInline {
-				if !sc.info.ParseInfo().IsInner {
+				if !sc.Info.ParseInfo().Inner() {
 					return sc, nil
 				}
 			}
@@ -129,7 +138,7 @@ Loop:
 			closed = true
 			next := pt.Peek()
 			if !sc.IsInline {
-				if !sc.needsInner() {
+				if !sc.NeedsInner() {
 					if next.IsError() {
 						// return that error, more specific
 						continue
@@ -141,63 +150,63 @@ Loop:
 				// self-closing
 				pt.Consume(1)
 			} else {
-				sc.isClosing = true
+				sc.IsClosing = true
 				pt.Consume(2)
 			}
 
 			return sc, nil
 		case currItem.IsText():
-			sc.inner = append(sc.inner, currItem.ValStr(source))
+			sc.Inner = append(sc.Inner, currItem.ValStr(s.source))
 		case currItem.IsShortcodeName():
 
-			sc.name = currItem.ValStr(source)
+			sc.Name = currItem.ValStr(s.source)
 
 			// Used to check if the template expects inner content.
-			templs := s.s.Tmpl().LookupVariants(sc.name)
+			templs := s.tmplSvc.LookupVariants(sc.Name)
 			if templs == nil {
-				return nil, fmt.Errorf("%s: template for shortcode %q not found", errorPrefix, sc.name)
+				return nil, fmt.Errorf("%s: template for shortcode %q not found", errorPrefix, sc.Name)
 			}
 
-			sc.info = templs[0].(tpl.Info)
-			sc.templs = templs
+			sc.Info = templs[0].(template.Info)
+			sc.Templs = templs
 		case currItem.IsInlineShortcodeName():
-			sc.name = currItem.ValStr(source)
-			sc.isInline = true
+			sc.Name = currItem.ValStr(s.source)
+			sc.IsInline = true
 		case currItem.IsShortcodeParam():
 			if !pt.IsValueNext() {
 				continue
 			} else if pt.Peek().IsShortcodeParamVal() {
 				// named params
-				if sc.params == nil {
+				if sc.Params == nil {
 					params := make(map[string]any)
-					params[currItem.ValStr(source)] = pt.Next().ValTyped(source)
-					sc.params = params
+					params[currItem.ValStr(s.source)] = pt.Next().ValTyped(s.source)
+					sc.Params = params
 				} else {
-					if params, ok := sc.params.(map[string]any); ok {
-						params[currItem.ValStr(source)] = pt.Next().ValTyped(source)
+					if params, ok := sc.Params.(map[string]any); ok {
+						params[currItem.ValStr(s.source)] = pt.Next().ValTyped(s.source)
 					} else {
-						return sc, fmt.Errorf("%s: invalid state: invalid param type %T for shortcode %q, expected a map", errorPrefix, params, sc.name)
+						return sc, fmt.Errorf("%s: invalid state: invalid param type %T for shortcode %q, expected a map", errorPrefix, params, sc.Name)
 					}
 				}
 			} else {
 				// positional params
-				if sc.params == nil {
+				if sc.Params == nil {
 					var params []any
-					params = append(params, currItem.ValTyped(source))
-					sc.params = params
+					params = append(params, currItem.ValTyped(s.source))
+					sc.Params = params
 				} else {
-					if params, ok := sc.params.([]any); ok {
-						params = append(params, currItem.ValTyped(source))
-						sc.params = params
+					if params, ok := sc.Params.([]any); ok {
+						params = append(params, currItem.ValTyped(s.source))
+						sc.Params = params
 					} else {
-						return sc, fmt.Errorf("%s: invalid state: invalid param type %T for shortcode %q, expected a slice", errorPrefix, params, sc.name)
+						return sc, fmt.Errorf("%s: invalid state: invalid param type %T for shortcode %q, expected a slice", errorPrefix, params, sc.Name)
 					}
 				}
 			}
 		case currItem.IsDone():
 			if !currItem.IsError() {
-				if !closed && sc.needsInner() {
-					return sc, fmt.Errorf("%s: shortcode %q must be closed or self-closed", errorPrefix, sc.name)
+				if !closed && sc.NeedsInner() {
+					return sc, fmt.Errorf("%s: shortcode %q must be closed or self-closed", errorPrefix, sc.Name)
 				}
 			}
 			// handled by caller

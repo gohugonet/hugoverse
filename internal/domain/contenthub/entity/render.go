@@ -17,7 +17,7 @@ import (
 
 type render struct {
 	pageMap          *PageMap
-	templateExecutor contenthub.TemplateExecutor
+	templateExecutor contenthub.Template
 	td               contenthub.TemplateDescriptor
 	cb               func(info contenthub.PageInfo) error
 

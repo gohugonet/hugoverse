@@ -83,11 +83,13 @@ func (p *Source) readSourceAll() ([]byte, error) {
 }
 
 func (p *Source) registerHandler(fm valueobject.ItemSourceHandler,
-	summary valueobject.IterHandler, bytes valueobject.ItemHandler) {
+	summary valueobject.IterHandler, bytes valueobject.ItemHandler,
+	shortcode valueobject.IterHandler) {
 
 	p.parseInfo.FrontMatterHandler = fm
 	p.parseInfo.SummaryHandler = summary
 	p.parseInfo.BytesHandler = bytes
+	p.parseInfo.ShortcodeHandler = shortcode
 }
 
 func (p *Source) parse() error {

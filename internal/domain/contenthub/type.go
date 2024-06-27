@@ -20,7 +20,7 @@ type ContentHub interface {
 
 	RenderString(ctx context.Context, args ...any) (goTmpl.HTML, error)
 
-	SetTemplateExecutor(exec TemplateExecutor)
+	SetTemplateExecutor(exec Template)
 
 	Title
 }
@@ -75,9 +75,10 @@ type TaxonomyService interface {
 	PluralTreeKey(s string) string
 }
 
-type TemplateExecutor interface {
+type Template interface {
 	ExecuteWithContext(ctx context.Context, tmpl template.Preparer, wr io.Writer, data any) error
 	LookupLayout(d template.LayoutDescriptor) (template.Preparer, bool, error)
+	LookupVariants(name string) []template.Preparer
 }
 
 type BuildStateReseter interface {

@@ -32,6 +32,11 @@ func (c *Content) AddShortcode(s *valueobject.Shortcode) {
 	c.items = append(c.items, s)
 }
 
+func (c *Content) bytesHandler(item pageparser.Item) error {
+	c.items = append(c.items, item)
+	return nil
+}
+
 func (c *Content) summaryHandler(it pageparser.Item, iter *pageparser.Iterator) error {
 	posBody := -1
 	f := func(item pageparser.Item) bool {
@@ -55,10 +60,5 @@ func (c *Content) summaryHandler(it pageparser.Item, iter *pageparser.Iterator) 
 	// and we need to track the summary.
 	c.AddReplacement(internalSummaryDividerPre, it)
 
-	return nil
-}
-
-func (c *Content) bytesHandler(item pageparser.Item) error {
-	c.items = append(c.items, item)
 	return nil
 }

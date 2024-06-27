@@ -65,6 +65,7 @@ type Info interface {
 
 type ParseInfo interface {
 	Return() bool
+	Inner() bool
 }
 
 type CustomizedFunctions interface {

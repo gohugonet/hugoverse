@@ -25,6 +25,7 @@ type SourceParseInfo struct {
 	FrontMatterHandler ItemSourceHandler
 	SummaryHandler     IterHandler
 	BytesHandler       ItemHandler
+	ShortcodeHandler   IterHandler
 }
 
 func (s *SourceParseInfo) IsEmpty() bool {
@@ -42,6 +43,7 @@ Loop:
 	for {
 		it := iter.Next()
 		switch {
+		case it.Type == pageparser.TypeIgnore:
 		case it.IsFrontMatter():
 			if err := s.FrontMatterHandler(it, s.source); err != nil {
 				var fe herrors.FileError
@@ -64,6 +66,7 @@ Loop:
 
 				return err
 			}
+
 			next := iter.Peek()
 			if !next.IsDone() {
 				s.posMainContent = next.Pos()
@@ -73,10 +76,15 @@ Loop:
 			if err := s.SummaryHandler(it, iter); err != nil {
 				return err
 			}
+
 			// Handle shortcode
 		case it.IsLeftShortcodeDelim():
 			// let extractShortcode handle left delim (will do so recursively)
 			iter.Backup()
+
+			if err := s.ShortcodeHandler(it, iter); err != nil {
+				return s.failMap(err, it)
+			}
 
 		case it.IsEOF():
 			break Loop

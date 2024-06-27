@@ -13,7 +13,7 @@ type ContentHub struct {
 	Fs contenthub.FsService
 
 	// ExecTemplate handling.
-	TemplateExecutor contenthub.TemplateExecutor
+	TemplateExecutor contenthub.Template
 
 	*PageCollections
 
@@ -25,8 +25,9 @@ type ContentHub struct {
 	pagesLog logg.LevelLogger
 }
 
-func (ch *ContentHub) SetTemplateExecutor(exec contenthub.TemplateExecutor) {
+func (ch *ContentHub) SetTemplateExecutor(exec contenthub.Template) {
 	ch.TemplateExecutor = exec
+	ch.PageCollections.PageMap.TemplateSvc = exec
 }
 
 func (ch *ContentHub) CollectPages() error {

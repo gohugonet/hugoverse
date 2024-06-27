@@ -36,11 +36,13 @@ type Page struct {
 	bundled bool // Set if this page is bundled inside another.
 }
 
-func newBundledPage(source *Source, langSer contenthub.LangService, taxSer contenthub.TaxonomyService) (*Page, error) {
+func newBundledPage(source *Source, langSer contenthub.LangService, taxSer contenthub.TaxonomyService, tmplSvc contenthub.Template) (*Page, error) {
 	contentBytes, err := source.contentSource()
 	if err != nil {
 		return nil, err
 	}
+
+	pid := pageIDCounter.Add(1)
 
 	p := &Page{
 		Source: source,
@@ -50,17 +52,18 @@ func newBundledPage(source *Source, langSer contenthub.LangService, taxSer conte
 
 			langService: langSer,
 		},
-		Shortcodes: &Shortcodes{source: contentBytes, ordinal: 0},
+		Shortcodes: &Shortcodes{source: contentBytes, ordinal: 0, tmplSvc: tmplSvc, pid: pid},
 		Content:    &Content{source: contentBytes},
 
-		id:      pageIDCounter.Add(1),
+		id:      pid,
 		bundled: true,
 
 		taxonomyService: taxSer,
 	}
 
 	p.Source.registerHandler(p.FrontMatter.frontMatterHandler,
-		p.Content.summaryHandler, p.Content.bytesHandler)
+		p.Content.summaryHandler, p.Content.bytesHandler,
+		p.Shortcodes.shortcodeHandler)
 
 	if err := p.Source.parse(); err != nil {
 		return nil, err

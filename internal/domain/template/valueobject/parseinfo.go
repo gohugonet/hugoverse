@@ -18,6 +18,10 @@ func (info ParseInfo) Return() bool {
 	return info.HasReturn
 }
 
+func (info ParseInfo) Inner() bool {
+	return info.IsInner
+}
+
 type ParseConfig struct {
 	Version int
 }

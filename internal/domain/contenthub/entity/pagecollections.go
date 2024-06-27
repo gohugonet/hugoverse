@@ -26,6 +26,7 @@ type PageMap struct {
 
 	LangSvc     contenthub.LangService
 	TaxonomySvc contenthub.TaxonomyService
+	TemplateSvc contenthub.Template
 
 	Log loggers.Logger
 }
@@ -56,7 +57,7 @@ func (m *PageMap) AddFi(fi fs.FileMetaInfo) error {
 		if pi.IsContent() {
 			// Create the page now as we need it at assemembly time.
 			// The other resources are created if needed.
-			p, err := newBundledPage(ps, m.LangSvc, m.TaxonomySvc)
+			p, err := newBundledPage(ps, m.LangSvc, m.TaxonomySvc, m.TemplateSvc)
 			if err != nil {
 				return err
 			}

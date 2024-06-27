@@ -1,5 +1,7 @@
 package valueobject
 
+import "github.com/gohugonet/hugoverse/internal/domain/template"
+
 type Shortcode struct {
 	Name string
 
@@ -18,4 +20,22 @@ type Shortcode struct {
 	// The old behavior can be had by starting your shortcode template with:
 	//    {{ $_hugo_config := `{ "version": 1 }`}}
 	DoMarkup bool
+
+	IsClosing bool // whether a closing tag was provided
+
+	Info   template.Info       // One of the output formats (arbitrary)
+	Templs []template.Preparer // All output formats
+
+	Params any // map or array
+
+	Pos    int // the position in bytes in the source file
+	Length int // the length in bytes in the source file
+
+	// the placeholder in the source when passed to Goldmark etc.
+	// This also identifies the rendered shortcode.
+	Placeholder string
+}
+
+func (s Shortcode) NeedsInner() bool {
+	return s.Info != nil && s.Info.ParseInfo().Inner()
 }

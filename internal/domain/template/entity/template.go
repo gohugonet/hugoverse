@@ -23,7 +23,7 @@ type Template struct {
 	Fs   template.Fs
 
 	shortcodeOnce sync.Once
-	shortcode     *Shortcode
+	*Shortcode
 }
 
 func (t *Template) LookupLayout(d template.LayoutDescriptor) (template.Preparer, bool, error) {
@@ -165,11 +165,11 @@ func (t *Template) PostTransform() error {
 
 func (t *Template) getShortcode() *Shortcode {
 	t.shortcodeOnce.Do(func() {
-		t.shortcode = &Shortcode{
+		t.Shortcode = &Shortcode{
 			shortcodes: map[string]*shortcodeTemplates{},
 		}
 	})
-	return t.shortcode
+	return t.Shortcode
 }
 
 func isText(templ template.Preparer) bool {
