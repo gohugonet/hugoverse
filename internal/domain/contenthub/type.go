@@ -66,7 +66,7 @@ type FsService interface {
 type LangService interface {
 	IsLanguageValid(lang string) bool
 	GetSourceLang(source string) (string, bool)
-	DefaultLang() string
+	GetLanguageIndex(lang string) (int, error)
 }
 
 type TaxonomyService interface {
@@ -83,6 +83,21 @@ type Template interface {
 
 type BuildStateReseter interface {
 	ResetBuildState()
+}
+
+type PageIdentity interface {
+	identity.Identity
+
+	Language() string
+	LanguageIndex() int
+}
+
+type PageSource interface {
+	Identity() PageIdentity
+
+	stale.Staler
+	Language() string
+	LanguageIndex() int
 }
 
 type ContentNode interface {

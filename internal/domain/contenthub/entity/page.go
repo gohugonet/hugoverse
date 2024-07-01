@@ -14,18 +14,12 @@ import (
 	"sync/atomic"
 )
 
-var pageIDCounter atomic.Uint64
-
 type Page struct {
 	*Source
 	*FrontMatter
 	*Path
 	*Shortcodes
 	*Content
-
-	id uint64
-
-	lang string
 
 	kind     string
 	singular string
@@ -42,8 +36,6 @@ func newBundledPage(source *Source, langSer contenthub.LangService, taxSer conte
 		return nil, err
 	}
 
-	pid := pageIDCounter.Add(1)
-
 	p := &Page{
 		Source: source,
 		FrontMatter: &FrontMatter{
@@ -55,7 +47,6 @@ func newBundledPage(source *Source, langSer contenthub.LangService, taxSer conte
 		Shortcodes: &Shortcodes{source: contentBytes, ordinal: 0, tmplSvc: tmplSvc, pid: pid},
 		Content:    &Content{source: contentBytes},
 
-		id:      pid,
 		bundled: true,
 
 		taxonomyService: taxSer,
@@ -92,9 +83,14 @@ func (p *Page) setupPagePath() {
 func (p *Page) setupLang() {
 	l, ok := p.FrontMatter.langService.GetSourceLang(p.Source.fi.Root())
 	if ok {
-		p.lang = l
+		idx, err := p.FrontMatter.langService.GetLanguageIndex(l)
+		if err != nil {
+			panic(err)
+		}
+		p.Identity.Lang = l
+		p.Identity.LangIdx = idx
 	} else {
-		p.lang = p.FrontMatter.langService.DefaultLang()
+		panic(fmt.Sprintf("unknown lang %q", p.Source.fi.Root()))
 	}
 }
 

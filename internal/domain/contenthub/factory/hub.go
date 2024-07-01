@@ -70,7 +70,7 @@ func newPageTree() *entity.PageTrees {
 			treeConfig,
 		),
 		TreeResources: doctree.New(
-			treeConfig,
+			doctree.Config[*entity.PageTreesNode]{Shifter: &entity.SourceShifter{}},
 		),
 		TreeTaxonomyEntries: doctree.NewTreeShiftTree[contenthub.WeightedContentNode](
 			doctree.DimensionLanguage.Index(), 2), // TODO: get this from config

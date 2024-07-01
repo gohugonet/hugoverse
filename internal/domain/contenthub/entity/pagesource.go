@@ -10,12 +10,17 @@ import (
 	"github.com/gohugonet/hugoverse/pkg/paths"
 	sio "io"
 	"path/filepath"
+	"sync/atomic"
 )
+
+var pageIDCounter atomic.Uint64
 
 type Source struct {
 	fi     fs.FileMetaInfo
 	path   *paths.Path
 	opener io.OpenReadSeekCloser
+
+	*valueobject.Identity
 
 	contenthub.File
 
@@ -33,6 +38,10 @@ func newPageSource(fi fs.FileMetaInfo, c *valueobject.Cache) (*Source, error) {
 		return fi.Open()
 	}
 	return &Source{
+		Identity: &valueobject.Identity{
+			Id: pageIDCounter.Add(1),
+		},
+
 		fi:     fi,
 		path:   path,
 		opener: r,

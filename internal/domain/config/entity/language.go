@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"errors"
 	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/config/valueobject"
 	"golang.org/x/exp/maps"
@@ -10,6 +11,8 @@ type Language struct {
 	Default     string
 	Configs     map[string]valueobject.LanguageConfig
 	RootConfigs map[string]valueobject.RootConfig
+
+	indices []string
 }
 
 func (l Language) Languages() []valueobject.LanguageConfig {
@@ -60,4 +63,29 @@ func (l Language) Validate() error {
 
 func (l Language) defaultLangError() error {
 	return fmt.Errorf("config value %q for defaultContentLanguage does not match any language definition", l.Default)
+}
+
+func (l Language) SetIndices() {
+	var languages []string
+	// Ensure default language is first
+	if _, exists := l.Configs[l.Default]; exists {
+		languages = append(languages, l.Default)
+	}
+	// Add remaining languages
+	for lang := range l.Configs {
+		if lang != l.Default {
+			languages = append(languages, lang)
+		}
+	}
+
+	l.indices = languages
+}
+
+func (l Language) GetLanguageIndex(lang string) (int, error) {
+	for i, v := range l.indices {
+		if v == lang {
+			return i, nil
+		}
+	}
+	return -1, errors.New("language not found in indices")
 }

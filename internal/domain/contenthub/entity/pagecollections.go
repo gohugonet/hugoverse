@@ -71,9 +71,9 @@ func (m *PageMap) AddFi(fi fs.FileMetaInfo) error {
 			}
 			key = pi.Base()
 
-			tree.InsertIntoValuesDimension(key, p)
+			tree.InsertIntoValuesDimension(key, newPageTreesNode(p))
 		} else {
-			tree.InsertIntoValuesDimension(key, ps)
+			tree.InsertIntoValuesDimension(key, newPageTreesNode(ps))
 		}
 
 		return nil

@@ -32,16 +32,16 @@ type (
 
 	// Shifter handles tree transformations.
 	Shifter[T any] interface {
-		// ForEeachInDimension will call the given function for each value in the given dimension.
+		// ForEachInDimension will call the given function for each value in the given dimension.
 		// If the function returns true, the walk will stop.
-		ForEeachInDimension(n T, d int, f func(T) bool)
+		ForEachInDimension(n T, d int, f func(T) bool)
 
 		// Insert inserts new into the tree into the dimension it provides.
 		// It may replace old.
 		// It returns a T (can be the same as old).
 		Insert(old, new T) T
 
-		// Insert inserts new into the given dimension.
+		// InsertInto inserts new into the given dimension.
 		// It may replace old.
 		// It returns a T (can be the same as old).
 		InsertInto(old, new T, dimension Dimension) T
@@ -261,13 +261,13 @@ func (r *NodeShiftTree[T]) Get(s string) T {
 	return t
 }
 
-func (r *NodeShiftTree[T]) ForEeachInDimension(s string, d int, f func(T) bool) {
+func (r *NodeShiftTree[T]) ForEachInDimension(s string, d int, f func(T) bool) {
 	s = cleanKey(s)
 	v, ok := r.tree.Get(s)
 	if !ok {
 		return
 	}
-	r.shifter.ForEeachInDimension(v.(T), d, f)
+	r.shifter.ForEachInDimension(v.(T), d, f)
 }
 
 type WalkFunc[T any] func(string, T) (bool, error)
