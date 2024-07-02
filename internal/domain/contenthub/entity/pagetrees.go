@@ -3,6 +3,7 @@ package entity
 import (
 	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
+	"github.com/gohugonet/hugoverse/pkg/cache/stale"
 	"github.com/gohugonet/hugoverse/pkg/doctree"
 )
 
@@ -14,19 +15,30 @@ type PageTrees struct {
 	// Note that all of these trees share the same key structure,
 	// so you can take a leaf Page key and do a prefix search
 	// with key + "/" to get all of its resources.
-	TreePages *doctree.NodeShiftTree[contenthub.ContentNode]
+	TreePages *doctree.NodeShiftTree[*PageTreesNode]
 
 	// This tree contains Resources bundled in pages.
 	TreeResources *doctree.NodeShiftTree[*PageTreesNode]
 
 	// All pages and resources.
-	TreePagesResources doctree.WalkableTrees[contenthub.ContentNode]
+	TreePagesResources doctree.WalkableTrees[*PageTreesNode]
 
 	// This tree contains all taxonomy entries, e.g "/tags/blue/page1"
 	TreeTaxonomyEntries *doctree.TreeShiftTree[contenthub.WeightedContentNode]
 
 	// A slice of the resource trees.
 	ResourceTrees doctree.MutableTrees
+}
+
+func (t *PageTrees) CreateMutableTrees() {
+	t.TreePagesResources = doctree.WalkableTrees[*PageTreesNode]{
+		t.TreePages,
+		t.TreeResources,
+	}
+
+	t.ResourceTrees = doctree.MutableTrees{
+		t.TreeResources,
+	}
 }
 
 type PageTreesNode struct {
@@ -72,14 +84,38 @@ func (n *PageTreesNode) mergeWithLang(newNode *PageTreesNode, languageIndex int)
 	// Update or add entries from the new map
 	for newKey, newValue := range newNode.nodes {
 		if oldKey, exists := existingKeys[newKey.Language()]; exists {
-			// Replace the old value with the new value if language matches
 			if n.nodes[oldKey].LanguageIndex() == languageIndex {
-				delete(n.nodes, oldKey)
+				_ = n.remove(oldKey)
 			}
 		}
 		n.nodes[newKey] = newValue
 	}
 	return n
+}
+
+func (n *PageTreesNode) remove(k contenthub.PageIdentity) bool {
+	v, exists := n.nodes[k]
+	if !exists {
+		return false
+	}
+
+	stale.MarkStale(v)
+	delete(n.nodes, k)
+	return true
+}
+
+func (n *PageTreesNode) delete(languageIndex int) bool {
+	for k, _ := range n.nodes {
+		if n.nodes[k].LanguageIndex() == languageIndex {
+			return n.remove(k)
+		}
+	}
+
+	return false
+}
+
+func (n *PageTreesNode) isEmpty() bool {
+	return len(n.nodes) == 0
 }
 
 func (n *PageTreesNode) shift(languageIndex int, exact bool) *PageTreesNode {
@@ -94,15 +130,4 @@ func (n *PageTreesNode) shift(languageIndex int, exact bool) *PageTreesNode {
 	}
 
 	return nil
-}
-
-func (t *PageTrees) CreateMutableTrees() {
-	t.treePagesResources = doctree.WalkableTrees[contentNodeI]{
-		t.treePages,
-		t.treeResources,
-	}
-
-	t.resourceTrees = doctree.MutableTrees{
-		t.treeResources,
-	}
 }

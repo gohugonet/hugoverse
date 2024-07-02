@@ -6,7 +6,6 @@ import (
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub/valueobject"
 	"github.com/gohugonet/hugoverse/internal/domain/fs"
-	"github.com/gohugonet/hugoverse/pkg/io"
 	"github.com/gohugonet/hugoverse/pkg/loggers"
 	"github.com/gohugonet/hugoverse/pkg/paths"
 )
@@ -36,6 +35,11 @@ func (m *PageMap) AddFi(fi fs.FileMetaInfo) error {
 		return nil
 	}
 
+	ps, err := newPageSource(fi, m.Cache)
+	if err != nil {
+		return err
+	}
+
 	pi := paths.Parse(fi.Component(), fi.FileName())
 
 	insertResource := func(fim fs.FileMetaInfo) error {
@@ -44,15 +48,6 @@ func (m *PageMap) AddFi(fi fs.FileMetaInfo) error {
 
 		commit := tree.Lock(true)
 		defer commit()
-
-		r := func() (io.ReadSeekCloser, error) {
-			return fim.Open()
-		}
-
-		ps, err := newPageSource(fim, m.Cache)
-		if err != nil {
-			return err
-		}
 
 		if pi.IsContent() {
 			// Create the page now as we need it at assemembly time.
@@ -81,37 +76,28 @@ func (m *PageMap) AddFi(fi fs.FileMetaInfo) error {
 
 	switch pi.BundleType() {
 	case paths.PathTypeFile, paths.PathTypeContentResource:
-		m.s.Log.Trace(logg.StringFunc(
+		m.Log.Trace(logg.StringFunc(
 			func() string {
-				return fmt.Sprintf("insert resource: %q", fi.Meta().Filename)
+				return fmt.Sprintf("insert resource: %q", fi.FileName())
 			},
 		))
 		if err := insertResource(fi); err != nil {
 			return err
 		}
 	default:
-		m.s.Log.Trace(logg.StringFunc(
+		m.Log.Trace(logg.StringFunc(
 			func() string {
-				return fmt.Sprintf("insert bundle: %q", fi.Meta().Filename)
+				return fmt.Sprintf("insert bundle: %q", fi.FileName())
 			},
 		))
 		// A content file.
-		p, pi, err := newPage(
-			&pageMeta{
-				f:        source.NewFileInfo(fi),
-				pathInfo: pi,
-				bundled:  false,
-			},
-		)
+		p, err := newPage(ps, m.LangSvc, m.TaxonomySvc, m.TemplateSvc)
 		if err != nil {
 			return err
 		}
-		if p == nil {
-			// Disabled page.
-			return nil
-		}
 
-		m.TreePages.InsertWithLock(pi.Base(), p)
+		//TODO check pi changes
+		m.TreePages.InsertWithLock(pi.Base(), newPageTreesNode(p))
 
 	}
 	return nil

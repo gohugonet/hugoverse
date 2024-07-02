@@ -57,12 +57,8 @@ func newContentSpec() (*entity.ContentSpec, error) {
 }
 
 func newPageTree() *entity.PageTrees {
-	ns := &entity.ContentNodeShifter{
-		NumLanguages: 2, // TODO: get this from config
-	}
-
-	treeConfig := doctree.Config[contenthub.ContentNode]{
-		Shifter: ns,
+	treeConfig := doctree.Config[*entity.PageTreesNode]{
+		Shifter: &entity.SourceShifter{},
 	}
 
 	pageTrees := &entity.PageTrees{
@@ -70,7 +66,7 @@ func newPageTree() *entity.PageTrees {
 			treeConfig,
 		),
 		TreeResources: doctree.New(
-			doctree.Config[*entity.PageTreesNode]{Shifter: &entity.SourceShifter{}},
+			treeConfig,
 		),
 		TreeTaxonomyEntries: doctree.NewTreeShiftTree[contenthub.WeightedContentNode](
 			doctree.DimensionLanguage.Index(), 2), // TODO: get this from config

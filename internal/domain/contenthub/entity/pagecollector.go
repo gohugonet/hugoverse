@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/bep/logg"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
+	"github.com/gohugonet/hugoverse/internal/domain/contenthub/valueobject"
 	"github.com/gohugonet/hugoverse/internal/domain/fs"
 	"github.com/gohugonet/hugoverse/pkg/env"
 	"github.com/gohugonet/hugoverse/pkg/loggers"
@@ -62,7 +63,7 @@ func (c *pagesCollector) Collect() (collectErr error) {
 		NumWorkers: numWorkers,
 		Handle: func(ctx context.Context, fi fs.FileMetaInfo) error {
 			if err := c.m.AddFi(fi); err != nil {
-				return fs.AddFileInfoToError(err, fi, c.fs)
+				return valueobject.AddFileInfoToError(err, fi, c.fs.ContentFs())
 			}
 			numFilesProcessedTotal.Add(1)
 			if numFilesProcessedTotal.Load()%1000 == 0 {
@@ -122,7 +123,7 @@ func (c *pagesCollector) collectDirDir(path string, root fs.FileMetaInfo) error 
 		}
 
 		// Any bundle file will always be first.
-		firstPi := first.Path()
+		firstPi := paths.Parse(first.Component(), first.FileName())
 		if firstPi == nil {
 			panic(fmt.Sprintf("collectDirDir: no path info for %q", first.FileName()))
 		}
@@ -156,7 +157,7 @@ func (c *pagesCollector) collectDirDir(path string, root fs.FileMetaInfo) error 
 		HookPre:  preHook,
 		WalkFn:   wfn,
 		HookPost: nil,
-	}, fs.WalkwayConfig{}); err != nil {
+	}, fs.WalkwayConfig{Info: root}); err != nil {
 		return err
 	}
 
@@ -164,18 +165,20 @@ func (c *pagesCollector) collectDirDir(path string, root fs.FileMetaInfo) error 
 }
 
 func (c *pagesCollector) handleBundleLeaf(dir, bundle fs.FileMetaInfo, inPath string, readdir []fs.FileMetaInfo) error {
+	bundlePath := paths.Parse(bundle.Component(), bundle.FileName())
+
 	walk := func(path string, info fs.FileMetaInfo) error {
 		if info.IsDir() {
 			return nil
 		}
 
-		pi := info.Path()
+		pi := paths.Parse(info.Component(), info.FileName())
 
 		if info != bundle {
 			// Everything inside a leaf bundle is a Resource,
 			// even the content pages.
 			// Note that we do allow index.md as page resources, but not in the bundle root.
-			if !pi.IsLeafBundle() || pi.Dir() != bundle.Path().Dir() {
+			if !pi.IsLeafBundle() || pi.Dir() != bundlePath.Dir() {
 				paths.ModifyPathBundleTypeResource(pi)
 			}
 		}
