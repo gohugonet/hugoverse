@@ -5,42 +5,63 @@ import (
 	"github.com/gohugonet/hugoverse/pkg/helpers"
 	"github.com/gohugonet/hugoverse/pkg/io"
 	"github.com/gohugonet/hugoverse/pkg/paths"
+	"github.com/gohugonet/hugoverse/pkg/paths/files"
 	"path/filepath"
 	"sync"
 )
 
 // File describes a source file.
 type File struct {
-	fim fs.FileMetaInfo
+	fs.FileMetaInfo
+
+	BundleType
+	path *paths.Path
 
 	uniqueID string
 	lazyInit sync.Once
 }
 
 func NewFileInfo(fi fs.FileMetaInfo) *File {
-	return &File{
-		fim: fi,
+	f := &File{
+		FileMetaInfo: fi,
+
+		path:       paths.Parse(files.ComponentFolderContent, fi.FileName()),
+		BundleType: BundleTypeFile,
+	}
+
+	isContent := files.IsContentExt(f.path.Ext())
+
+	if isContent {
+		switch f.path.BaseNameNoIdentifier() {
+		case "index":
+			f.BundleType = BundleTypeLeaf
+		case "_index":
+			f.BundleType = BundleTypeBranch
+		default:
+			f.BundleType = BundleTypeContentSingle
+		}
+	}
+
+	return f
+}
+
+func (fi *File) ShiftToResource() {
+	if fi.IsContent() {
+		fi.BundleType = BundleTypeContentResource
 	}
 }
 
 // Filename returns a file's absolute path and filename on disk.
-func (fi *File) Filename() string { return fi.fim.FileName() }
+func (fi *File) Filename() string { return fi.FileName() }
 
-// Path gets the relative path including file name and extension.  The directory
+// RelPath Path gets the relative path including file name and extension.  The directory
 // is relative to the content root.
-func (fi *File) Path() string { return filepath.Join(fi.p().Dir()[1:], fi.p().Name()) }
+func (fi *File) RelPath() string { return filepath.Join(fi.p().Dir()[1:], fi.p().Name()) }
 
 // Dir gets the name of the directory that contains this file.  The directory is
 // relative to the content root.
 func (fi *File) Dir() string {
 	return fi.pathToDir(fi.p().Dir())
-}
-
-// Extension is an alias to Ext().
-// Deprecated: Use Ext() instead.
-func (fi *File) Extension() string {
-	hugo.Deprecate(".File.Extension", "Use .File.Ext instead.", "v0.96.0")
-	return fi.Ext()
 }
 
 // Ext returns a file's extension without the leading period (e.g. "md").
@@ -78,13 +99,13 @@ func (fi *File) UniqueID() string {
 }
 
 // FileInfo returns a file's underlying os.FileInfo.
-func (fi *File) FileInfo() fs.FileMetaInfo { return fi.fim }
+func (fi *File) FileInfo() fs.FileMetaInfo { return fi.FileMetaInfo }
 
 func (fi *File) String() string { return fi.BaseFileName() }
 
 // Open implements ReadableFile.
 func (fi *File) Open() (io.ReadSeekCloser, error) {
-	f, err := fi.fim.Open()
+	f, err := fi.Open()
 
 	return f, err
 }
@@ -97,7 +118,7 @@ func (fi *File) IsZero() bool {
 // in some cases that is slightly expensive to construct.
 func (fi *File) init() {
 	fi.lazyInit.Do(func() {
-		fi.uniqueID = helpers.MD5String(filepath.ToSlash(fi.Path()))
+		fi.uniqueID = helpers.MD5String(filepath.ToSlash(fi.RelPath()))
 	})
 }
 
@@ -109,5 +130,9 @@ func (fi *File) pathToDir(s string) string {
 }
 
 func (fi *File) p() *paths.Path {
-	return fi.fim.Path().Unnormalized()
+	return fi.path.Unnormalized()
+}
+
+func (fi *File) Path() *paths.Path {
+	return fi.p()
 }

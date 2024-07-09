@@ -16,7 +16,6 @@ type DirFile struct {
 	virtualOpener DirOpener
 
 	filter func([]fs.DirEntry) ([]fs.DirEntry, error)
-	sorter func([]fs.DirEntry) []fs.DirEntry
 }
 
 func NewDirFileWithVirtualOpener(f *File, opener DirOpener) *DirFile {
@@ -59,10 +58,6 @@ func (f *DirFile) ReadDir(count int) ([]fs.DirEntry, error) {
 				return nil, err
 			}
 			result = append(result, fim)
-		}
-
-		if f.sorter != nil {
-			result = f.sorter(result)
 		}
 
 		return result, nil

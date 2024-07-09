@@ -1,13 +1,9 @@
 package entity
 
 import (
-	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub/valueobject"
-	"github.com/gohugonet/hugoverse/internal/domain/fs"
 	"github.com/gohugonet/hugoverse/pkg/cache/stale"
-	"github.com/gohugonet/hugoverse/pkg/io"
 	"github.com/gohugonet/hugoverse/pkg/parser/pageparser"
-	"github.com/gohugonet/hugoverse/pkg/paths"
 	sio "io"
 	"path/filepath"
 	"sync/atomic"
@@ -16,13 +12,8 @@ import (
 var pageIDCounter atomic.Uint64
 
 type Source struct {
-	fi     fs.FileMetaInfo
-	path   *paths.Path
-	opener io.OpenReadSeekCloser
-
 	*valueobject.Identity
-
-	contenthub.File
+	*valueobject.File
 
 	// Returns the position in bytes after any front matter.
 	posMainContent int
@@ -32,21 +23,13 @@ type Source struct {
 	cache *valueobject.Cache
 }
 
-func newPageSource(fi fs.FileMetaInfo, c *valueobject.Cache) (*Source, error) {
-	path := paths.Parse("", fi.FileName())
-	r := func() (io.ReadSeekCloser, error) {
-		return fi.Open()
-	}
+func newPageSource(fi *valueobject.File, c *valueobject.Cache) (*Source, error) {
 	return &Source{
 		Identity: &valueobject.Identity{
 			Id: pageIDCounter.Add(1),
 		},
 
-		fi:     fi,
-		path:   path,
-		opener: r,
-
-		File: valueobject.NewFileInfo(fi),
+		File: fi,
 
 		Staler: &stale.AtomicStaler{},
 		cache:  c,

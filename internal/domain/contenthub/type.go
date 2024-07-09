@@ -166,7 +166,7 @@ type File interface {
 type fileOverlap interface {
 	// Path gets the relative path including file name and extension.
 	// The directory is relative to the content root.
-	Path() string
+	RelPath() string
 
 	// Section is first directory below the content root.
 	// For page bundles in root, the Section will be empty.

@@ -47,7 +47,7 @@ func decodeConfig(cfg config.Provider) (ModuleConfig, error) {
 	//	imports := types.ToStringSlicePreserveString(sd)
 	//	for _, imp := range imports {
 	//		c.Imports = append(c.Imports, Import{
-	//			Path: imp,
+	//			RelPath: imp,
 	//		})
 	//	}
 	//}

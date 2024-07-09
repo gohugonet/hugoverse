@@ -19,17 +19,15 @@ func New(services contenthub.Services) (*entity.ContentHub, error) {
 	ch := &entity.ContentHub{
 		Fs:               services,
 		TemplateExecutor: nil,
-		PageCollections: &entity.PageCollections{
-			PageMap: &entity.PageMap{
-				ContentSpec: cs,
-				PageTrees:   newPageTree(),
+		PageMap: &entity.PageMap{
+			ContentSpec: cs,
+			PageTrees:   newPageTree(),
 
-				Cache: valueobject.NewCache(),
-				Log:   log,
+			Cache: valueobject.NewCache(),
+			Log:   log,
 
-				LangSvc:     services,
-				TaxonomySvc: services,
-			},
+			LangSvc:     services,
+			TaxonomySvc: services,
 		},
 		Title: &entity.Title{
 			Style: entity.StyleAP,

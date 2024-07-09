@@ -2,14 +2,12 @@ package entity
 
 import (
 	"context"
-	"fmt"
 	"github.com/bep/logg"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub/valueobject"
 	"github.com/gohugonet/hugoverse/internal/domain/fs"
 	"github.com/gohugonet/hugoverse/pkg/env"
 	"github.com/gohugonet/hugoverse/pkg/loggers"
-	"github.com/gohugonet/hugoverse/pkg/paths"
 	"github.com/gohugonet/hugoverse/pkg/rungroup"
 	"os"
 	"path/filepath"
@@ -25,7 +23,7 @@ type pagesCollector struct {
 	infoLogger logg.LevelLogger
 
 	ctx context.Context
-	g   rungroup.Group[fs.FileMetaInfo]
+	g   rungroup.Group[*valueobject.File]
 }
 
 // Collect pages.
@@ -59,11 +57,11 @@ func (c *pagesCollector) Collect() (collectErr error) {
 		logFilesProcessed(true)
 	}()
 
-	c.g = rungroup.Run[fs.FileMetaInfo](c.ctx, rungroup.Config[fs.FileMetaInfo]{
+	c.g = rungroup.Run[*valueobject.File](c.ctx, rungroup.Config[*valueobject.File]{
 		NumWorkers: numWorkers,
-		Handle: func(ctx context.Context, fi fs.FileMetaInfo) error {
+		Handle: func(ctx context.Context, fi *valueobject.File) error {
 			if err := c.m.AddFi(fi); err != nil {
-				return valueobject.AddFileInfoToError(err, fi, c.fs.ContentFs())
+				return valueobject.AddFileInfoToError(err, fi.FileMetaInfo, c.fs.ContentFs())
 			}
 			numFilesProcessedTotal.Add(1)
 			if numFilesProcessedTotal.Load()%1000 == 0 {
@@ -107,29 +105,11 @@ func (c *pagesCollector) collectDirDir(path string, root fs.FileMetaInfo) error 
 			return nil, nil
 		}
 
-		// Pick the first regular file.
-		var first fs.FileMetaInfo
-		for _, fi := range readdir {
-			if fi.IsDir() {
-				continue
-			}
-			first = fi
-			break
-		}
+		fsm := valueobject.NewFsManager(readdir)
 
-		if first == nil {
-			// Only dirs, keep walking.
-			return readdir, nil
-		}
-
-		// Any bundle file will always be first.
-		firstPi := paths.Parse(first.Component(), first.FileName())
-		if firstPi == nil {
-			panic(fmt.Sprintf("collectDirDir: no path info for %q", first.FileName()))
-		}
-
-		if firstPi.IsLeafBundle() {
-			if err := c.handleBundleLeaf(dir, first, path, readdir); err != nil {
+		leaf := fsm.GetLeaf()
+		if leaf != nil {
+			if err := c.handleBundleLeaf(dir, leaf, path, readdir); err != nil {
 				return nil, err
 			}
 			return nil, filepath.SkipDir
@@ -140,7 +120,7 @@ func (c *pagesCollector) collectDirDir(path string, root fs.FileMetaInfo) error 
 				continue
 			}
 
-			if err := c.g.Enqueue(fi); err != nil {
+			if err := c.g.Enqueue(valueobject.NewFileInfo(fi)); err != nil {
 				return nil, err
 			}
 		}
@@ -164,26 +144,26 @@ func (c *pagesCollector) collectDirDir(path string, root fs.FileMetaInfo) error 
 	return nil
 }
 
-func (c *pagesCollector) handleBundleLeaf(dir, bundle fs.FileMetaInfo, inPath string, readdir []fs.FileMetaInfo) error {
-	bundlePath := paths.Parse(bundle.Component(), bundle.FileName())
+func (c *pagesCollector) handleBundleLeaf(dir fs.FileMetaInfo, bundle *valueobject.File, inPath string, readdir []fs.FileMetaInfo) error {
+	bundlePath := bundle.Path()
 
 	walk := func(path string, info fs.FileMetaInfo) error {
 		if info.IsDir() {
 			return nil
 		}
 
-		pi := paths.Parse(info.Component(), info.FileName())
+		f := valueobject.NewFileInfo(info)
 
-		if info != bundle {
+		if info != bundle.FileMetaInfo {
 			// Everything inside a leaf bundle is a Resource,
 			// even the content pages.
 			// Note that we do allow index.md as page resources, but not in the bundle root.
-			if !pi.IsLeafBundle() || pi.Dir() != bundlePath.Dir() {
-				paths.ModifyPathBundleTypeResource(pi)
+			if !f.IsLeafBundle() || f.Path().Dir() != bundlePath.Dir() {
+				f.ShiftToResource()
 			}
 		}
 
-		return c.g.Enqueue(info)
+		return c.g.Enqueue(f)
 	}
 
 	if err := c.fs.WalkContent(inPath, fs.WalkCallback{

@@ -5,13 +5,11 @@ import (
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/maps"
-	"github.com/gohugonet/hugoverse/pkg/paths"
 )
 
 type Page struct {
 	*Source
 	*FrontMatter
-	*Path
 	*Shortcodes
 	*Content
 
@@ -20,8 +18,6 @@ type Page struct {
 	term     string
 
 	taxonomyService contenthub.TaxonomyService
-
-	bundled bool // Set if this page is bundled inside another.
 }
 
 func newBundledPage(source *Source, langSer contenthub.LangService, taxSer contenthub.TaxonomyService, tmplSvc contenthub.Template) (*Page, error) {
@@ -29,7 +25,6 @@ func newBundledPage(source *Source, langSer contenthub.LangService, taxSer conte
 	if err != nil {
 		return nil, err
 	}
-	p.bundled = true
 	return p, nil
 }
 
@@ -50,8 +45,6 @@ func newPage(source *Source, langSer contenthub.LangService, taxSer contenthub.T
 		Shortcodes: &Shortcodes{source: contentBytes, ordinal: 0, tmplSvc: tmplSvc, pid: pid},
 		Content:    &Content{source: contentBytes},
 
-		bundled: false,
-
 		taxonomyService: taxSer,
 	}
 
@@ -67,24 +60,18 @@ func newPage(source *Source, langSer contenthub.LangService, taxSer contenthub.T
 		return nil, err
 	}
 
-	p.setupPagePath()
 	p.setupLang()
 	p.setupKind()
 
 	return p, nil
 }
 
-func (p *Page) setupPagePath() {
-	pi := paths.Parse(p.Source.fi.Component(), p.Source.fi.FileName())
-	if p.FrontMatter.Path != "" {
-		p.Path = newPathFromConfig(p.FrontMatter.Path, p.FrontMatter.Kind, pi)
-	} else {
-		p.Path = &Path{pathInfo: pi}
-	}
+func (p *Page) IsBundled() bool {
+	return p.File.BundleType.IsContentResource()
 }
 
 func (p *Page) setupLang() {
-	l, ok := p.FrontMatter.langService.GetSourceLang(p.Source.fi.Root())
+	l, ok := p.FrontMatter.langService.GetSourceLang(p.Source.File.Root())
 	if ok {
 		idx, err := p.FrontMatter.langService.GetLanguageIndex(l)
 		if err != nil {
@@ -93,27 +80,29 @@ func (p *Page) setupLang() {
 		p.Identity.Lang = l
 		p.Identity.LangIdx = idx
 	} else {
-		panic(fmt.Sprintf("unknown lang %q", p.Source.fi.Root()))
+		panic(fmt.Sprintf("unknown lang %q", p.Source.File.Root()))
 	}
 }
 
 func (p *Page) setupKind() {
+	path := p.File.Path()
+
 	p.kind = p.FrontMatter.Kind
 	if p.FrontMatter.Kind == "" {
 		p.Kind = valueobject.KindSection
-		if p.Path.pathInfo.Base() == "/" {
+		if path.Base() == "/" {
 			p.Kind = valueobject.KindHome
-		} else if p.Path.pathInfo.IsBranchBundle() {
+		} else if p.File.IsBranchBundle() {
 			// A section, taxonomy or term.
-			if !p.taxonomyService.IsZero(p.Path.Path()) {
+			if !p.taxonomyService.IsZero(path.Path()) {
 				// Either a taxonomy or a term.
-				if p.taxonomyService.PluralTreeKey(p.Path.Path()) == p.Path.Path() {
+				if p.taxonomyService.PluralTreeKey(path.Path()) == path.Path() {
 					p.Kind = valueobject.KindTaxonomy
-					p.singular = p.taxonomyService.Singular(p.Path.Path())
+					p.singular = p.taxonomyService.Singular(path.Path())
 				} else {
 					p.Kind = valueobject.KindTerm
-					p.singular = p.taxonomyService.Singular(p.Path.Path())
-					p.term = p.Path.pathInfo.Unnormalized().BaseNameNoIdentifier()
+					p.singular = p.taxonomyService.Singular(path.Path())
+					p.term = path.Unnormalized().BaseNameNoIdentifier()
 				}
 			}
 		} else {

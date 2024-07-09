@@ -15,7 +15,7 @@ type ContentHub struct {
 	// ExecTemplate handling.
 	TemplateExecutor contenthub.Template
 
-	*PageCollections
+	*PageMap
 
 	*Title
 
@@ -27,7 +27,7 @@ type ContentHub struct {
 
 func (ch *ContentHub) SetTemplateExecutor(exec contenthub.Template) {
 	ch.TemplateExecutor = exec
-	ch.PageCollections.PageMap.TemplateSvc = exec
+	ch.PageMap.TemplateSvc = exec
 }
 
 func (ch *ContentHub) CollectPages() error {
@@ -50,7 +50,7 @@ func (ch *ContentHub) process() error {
 	defer loggers.TimeTrackf(processLog, time.Now(), nil, "")
 
 	c := &pagesCollector{
-		m:  ch.PageCollections.PageMap,
+		m:  ch.PageMap,
 		fs: ch.Fs,
 
 		ctx:        context.Background(),
@@ -65,7 +65,10 @@ func (ch *ContentHub) process() error {
 }
 
 func (ch *ContentHub) assemble() error {
-	if err := ch.PageCollections.PageMap.Assemble(); err != nil {
+	processLog := ch.pagesLog.WithField("step", "assemble")
+	defer loggers.TimeTrackf(processLog, time.Now(), nil, "")
+
+	if err := ch.PageMap.Assemble(); err != nil {
 		return err
 	}
 	return nil

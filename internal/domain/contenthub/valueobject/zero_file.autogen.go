@@ -33,8 +33,8 @@ func (zeroFile) IsZero() bool {
 	return true
 }
 
-func (z zeroFile) Path() (o0 string) {
-	fmt.Println(".File.Path on zero object. Wrap it in if or with: {{ with .File }}{{ .Path }}{{ end }}")
+func (z zeroFile) RelPath() (o0 string) {
+	fmt.Println(".File.RelPath on zero object. Wrap it in if or with: {{ with .File }}{{ .RelPath }}{{ end }}")
 	return
 }
 func (z zeroFile) Section() (o0 string) {

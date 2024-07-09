@@ -6,7 +6,7 @@ import "github.com/spf13/afero"
 type sourceDescriptor struct {
 	fs afero.Fs
 
-	// Path to the config file to use, e.g. /my/project/config.toml
+	// RelPath to the config file to use, e.g. /my/project/config.toml
 	filename string
 }
 

@@ -7,7 +7,6 @@ import (
 	iofs "io/fs"
 	"os"
 	"path/filepath"
-	"sort"
 )
 
 type ComponentFs struct {
@@ -58,7 +57,6 @@ func (cfs *ComponentFs) Open(name string) (afero.File, error) {
 	if fi.IsDir() {
 		df := NewDirFile(f, FileMeta{filename: name, component: cfs.Component}, cfs)
 		df.filter = symlinkFilter
-		df.sorter = sorter
 
 		return df, nil
 	}
@@ -94,19 +92,6 @@ func symlinkFilter(fis []iofs.DirEntry) ([]iofs.DirEntry, error) {
 
 func isSymlink(fi os.FileInfo) bool {
 	return fi.Mode()&os.ModeSymlink != 0
-}
-
-func sorter(fis []iofs.DirEntry) []iofs.DirEntry {
-	sort.Slice(fis, func(i, j int) bool {
-		fimi, fimj := fis[i].(fs.FileMetaInfo), fis[j].(fs.FileMetaInfo)
-		if fimi.IsDir() != fimj.IsDir() {
-			return fimi.IsDir()
-		}
-
-		return fimi.Name() < fimj.Name()
-	})
-
-	return fis
 }
 
 // RealDirs gets a list of absolute paths to directories starting from the given

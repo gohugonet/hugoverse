@@ -238,7 +238,7 @@ func (l *layoutBuilder) resolveVariations() []string {
 // type/layout.variations.extension.  If any value is empty, it will be left out
 // of the path construction.
 //
-// Path construction requires at least 2 of 3 out of layout, variations, and extension.
+// RelPath construction requires at least 2 of 3 out of layout, variations, and extension.
 // If more than one of those is empty, an empty string is returned.
 func constructLayoutPath(typ, layout, variations, extension string) string {
 	// we already know that layout and variations are not both empty because of

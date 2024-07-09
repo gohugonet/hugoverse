@@ -52,7 +52,7 @@ type Provider interface {
 type SourceDescriptor interface {
 	Fs() afero.Fs
 
-	// Filename Path to the config file to use, e.g. /my/project/config.toml
+	// Filename RelPath to the config file to use, e.g. /my/project/config.toml
 	Filename() string
 }
 
