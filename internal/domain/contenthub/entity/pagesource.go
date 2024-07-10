@@ -17,7 +17,6 @@ type Source struct {
 
 	// Returns the position in bytes after any front matter.
 	posMainContent int
-	parseInfo      *valueobject.SourceParseInfo
 
 	stale.Staler
 	cache *valueobject.Cache
@@ -33,8 +32,6 @@ func newPageSource(fi *valueobject.File, c *valueobject.Cache) (*Source, error) 
 
 		Staler: &stale.AtomicStaler{},
 		cache:  c,
-
-		parseInfo: &valueobject.SourceParseInfo{},
 	}, nil
 }
 
@@ -65,7 +62,7 @@ func (p *Source) contentSource() ([]byte, error) {
 }
 
 func (p *Source) readSourceAll() ([]byte, error) {
-	r, err := p.fi.Open()
+	r, err := p.File.Open()
 	if err != nil {
 		return nil, err
 	}

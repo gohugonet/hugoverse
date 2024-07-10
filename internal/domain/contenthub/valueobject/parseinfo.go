@@ -9,12 +9,18 @@ import (
 	"github.com/gohugonet/hugoverse/pkg/text"
 )
 
-type ItemSourceHandler func(item pageparser.Item, source []byte) error
 type ItemHandler func(item pageparser.Item) error
 type IterHandler func(item pageparser.Item, iter *pageparser.Iterator) error
 
+type SourceHandlers interface {
+	FrontMatterHandler() ItemHandler
+	SummaryHandler() IterHandler
+	BytesHandler() ItemHandler
+	ShortcodeHandler() IterHandler
+}
+
 type SourceParseInfo struct {
-	source []byte
+	Source []byte
 
 	posMainContent int
 
@@ -22,14 +28,45 @@ type SourceParseInfo struct {
 	// These maps directly to the source
 	ItemsStep1 pageparser.Items
 
-	FrontMatterHandler ItemSourceHandler
-	SummaryHandler     IterHandler
-	BytesHandler       ItemHandler
-	ShortcodeHandler   IterHandler
+	Handlers SourceHandlers
+}
+
+func NewSourceParseInfo(source []byte, handlers SourceHandlers) (*SourceParseInfo, error) {
+	if fmh := handlers.FrontMatterHandler(); fmh == nil {
+		return nil, errors.New("no front matter handler")
+	}
+	if sh := handlers.SummaryHandler(); sh == nil {
+		return nil, errors.New("no summary handler")
+	}
+	if sch := handlers.ShortcodeHandler(); sch == nil {
+		return nil, errors.New("no shortcode handler")
+	}
+	if bh := handlers.BytesHandler(); bh == nil {
+		return nil, errors.New("no bytes handler")
+	}
+
+	return &SourceParseInfo{
+		Source:         source,
+		Handlers:       handlers,
+		posMainContent: -1,
+	}, nil
 }
 
 func (s *SourceParseInfo) IsEmpty() bool {
 	return len(s.ItemsStep1) == 0
+}
+
+func (s *SourceParseInfo) Parse() error {
+	items, err := pageparser.ParseBytes(
+		s.Source,
+		pageparser.Config{},
+	)
+	if err != nil {
+		return err
+	}
+
+	s.ItemsStep1 = items
+	return nil
 }
 
 func (s *SourceParseInfo) Handle() error {
@@ -45,13 +82,13 @@ Loop:
 		switch {
 		case it.Type == pageparser.TypeIgnore:
 		case it.IsFrontMatter():
-			if err := s.FrontMatterHandler(it, s.source); err != nil {
+			if err := s.Handlers.FrontMatterHandler()(it, s.Source); err != nil {
 				var fe herrors.FileError
 				if errors.As(err, &fe) {
 					pos := fe.Position()
 
 					// Offset the starting position of front matter.
-					offset := iter.LineNumber(s.source) - 1
+					offset := iter.LineNumber(s.Source) - 1
 					f := pageparser.FormatFromFrontMatterType(it.Type)
 					if f == metadecoders.YAML {
 						offset -= 1
@@ -73,7 +110,7 @@ Loop:
 			}
 
 		case it.Type == pageparser.TypeLeadSummaryDivider:
-			if err := s.SummaryHandler(it, iter); err != nil {
+			if err := s.Handlers.SummaryHandler()(it, iter); err != nil {
 				return err
 			}
 
@@ -82,7 +119,7 @@ Loop:
 			// let extractShortcode handle left delim (will do so recursively)
 			iter.Backup()
 
-			if err := s.ShortcodeHandler(it, iter); err != nil {
+			if err := s.Handlers.ShortcodeHandler()(it, iter); err != nil {
 				return s.failMap(err, it)
 			}
 
@@ -91,7 +128,7 @@ Loop:
 		case it.IsError():
 			return s.failMap(it.Err, it)
 		default:
-			if err := s.BytesHandler(it); err != nil {
+			if err := s.Handlers.BytesHandler()(it); err != nil {
 				return err
 			}
 		}
@@ -106,7 +143,7 @@ func (s *SourceParseInfo) failMap(err error, i pageparser.Item) error {
 		return fe
 	}
 
-	pos := posFromInput("", s.source, i.Pos())
+	pos := posFromInput("", s.Source, i.Pos())
 
 	return herrors.NewFileErrorFromPos(err, pos)
 }

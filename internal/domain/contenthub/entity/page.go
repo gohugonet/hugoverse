@@ -9,9 +9,9 @@ import (
 
 type Page struct {
 	*Source
-	*FrontMatter
-	*Shortcodes
-	*Content
+	*valueobject.FrontMatter
+	*valueobject.ShortcodeParser
+	*valueobject.Content
 
 	kind     string
 	singular string
@@ -36,21 +36,21 @@ func newPage(source *Source, langSer contenthub.LangService, taxSer contenthub.T
 
 	p := &Page{
 		Source: source,
-		FrontMatter: &FrontMatter{
+		FrontMatter: &valueobject.FrontMatter{
 			Params:     maps.Params{},
 			Customized: maps.Params{},
 
 			langService: langSer,
 		},
-		Shortcodes: &Shortcodes{source: contentBytes, ordinal: 0, tmplSvc: tmplSvc, pid: pid},
-		Content:    &Content{source: contentBytes},
+		ShortcodeParser: &valueobject.ShortcodeParser{source: contentBytes, ordinal: 0, tmplSvc: tmplSvc, pid: source.Id},
+		Content:         &valueobject.Content{source: contentBytes},
 
 		taxonomyService: taxSer,
 	}
 
 	p.Source.registerHandler(p.FrontMatter.frontMatterHandler,
 		p.Content.summaryHandler, p.Content.bytesHandler,
-		p.Shortcodes.shortcodeHandler)
+		p.ShortcodeParser.shortcodeHandler)
 
 	if err := p.Source.parse(); err != nil {
 		return nil, err

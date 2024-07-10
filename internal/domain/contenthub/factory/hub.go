@@ -23,11 +23,14 @@ func New(services contenthub.Services) (*entity.ContentHub, error) {
 			ContentSpec: cs,
 			PageTrees:   newPageTree(),
 
+			PageBuilder: &entity.PageBuilder{
+				LangSvc:     services,
+				TaxonomySvc: services,
+				TemplateSvc: nil, // TODO, set when used
+			},
+
 			Cache: valueobject.NewCache(),
 			Log:   log,
-
-			LangSvc:     services,
-			TaxonomySvc: services,
 		},
 		Title: &entity.Title{
 			Style: entity.StyleAP,

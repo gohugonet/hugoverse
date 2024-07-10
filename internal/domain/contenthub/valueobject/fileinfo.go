@@ -105,7 +105,7 @@ func (fi *File) String() string { return fi.BaseFileName() }
 
 // Open implements ReadableFile.
 func (fi *File) Open() (io.ReadSeekCloser, error) {
-	f, err := fi.Open()
+	f, err := fi.FileMetaInfo.Open()
 
 	return f, err
 }

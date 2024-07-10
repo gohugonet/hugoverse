@@ -1,22 +1,17 @@
-package entity
+package valueobject
 
 import (
 	"errors"
 	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
-	"github.com/gohugonet/hugoverse/internal/domain/contenthub/valueobject"
 	"github.com/gohugonet/hugoverse/internal/domain/template"
 	"github.com/gohugonet/hugoverse/pkg/parser/pageparser"
 	"strconv"
 	"sync"
 )
 
-type shortcodeContentStore interface {
-	AddShortcode(s *valueobject.Shortcode)
-}
-
-type Shortcodes struct {
-	shortcodes []*valueobject.Shortcode
+type ShortcodeParser struct {
+	shortcodes []*Shortcode
 
 	// All the shortcode names in this set.
 	nameSet   map[string]bool
@@ -28,14 +23,26 @@ type Shortcodes struct {
 	ordinal int
 	level   int
 
-	contentStore shortcodeContentStore
-	tmplSvc      contenthub.Template
+	tmplSvc contenthub.Template
 }
 
-func (s *Shortcodes) shortcodeHandler(it pageparser.Item, pt *pageparser.Iterator) error {
+func NewShortcodeParser(source []byte, pid uint64, tmplSvc contenthub.Template) *ShortcodeParser {
+	return &ShortcodeParser{
+		nameSet: make(map[string]bool),
+		source:  source,
+
+		pid:     pid,
+		ordinal: 0,
+		level:   0,
+
+		tmplSvc: tmplSvc,
+	}
+}
+
+func (s *ShortcodeParser) ParseItem(it pageparser.Item, pt *pageparser.Iterator) (*Shortcode, error) {
 	currShortcode, err := s.extractShortcode(s.ordinal, 0, pt)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	currShortcode.Pos = it.Pos()
@@ -54,9 +61,7 @@ func (s *Shortcodes) shortcodeHandler(it pageparser.Item, pt *pageparser.Iterato
 	s.ordinal++
 	s.shortcodes = append(s.shortcodes, currShortcode)
 
-	s.contentStore.AddShortcode(currShortcode)
-
-	return nil
+	return currShortcode, nil
 }
 
 // Note - this value must not contain any markup syntax
@@ -69,11 +74,11 @@ func createShortcodePlaceholder(sid string, id uint64, ordinal int) string {
 // pageTokens state:
 // - before: positioned just before the shortcode start
 // - after: shortcode(s) consumed (plural when they are nested)
-func (s *Shortcodes) extractShortcode(ordinal, level int, pt *pageparser.Iterator) (*valueobject.Shortcode, error) {
+func (s *ShortcodeParser) extractShortcode(ordinal, level int, pt *pageparser.Iterator) (*Shortcode, error) {
 	if s == nil {
 		panic("handler nil")
 	}
-	sc := &valueobject.Shortcode{Ordinal: ordinal}
+	sc := &Shortcode{Ordinal: ordinal}
 
 	// Back up one to identify any indentation.
 	if pt.Pos() > 0 {
@@ -218,7 +223,7 @@ Loop:
 	return sc, nil
 }
 
-func (s *Shortcodes) addName(name string) {
+func (s *ShortcodeParser) addName(name string) {
 	s.nameSetMu.Lock()
 	defer s.nameSetMu.Unlock()
 	s.nameSet[name] = true

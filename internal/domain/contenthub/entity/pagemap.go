@@ -3,7 +3,6 @@ package entity
 import (
 	"fmt"
 	"github.com/bep/logg"
-	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/identity"
 	"github.com/gohugonet/hugoverse/pkg/loggers"
@@ -17,9 +16,7 @@ type PageMap struct {
 
 	Cache *valueobject.Cache
 
-	LangSvc     contenthub.LangService
-	TaxonomySvc contenthub.TaxonomyService
-	TemplateSvc contenthub.Template
+	PageBuilder *PageBuilder
 
 	assembleChanges *valueobject.WhatChanged
 
