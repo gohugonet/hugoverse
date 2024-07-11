@@ -59,7 +59,7 @@ func (m *PageMap) AddFi(f *valueobject.File) error {
 				return fmt.Sprintf("insert content resource: %q", f.FileName())
 			},
 		))
-		p, err := newBundledPage(ps, m.LangSvc, m.TaxonomySvc, m.TemplateSvc)
+		p, err := m.PageBuilder.WithSource(ps).Build()
 		if err != nil {
 			return err
 		}
@@ -81,7 +81,7 @@ func (m *PageMap) AddFi(f *valueobject.File) error {
 			},
 		))
 		// A content file.
-		p, err := newPage(ps, m.LangSvc, m.TaxonomySvc, m.TemplateSvc)
+		p, err := m.PageBuilder.WithSource(ps).Build()
 		if err != nil {
 			return err
 		}

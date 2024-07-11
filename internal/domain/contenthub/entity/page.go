@@ -1,67 +1,34 @@
 package entity
 
 import (
-	"fmt"
-	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub/valueobject"
-	"github.com/gohugonet/hugoverse/pkg/maps"
 )
 
 type Page struct {
 	*Source
-	*valueobject.FrontMatter
-	*valueobject.ShortcodeParser
 	*valueobject.Content
 
-	kind     string
+	kind string
+}
+
+type TaxonomyPage struct {
+	*Page
+
 	singular string
-	term     string
-
-	taxonomyService contenthub.TaxonomyService
 }
 
-func newBundledPage(source *Source, langSer contenthub.LangService, taxSer contenthub.TaxonomyService, tmplSvc contenthub.Template) (*Page, error) {
-	p, err := newPage(source, langSer, taxSer, tmplSvc)
-	if err != nil {
-		return nil, err
-	}
-	return p, nil
+type TermPage struct {
+	*TaxonomyPage
+
+	term string
 }
 
-func newPage(source *Source, langSer contenthub.LangService, taxSer contenthub.TaxonomyService, tmplSvc contenthub.Template) (*Page, error) {
-	contentBytes, err := source.contentSource()
-	if err != nil {
-		return nil, err
-	}
-
+func newPage(source *Source, content *valueobject.Content) (*Page, error) {
 	p := &Page{
-		Source: source,
-		FrontMatter: &valueobject.FrontMatter{
-			Params:     maps.Params{},
-			Customized: maps.Params{},
-
-			langService: langSer,
-		},
-		ShortcodeParser: &valueobject.ShortcodeParser{source: contentBytes, ordinal: 0, tmplSvc: tmplSvc, pid: source.Id},
-		Content:         &valueobject.Content{source: contentBytes},
-
-		taxonomyService: taxSer,
+		Source:  source,
+		Content: content,
+		kind:    valueobject.KindPage,
 	}
-
-	p.Source.registerHandler(p.FrontMatter.frontMatterHandler,
-		p.Content.summaryHandler, p.Content.bytesHandler,
-		p.ShortcodeParser.shortcodeHandler)
-
-	if err := p.Source.parse(); err != nil {
-		return nil, err
-	}
-
-	if err := p.FrontMatter.parse(); err != nil {
-		return nil, err
-	}
-
-	p.setupLang()
-	p.setupKind()
 
 	return p, nil
 }
@@ -70,43 +37,23 @@ func (p *Page) IsBundled() bool {
 	return p.File.BundleType.IsContentResource()
 }
 
-func (p *Page) setupLang() {
-	l, ok := p.FrontMatter.langService.GetSourceLang(p.Source.File.Root())
-	if ok {
-		idx, err := p.FrontMatter.langService.GetLanguageIndex(l)
-		if err != nil {
-			panic(err)
-		}
-		p.Identity.Lang = l
-		p.Identity.LangIdx = idx
-	} else {
-		panic(fmt.Sprintf("unknown lang %q", p.Source.File.Root()))
+func newTaxonomy(source *Source, content *valueobject.Content, singular string) (*TaxonomyPage, error) {
+	p := &TaxonomyPage{
+		Page:     &Page{Source: source, Content: content, kind: valueobject.KindTaxonomy},
+		singular: singular,
 	}
+
+	return p, nil
 }
 
-func (p *Page) setupKind() {
-	path := p.File.Path()
-
-	p.kind = p.FrontMatter.Kind
-	if p.FrontMatter.Kind == "" {
-		p.Kind = valueobject.KindSection
-		if path.Base() == "/" {
-			p.Kind = valueobject.KindHome
-		} else if p.File.IsBranchBundle() {
-			// A section, taxonomy or term.
-			if !p.taxonomyService.IsZero(path.Path()) {
-				// Either a taxonomy or a term.
-				if p.taxonomyService.PluralTreeKey(path.Path()) == path.Path() {
-					p.Kind = valueobject.KindTaxonomy
-					p.singular = p.taxonomyService.Singular(path.Path())
-				} else {
-					p.Kind = valueobject.KindTerm
-					p.singular = p.taxonomyService.Singular(path.Path())
-					p.term = path.Unnormalized().BaseNameNoIdentifier()
-				}
-			}
-		} else {
-			p.Kind = valueobject.KindPage
-		}
+func newTerm(source *Source, content *valueobject.Content, singular string, term string) (*TermPage, error) {
+	p := &TermPage{
+		TaxonomyPage: &TaxonomyPage{
+			Page:     &Page{Source: source, Content: content, kind: valueobject.KindTerm},
+			singular: singular,
+		},
+		term: term,
 	}
+
+	return p, nil
 }

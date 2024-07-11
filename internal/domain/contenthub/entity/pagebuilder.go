@@ -18,6 +18,10 @@ type PageBuilder struct {
 	sourceByte      []byte
 	sourceParseInfo *valueobject.SourceParseInfo
 
+	kind     string
+	singular string
+	term     string
+
 	fm       *valueobject.FrontMatter
 	fmParser *valueobject.FrontMatterParser
 
@@ -25,11 +29,12 @@ type PageBuilder struct {
 	c  *valueobject.Content
 }
 
-func (b *PageBuilder) WithSource(source *Source) {
+func (b *PageBuilder) WithSource(source *Source) *PageBuilder {
 	b.source = source
+	return b
 }
 
-func (b *PageBuilder) Build() (*Page, error) {
+func (b *PageBuilder) Build() (contenthub.Page, error) {
 	if b.source == nil {
 		return nil, fmt.Errorf("source for page builder is nil")
 	}
@@ -44,9 +49,41 @@ func (b *PageBuilder) Build() (*Page, error) {
 		return nil, err
 	}
 
-	// new page based on those basic info
+	return b.build()
+}
+
+func (b *PageBuilder) build() (contenthub.Page, error) {
+	switch b.kind {
+	case valueobject.KindHome, valueobject.KindSection:
+		fmt.Println("build section or home, but it will not happen in this case")
+	case valueobject.KindPage:
+		return b.buildPage()
+	case valueobject.KindTaxonomy:
+		return b.buildTaxonomy()
+	case valueobject.KindTerm:
+		return b.buildTerm()
+	default:
+		return nil, fmt.Errorf("unknown kind %q", b.kind)
+	}
 
 	return nil, nil
+}
+
+func (b *PageBuilder) buildPage() (*Page, error) {
+	return newPage(b.source, b.c)
+}
+
+func (b *PageBuilder) buildTaxonomy() (*TaxonomyPage, error) {
+	singular := b.TaxonomySvc.Singular(b.source.File.Path().Path())
+	return newTaxonomy(b.source, b.c, singular)
+}
+
+func (b *PageBuilder) buildTerm() (*TermPage, error) {
+	p := b.source.File.Path()
+	singular := b.TaxonomySvc.Singular(p.Path())
+	term := p.Unnormalized().BaseNameNoIdentifier()
+
+	return newTerm(b.source, b.c, singular, term)
 }
 
 func (b *PageBuilder) parse(contentBytes []byte) error {
@@ -69,6 +106,57 @@ func (b *PageBuilder) parse(contentBytes []byte) error {
 
 	if err := b.parseFrontMatter(); err != nil {
 		return err
+	}
+	if err := b.parseLanguage(); err != nil {
+		return err
+	}
+	if err := b.parseKind(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (b *PageBuilder) parseKind() error {
+	path := b.source.File.Path()
+
+	kind := b.fm.Kind
+	if kind == "" {
+		kind = valueobject.KindSection
+
+		if path.Base() == "/" {
+			kind = valueobject.KindHome
+		} else if b.source.File.IsBranchBundle() {
+			// A section, taxonomy or term.
+			if !b.TaxonomySvc.IsZero(path.Path()) {
+				// Either a taxonomy or a term.
+				if b.TaxonomySvc.PluralTreeKey(path.Path()) == path.Path() {
+					kind = valueobject.KindTaxonomy
+				} else {
+					kind = valueobject.KindTerm
+				}
+			}
+		} else {
+			kind = valueobject.KindPage
+		}
+	}
+
+	b.kind = kind
+
+	return nil
+}
+
+func (b *PageBuilder) parseLanguage() error {
+	l, ok := b.LangSvc.GetSourceLang(b.source.File.Root())
+	if ok {
+		idx, err := b.LangSvc.GetLanguageIndex(l)
+		if err != nil {
+			return fmt.Errorf("failed to get language index for %q: %s", l, err)
+		}
+		b.source.Identity.Lang = l
+		b.source.Identity.LangIdx = idx
+	} else {
+		return fmt.Errorf("unknown lang %q", b.source.File.Root())
 	}
 
 	return nil

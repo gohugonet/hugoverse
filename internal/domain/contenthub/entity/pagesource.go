@@ -3,7 +3,6 @@ package entity
 import (
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/cache/stale"
-	"github.com/gohugonet/hugoverse/pkg/parser/pageparser"
 	sio "io"
 	"path/filepath"
 	"sync/atomic"
@@ -14,9 +13,6 @@ var pageIDCounter atomic.Uint64
 type Source struct {
 	*valueobject.Identity
 	*valueobject.File
-
-	// Returns the position in bytes after any front matter.
-	posMainContent int
 
 	stale.Staler
 	cache *valueobject.Cache
@@ -69,37 +65,4 @@ func (p *Source) readSourceAll() ([]byte, error) {
 	defer r.Close()
 
 	return sio.ReadAll(r)
-}
-
-func (p *Source) registerHandler(fm valueobject.ItemSourceHandler,
-	summary valueobject.IterHandler, bytes valueobject.ItemHandler,
-	shortcode valueobject.IterHandler) {
-
-	p.parseInfo.FrontMatterHandler = fm
-	p.parseInfo.SummaryHandler = summary
-	p.parseInfo.BytesHandler = bytes
-	p.parseInfo.ShortcodeHandler = shortcode
-}
-
-func (p *Source) parse() error {
-	content, err := p.contentSource()
-	if err != nil {
-		return err
-	}
-
-	items, err := pageparser.ParseBytes(
-		content,
-		pageparser.Config{},
-	)
-	if err != nil {
-		return err
-	}
-
-	p.parseInfo.ItemsStep1 = items
-
-	if err := p.parseInfo.Handle(); err != nil {
-		return err
-	}
-
-	return nil
 }

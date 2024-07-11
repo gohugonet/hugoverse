@@ -42,6 +42,8 @@ type PageInfo interface {
 	Buffer() *bytes.Buffer
 }
 
+//TODO remove unless we need to expose those kind for other domains
+
 const (
 	KindPage    = "page"
 	KindHome    = "home"
@@ -214,8 +216,15 @@ type FileWithoutOverlap interface {
 
 // Page is the core interface in Hugo.
 type Page interface {
-	ContentProvider
-	PageWithoutContent
+	RawContentProvider
+
+	PageSource
+}
+
+// RawContentProvider provides the raw, unprocessed content of the page.
+type RawContentProvider interface {
+	// RawContent returns the raw, unprocessed content of the page excluding any front matter.
+	RawContent() string
 }
 
 // PageWithoutContent is the Page without any of the content methods.

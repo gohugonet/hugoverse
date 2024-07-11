@@ -27,7 +27,7 @@ type ContentHub struct {
 
 func (ch *ContentHub) SetTemplateExecutor(exec contenthub.Template) {
 	ch.TemplateExecutor = exec
-	ch.PageMap.TemplateSvc = exec
+	ch.PageMap.PageBuilder.TemplateSvc = exec
 }
 
 func (ch *ContentHub) CollectPages() error {

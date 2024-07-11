@@ -22,6 +22,7 @@ type SourceHandlers interface {
 type SourceParseInfo struct {
 	Source []byte
 
+	// TODO: should belongs to the content
 	posMainContent int
 
 	// Items from the page parser.
@@ -82,7 +83,7 @@ Loop:
 		switch {
 		case it.Type == pageparser.TypeIgnore:
 		case it.IsFrontMatter():
-			if err := s.Handlers.FrontMatterHandler()(it, s.Source); err != nil {
+			if err := s.Handlers.FrontMatterHandler()(it); err != nil {
 				var fe herrors.FileError
 				if errors.As(err, &fe) {
 					pos := fe.Position()

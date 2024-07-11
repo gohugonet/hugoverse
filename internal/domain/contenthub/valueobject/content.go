@@ -44,3 +44,9 @@ func (c *Content) AddShortcode(s *Shortcode) {
 func (c *Content) AddItems(item pageparser.Item) {
 	c.items = append(c.items, item)
 }
+
+func (c *Content) RawContent() string {
+	// TODO, put empty here for new page builder
+
+	return ""
+}
