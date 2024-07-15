@@ -16,6 +16,8 @@ func New(services contenthub.Services) (*entity.ContentHub, error) {
 		return nil, err
 	}
 
+	cache := valueobject.NewCache()
+
 	ch := &entity.ContentHub{
 		Fs:               services,
 		TemplateExecutor: nil,
@@ -24,12 +26,16 @@ func New(services contenthub.Services) (*entity.ContentHub, error) {
 			PageTrees:   newPageTree(),
 
 			PageBuilder: &entity.PageBuilder{
-				LangSvc:     services,
-				TaxonomySvc: services,
+				LangSvc: services,
+				Taxonomy: &entity.Taxonomy{
+					Views: services.Views(),
+					FsSvc: services,
+					Cache: cache,
+				},
 				TemplateSvc: nil, // TODO, set when used
 			},
 
-			Cache: valueobject.NewCache(),
+			Cache: cache,
 			Log:   log,
 		},
 		Title: &entity.Title{

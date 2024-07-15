@@ -11,8 +11,8 @@ import (
 
 type PageBuilder struct {
 	LangSvc     contenthub.LangService
-	TaxonomySvc contenthub.TaxonomyService
 	TemplateSvc contenthub.Template
+	Taxonomy    *Taxonomy
 
 	source          *Source
 	sourceByte      []byte
@@ -52,6 +52,18 @@ func (b *PageBuilder) Build() (contenthub.Page, error) {
 	return b.build()
 }
 
+func (b *PageBuilder) KindBuild() (contenthub.Page, error) {
+	if b.source == nil {
+		return nil, fmt.Errorf("source for page builder is nil")
+	}
+
+	if err := b.parseKind(); err != nil {
+		return nil, err
+	}
+
+	return b.build()
+}
+
 func (b *PageBuilder) build() (contenthub.Page, error) {
 	switch b.kind {
 	case valueobject.KindHome, valueobject.KindSection:
@@ -74,13 +86,13 @@ func (b *PageBuilder) buildPage() (*Page, error) {
 }
 
 func (b *PageBuilder) buildTaxonomy() (*TaxonomyPage, error) {
-	singular := b.TaxonomySvc.Singular(b.source.File.Path().Path())
+	singular := b.Taxonomy.getTaxonomy(b.source.File.Path().Path()).Singular()
 	return newTaxonomy(b.source, b.c, singular)
 }
 
 func (b *PageBuilder) buildTerm() (*TermPage, error) {
 	p := b.source.File.Path()
-	singular := b.TaxonomySvc.Singular(p.Path())
+	singular := b.Taxonomy.getTaxonomy(p.Path()).Singular()
 	term := p.Unnormalized().BaseNameNoIdentifier()
 
 	return newTerm(b.source, b.c, singular, term)
@@ -120,7 +132,11 @@ func (b *PageBuilder) parse(contentBytes []byte) error {
 func (b *PageBuilder) parseKind() error {
 	path := b.source.File.Path()
 
-	kind := b.fm.Kind
+	kind := ""
+	if b.fm != nil {
+		kind = b.fm.Kind
+	}
+
 	if kind == "" {
 		kind = valueobject.KindSection
 
@@ -128,9 +144,10 @@ func (b *PageBuilder) parseKind() error {
 			kind = valueobject.KindHome
 		} else if b.source.File.IsBranchBundle() {
 			// A section, taxonomy or term.
-			if !b.TaxonomySvc.IsZero(path.Path()) {
+			v := b.Taxonomy.getTaxonomy(path.Path())
+			if !b.Taxonomy.IsZero(v) {
 				// Either a taxonomy or a term.
-				if b.TaxonomySvc.PluralTreeKey(path.Path()) == path.Path() {
+				if b.Taxonomy.PluralTreeKey(path.Path()) == path.Path() {
 					kind = valueobject.KindTaxonomy
 				} else {
 					kind = valueobject.KindTerm

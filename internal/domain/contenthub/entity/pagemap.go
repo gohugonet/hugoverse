@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/bep/logg"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub/valueobject"
-	"github.com/gohugonet/hugoverse/pkg/identity"
 	"github.com/gohugonet/hugoverse/pkg/loggers"
 )
 
@@ -18,7 +17,8 @@ type PageMap struct {
 
 	PageBuilder *PageBuilder
 
-	assembleChanges *valueobject.WhatChanged
+	//TODO : add for the cascade in the future
+	//assembleChanges *valueobject.WhatChanged
 
 	Log loggers.Logger
 }
@@ -94,17 +94,31 @@ func (m *PageMap) AddFi(f *valueobject.File) error {
 }
 
 func (m *PageMap) Assemble() error {
-	// Changes detected during assembly (e.g. aggregate date changes)
-	m.assembleChanges = &valueobject.WhatChanged{
-		IdentitySet: make(map[identity.Identity]bool),
+	if err := m.assembleStructurePages(); err != nil {
+		return err
 	}
-
-	// TODO, how to use group run to assemble parallel?
 
 	return nil
 }
 
-func (m *PageMap) assembleMissingPages() error {
+func (m *PageMap) assembleStructurePages() error {
+
+	if err := m.addMissingTaxonomies(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *PageMap) addMissingTaxonomies() error {
+	tree := m.TreePages
+
+	commit := tree.Lock(true)
+	defer commit()
+
+	if err := m.PageBuilder.Taxonomy.Assemble(tree, m.PageBuilder); err != nil {
+		return err
+	}
 
 	return nil
 }

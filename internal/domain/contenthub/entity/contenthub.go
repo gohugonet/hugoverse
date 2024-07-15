@@ -19,8 +19,6 @@ type ContentHub struct {
 
 	*Title
 
-	*render
-
 	Log      loggers.Logger `json:"-"`
 	pagesLog logg.LevelLogger
 }

@@ -17,27 +17,6 @@ type Taxonomy struct {
 	viewsByTreeKey map[string]valueobject.ViewName
 }
 
-func (t Taxonomy) getTaxonomyConfig(s string) (v valueobject.ViewName) {
-	for _, n := range t.views {
-		if strings.HasPrefix(s, n.PluralTreeKey) {
-			return n
-		}
-	}
-	return
-}
-
-func (t Taxonomy) IsZero(s string) bool {
-	return t.getTaxonomyConfig(s).IsZero()
-}
-
-func (t Taxonomy) Singular(s string) string {
-	return t.getTaxonomyConfig(s).Singular
-}
-
-func (t Taxonomy) PluralTreeKey(s string) string {
-	return t.getTaxonomyConfig(s).PluralTreeKey
-}
-
 func (t Taxonomy) SetupViews() {
 	var views []valueobject.ViewName
 	for k, v := range t.Taxonomies {

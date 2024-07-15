@@ -38,6 +38,16 @@ func NewFileInfo(fi os.FileInfo, filename string) *FileInfo {
 	return info
 }
 
+func NewFileInfoWithName(filename string) *FileInfo {
+	return &FileInfo{
+		FileInfo: nil,
+		FileMeta: &FileMeta{
+			filename: filename,
+			OpenFunc: nil,
+		},
+	}
+}
+
 func NewFileInfoWithDirEntryOpener(de fs.DirEntry, opener FileOpener) (*FileInfo, error) {
 	fi, err := de.Info()
 	if err != nil {

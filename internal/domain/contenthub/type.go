@@ -59,6 +59,8 @@ type Services interface {
 }
 
 type FsService interface {
+	NewFileMetaInfo(filename string) fs.FileMetaInfo
+
 	LayoutFs() afero.Fs
 	ContentFs() afero.Fs
 
@@ -71,10 +73,13 @@ type LangService interface {
 	GetLanguageIndex(lang string) (int, error)
 }
 
+type Taxonomy interface {
+	Singular() string // e.g. "category"
+	Plural() string   // e.g. "categories"
+}
+
 type TaxonomyService interface {
-	IsZero(s string) bool
-	Singular(s string) string
-	PluralTreeKey(s string) string
+	Views() []Taxonomy
 }
 
 type Template interface {

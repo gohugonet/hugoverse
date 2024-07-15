@@ -15,6 +15,7 @@ var log = loggers.NewDefault()
 func New(dir fs.Dir, mods module.Modules) (*entity.Fs, error) {
 	f := &entity.Fs{
 		OriginFs: NewOriginFs(dir),
+		Service:  &entity.Service{},
 	}
 
 	collector, err := CreateMainOverlayFs(f.OriginFs, mods)

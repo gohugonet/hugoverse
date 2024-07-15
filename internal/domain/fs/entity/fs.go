@@ -29,6 +29,8 @@ type Fs struct {
 	ResourcesCache afero.Fs
 
 	RootFss []*valueobject.RootMappingFs
+
+	*Service
 }
 
 func (f *Fs) NewBasePathFs(source afero.Fs, path string) afero.Fs {
