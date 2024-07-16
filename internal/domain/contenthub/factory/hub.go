@@ -26,13 +26,20 @@ func New(services contenthub.Services) (*entity.ContentHub, error) {
 			PageTrees:   newPageTree(),
 
 			PageBuilder: &entity.PageBuilder{
-				LangSvc: services,
+				LangSvc:     services,
+				TaxonomySvc: services,
+				TemplateSvc: nil, // TODO, set when used
+
 				Taxonomy: &entity.Taxonomy{
 					Views: services.Views(),
 					FsSvc: services,
 					Cache: cache,
 				},
-				TemplateSvc: nil, // TODO, set when used
+				Term: &entity.Term{
+					Terms: nil,
+				},
+				Section:    &entity.Section{FsSvc: services, Cache: cache},
+				Standalone: &entity.Standalone{FsSvc: services, Cache: cache},
 			},
 
 			Cache: cache,

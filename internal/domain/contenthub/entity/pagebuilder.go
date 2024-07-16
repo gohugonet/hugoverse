@@ -11,8 +11,13 @@ import (
 
 type PageBuilder struct {
 	LangSvc     contenthub.LangService
+	TaxonomySvc contenthub.TaxonomyService
 	TemplateSvc contenthub.Template
-	Taxonomy    *Taxonomy
+
+	Taxonomy   *Taxonomy
+	Term       *Term
+	Section    *Section
+	Standalone *Standalone
 
 	source          *Source
 	sourceByte      []byte
@@ -125,7 +130,15 @@ func (b *PageBuilder) parse(contentBytes []byte) error {
 	if err := b.parseKind(); err != nil {
 		return err
 	}
+	if err := b.parseTerms(); err != nil {
+		return err
+	}
 
+	return nil
+}
+
+func (b *PageBuilder) parseTerms() error {
+	b.Term.Terms = b.fm.Terms
 	return nil
 }
 
@@ -138,23 +151,31 @@ func (b *PageBuilder) parseKind() error {
 	}
 
 	if kind == "" {
-		kind = valueobject.KindSection
+		kind = valueobject.KindPage
+		base := path.Base()
 
-		if path.Base() == "/" {
+		switch base {
+		case PageHomeBase:
 			kind = valueobject.KindHome
-		} else if b.source.File.IsBranchBundle() {
-			// A section, taxonomy or term.
-			v := b.Taxonomy.getTaxonomy(path.Path())
-			if !b.Taxonomy.IsZero(v) {
-				// Either a taxonomy or a term.
-				if b.Taxonomy.PluralTreeKey(path.Path()) == path.Path() {
-					kind = valueobject.KindTaxonomy
-				} else {
-					kind = valueobject.KindTerm
+		case StandalonePage404Base:
+			kind = valueobject.KindStatus404
+		case StandalonePageSitemapBase:
+			kind = valueobject.KindSitemap
+		default:
+			if b.source.File.IsBranchBundle() {
+				// A section, taxonomy or term.
+				kind = valueobject.KindSection
+
+				v := b.Taxonomy.getTaxonomy(path.Path())
+				if !b.Taxonomy.IsZero(v) {
+					// Either a taxonomy or a term.
+					if b.Taxonomy.PluralTreeKey(path.Path()) == path.Path() {
+						kind = valueobject.KindTaxonomy
+					} else {
+						kind = valueobject.KindTerm
+					}
 				}
 			}
-		} else {
-			kind = valueobject.KindPage
 		}
 	}
 
@@ -206,7 +227,8 @@ func (b *PageBuilder) FrontMatterHandler() valueobject.ItemHandler {
 
 		b.fmParser = &valueobject.FrontMatterParser{
 			Params:      m,
-			LangService: b.LangSvc,
+			LangSvc:     b.LangSvc,
+			TaxonomySvc: b.TaxonomySvc,
 		}
 
 		return nil

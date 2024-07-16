@@ -33,6 +33,10 @@ func newPage(source *Source, content *valueobject.Content) (*Page, error) {
 	return p, nil
 }
 
+func (p *Page) Kind() string {
+	return p.kind
+}
+
 func (p *Page) IsBundled() bool {
 	return p.File.BundleType.IsContentResource()
 }

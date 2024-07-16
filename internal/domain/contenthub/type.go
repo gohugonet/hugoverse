@@ -8,6 +8,7 @@ import (
 	"github.com/gohugonet/hugoverse/internal/domain/template"
 	"github.com/gohugonet/hugoverse/pkg/cache/stale"
 	"github.com/gohugonet/hugoverse/pkg/identity"
+	"github.com/gohugonet/hugoverse/pkg/paths"
 	"github.com/spf13/afero"
 	goTmpl "html/template"
 	"io"
@@ -105,6 +106,8 @@ type PageSource interface {
 	stale.Staler
 	Language() string
 	LanguageIndex() int
+
+	Path() *paths.Path
 }
 
 type ContentNode interface {
@@ -224,6 +227,8 @@ type Page interface {
 	RawContentProvider
 
 	PageSource
+
+	Kind() string
 }
 
 // RawContentProvider provides the raw, unprocessed content of the page.

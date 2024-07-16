@@ -39,8 +39,10 @@ func NewFileInfo(fi os.FileInfo, filename string) *FileInfo {
 }
 
 func NewFileInfoWithName(filename string) *FileInfo {
+	vf, _ := GetVirtualFileInfo()
+
 	return &FileInfo{
-		FileInfo: nil,
+		FileInfo: vf,
 		FileMeta: &FileMeta{
 			filename: filename,
 			OpenFunc: nil,

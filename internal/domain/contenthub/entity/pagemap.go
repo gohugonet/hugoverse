@@ -98,12 +98,60 @@ func (m *PageMap) Assemble() error {
 		return err
 	}
 
+	if err := m.applyAggregates(); err != nil {
+		return err
+	}
+
+	if err := m.cleanPages(); err != nil {
+		return err
+	}
+
+	if err := m.assembleTerms(); err != nil {
+		return err
+	}
+
+	// TODO: apply aggregates cascade and dates to taxonomy and terms
+
+	return nil
+}
+
+func (m *PageMap) assembleTerms() error {
+	if err := m.PageBuilder.Term.Assemble(m.TreePages, m.PageBuilder); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *PageMap) cleanPages() error {
+	// TODO: clean all the draft, expired, scheduled in the future pages
+	return nil
+}
+
+func (m *PageMap) applyAggregates() error {
+
+	// TODO
+	// Apply cascade Aggregates to pages
+	// Apply Dates to home, section, and meta changed pages
+	// Apply cascade to source page
+	// Use linked list to connect all the cascade in the same path
+
+	// Restore all the changed pages in the cache
+
 	return nil
 }
 
 func (m *PageMap) assembleStructurePages() error {
 
 	if err := m.addMissingTaxonomies(); err != nil {
+		return err
+	}
+
+	if err := m.PageBuilder.Section.Assemble(m.TreePages, m.PageBuilder); err != nil {
+		return err
+	}
+
+	if err := m.addMissingStandalone(); err != nil {
 		return err
 	}
 
@@ -117,6 +165,19 @@ func (m *PageMap) addMissingTaxonomies() error {
 	defer commit()
 
 	if err := m.PageBuilder.Taxonomy.Assemble(tree, m.PageBuilder); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *PageMap) addMissingStandalone() error {
+	tree := m.TreePages
+
+	commit := tree.Lock(true)
+	defer commit()
+
+	if err := m.PageBuilder.Standalone.Assemble(tree, m.PageBuilder); err != nil {
 		return err
 	}
 

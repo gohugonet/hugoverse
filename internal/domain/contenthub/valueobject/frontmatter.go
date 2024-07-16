@@ -3,10 +3,13 @@ package valueobject
 import (
 	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
+	"github.com/gohugonet/hugoverse/pkg/helpers"
 	"github.com/gohugonet/hugoverse/pkg/maps"
 	"github.com/gohugonet/hugoverse/pkg/paths"
+	"github.com/gohugonet/hugoverse/pkg/types"
 	"github.com/spf13/cast"
 	"strings"
+	"time"
 )
 
 type FrontMatter struct {
@@ -15,15 +18,20 @@ type FrontMatter struct {
 	Path string
 	Lang string
 	Kind string
+
+	Terms map[string][]string
 }
 
 type FrontMatterParser struct {
 	Params      maps.Params
-	LangService contenthub.LangService
+	LangSvc     contenthub.LangService
+	TaxonomySvc contenthub.TaxonomyService
 }
 
 func (b *FrontMatterParser) Parse() (*FrontMatter, error) {
-	fm := &FrontMatter{}
+	fm := &FrontMatter{
+		Terms: map[string][]string{},
+	}
 
 	if err := b.parseCascade(fm); err != nil {
 		return nil, err
@@ -31,6 +39,10 @@ func (b *FrontMatterParser) Parse() (*FrontMatter, error) {
 
 	if err := b.parseCustomized(fm); err != nil {
 		return fm, err
+	}
+
+	if err := b.parseTerms(fm); err != nil {
+		return nil, err
 	}
 
 	return fm, nil
@@ -54,7 +66,7 @@ func (b *FrontMatterParser) parseCustomized(fm *FrontMatter) error {
 	}
 	if v, found := b.Params["lang"]; found {
 		lang := strings.ToLower(cast.ToString(v))
-		if b.LangService.IsLanguageValid(lang) {
+		if b.LangSvc.IsLanguageValid(lang) {
 			fm.Lang = lang
 		}
 	}
@@ -68,4 +80,49 @@ func (b *FrontMatterParser) parseCustomized(fm *FrontMatter) error {
 		}
 	}
 	return nil
+}
+
+func (b *FrontMatterParser) parseTerms(fm *FrontMatter) error {
+	views := b.TaxonomySvc.Views()
+
+	for _, viewName := range views {
+		vals := types.ToStringSlicePreserveString(getParam(b.Params, viewName.Plural(), false))
+		if vals == nil {
+			continue
+		}
+
+		fm.Terms[viewName.Plural()] = vals
+	}
+	return nil
+}
+
+func getParam(p maps.Params, key string, stringToLower bool) any {
+	v := p[strings.ToLower(key)]
+
+	if v == nil {
+		return nil
+	}
+
+	switch val := v.(type) {
+	case bool:
+		return val
+	case string:
+		if stringToLower {
+			return strings.ToLower(val)
+		}
+		return val
+	case int64, int32, int16, int8, int:
+		return cast.ToInt(v)
+	case float64, float32:
+		return cast.ToFloat64(v)
+	case time.Time:
+		return val
+	case []string:
+		if stringToLower {
+			return helpers.SliceToLower(val)
+		}
+		return v
+	default:
+		return v
+	}
 }

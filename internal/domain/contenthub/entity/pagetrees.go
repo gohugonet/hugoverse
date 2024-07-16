@@ -119,7 +119,11 @@ func (n *PageTreesNode) isEmpty() bool {
 }
 
 func (n *PageTreesNode) shift(languageIndex int, exact bool) *PageTreesNode {
+	var firstV contenthub.PageSource = nil
 	for k, v := range n.nodes {
+		if firstV == nil {
+			firstV = v
+		}
 		if n.nodes[k].LanguageIndex() == languageIndex {
 			return newPageTreesNode(v)
 		}
@@ -129,5 +133,16 @@ func (n *PageTreesNode) shift(languageIndex int, exact bool) *PageTreesNode {
 		fmt.Println("TODO exact for page resource, because page can share resource in different language")
 	}
 
+	if firstV != nil {
+		return newPageTreesNode(firstV)
+	}
+
 	return nil
+}
+
+func (n *PageTreesNode) getPage() (contenthub.Page, bool) {
+	for _, v := range n.nodes {
+		return v.(contenthub.Page), true
+	}
+	return nil, false
 }
