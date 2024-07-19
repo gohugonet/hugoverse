@@ -2,13 +2,19 @@ package entity
 
 import (
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub/valueobject"
+	"github.com/gohugonet/hugoverse/pkg/lazy"
 )
 
 type Page struct {
 	*Source
+
 	*valueobject.Content
+	*Output
 
 	kind string
+
+	// Lazily initialized dependencies.
+	lazyInit *lazy.Init
 }
 
 type TaxonomyPage struct {
@@ -30,6 +36,10 @@ func newPage(source *Source, content *valueobject.Content) (*Page, error) {
 		kind:    valueobject.KindPage,
 	}
 
+	if err := p.outputSetup(); err != nil {
+		return nil, err
+	}
+
 	return p, nil
 }
 
@@ -41,23 +51,57 @@ func (p *Page) IsBundled() bool {
 	return p.File.BundleType.IsContentResource()
 }
 
+func (p *Page) isStandalone() bool {
+	res := false
+	switch p.Kind() {
+	case valueobject.KindStatus404, valueobject.KindRobotsTXT, valueobject.KindSitemap:
+		res = true
+	}
+
+	return res
+}
+
+func (p *Page) outputSetup() error {
+	p.lazyInit.Add(func() (any, error) {
+		p.Output = &Output{
+			source:   p.Source,
+			pageKind: p.Kind(),
+		}
+		// new output based on page kind
+		if err := p.Output.Build(); err != nil {
+			return nil, err
+		}
+		return nil, nil
+	})
+	return nil
+}
+
 func newTaxonomy(source *Source, content *valueobject.Content, singular string) (*TaxonomyPage, error) {
-	p := &TaxonomyPage{
-		Page:     &Page{Source: source, Content: content, kind: valueobject.KindTaxonomy},
+	p, err := newPage(source, content)
+	if err != nil {
+		return nil, err
+	}
+
+	p.kind = valueobject.KindTaxonomy
+	taxonomy := &TaxonomyPage{
+		Page:     p,
 		singular: singular,
 	}
 
-	return p, nil
+	return taxonomy, nil
 }
 
 func newTerm(source *Source, content *valueobject.Content, singular string, term string) (*TermPage, error) {
-	p := &TermPage{
-		TaxonomyPage: &TaxonomyPage{
-			Page:     &Page{Source: source, Content: content, kind: valueobject.KindTerm},
-			singular: singular,
-		},
-		term: term,
+	taxonomy, err := newTaxonomy(source, content, singular)
+	if err != nil {
+		return nil, err
 	}
 
-	return p, nil
+	taxonomy.Page.kind = valueobject.KindTerm
+	tp := &TermPage{
+		TaxonomyPage: taxonomy,
+		term:         term,
+	}
+
+	return tp, nil
 }

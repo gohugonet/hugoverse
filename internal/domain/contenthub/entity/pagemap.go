@@ -93,6 +93,16 @@ func (m *PageMap) AddFi(f *valueobject.File) error {
 	return nil
 }
 
+// Assemble
+// Generalize this function
+// - home page
+// - section page
+// - taxonomy page
+// - term page
+// - resource page
+// - standalone page
+// - Aggregates front matter, and mark changes
+// - Clean page
 func (m *PageMap) Assemble() error {
 	if err := m.assembleStructurePages(); err != nil {
 		return err
@@ -109,8 +119,6 @@ func (m *PageMap) Assemble() error {
 	if err := m.assembleTerms(); err != nil {
 		return err
 	}
-
-	// TODO: apply aggregates cascade and dates to taxonomy and terms
 
 	return nil
 }
