@@ -67,7 +67,6 @@ func (p *Page) outputSetup() error {
 			source:   p.Source,
 			pageKind: p.Kind(),
 		}
-		// new output based on page kind
 		if err := p.Output.Build(); err != nil {
 			return nil, err
 		}

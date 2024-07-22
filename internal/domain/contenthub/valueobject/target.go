@@ -11,6 +11,8 @@ import (
 const slash = "/"
 
 type Target struct {
+	Prefix string
+
 	// Where to store the file on disk relative to the publish dir. OS slashes.
 	FilePath string
 	// The directory to write sub-resources of the above.
@@ -25,7 +27,7 @@ type PagePathBuilder struct {
 
 	// Builder state.
 	IsUgly             bool
-	BaseNameSameAsType bool
+	BaseNameSameAsType bool // Remove it, only sitemap has same basename from both output format and descriptor
 	NoSubResources     bool
 	FullSuffix         string // File suffix including any ".".
 	prefixLink         string
