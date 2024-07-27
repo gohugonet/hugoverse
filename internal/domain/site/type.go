@@ -43,6 +43,10 @@ type Fs interface {
 	Publish() afero.Fs
 }
 
+type Template interface {
+	MarkReady() error
+}
+
 type ContentSpec interface {
 	PreparePages() error
 	RenderPages(func(kind string, sec []string, dir, name string, buf *bytes.Buffer) error) error

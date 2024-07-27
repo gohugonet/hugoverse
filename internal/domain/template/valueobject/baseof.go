@@ -1,6 +1,7 @@
 package valueobject
 
 import (
+	"fmt"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -10,6 +11,7 @@ import (
 
 const (
 	baseFileBase = "baseof"
+	baseDefault  = "_default"
 )
 
 type BaseOf struct {
@@ -22,6 +24,34 @@ func NewBaseOf() *BaseOf {
 		baseof:      make(map[string]TemplateInfo),
 		needsBaseof: make(map[string]TemplateInfo),
 	}
+}
+
+// GetTemplateSearchOrder 获取模板搜索顺序
+func (bo *BaseOf) GetTemplateSearchOrder(templateName string) []string {
+	var searchOrder []string
+
+	// 添加特定模板的 baseof 文件名
+	baseofTemplate := bo.generateBaseofTemplateName(templateName)
+	searchOrder = append(searchOrder, baseofTemplate)
+
+	// 添加 _default/baseof.html
+	searchOrder = append(searchOrder, "_default/baseof.html")
+
+	return searchOrder
+}
+
+func (bo *BaseOf) generateBaseofTemplateName(templateName string) string {
+	dir := filepath.Dir(templateName)
+	filename := filepath.Base(templateName)
+
+	ext := filepath.Ext(filename)
+	name := strings.TrimSuffix(filename, ext)
+
+	newName := fmt.Sprintf("%s_%s%s", name, baseFileBase, ext)
+	if dir == "." {
+		return newName
+	}
+	return filepath.Join(dir, newName)
 }
 
 func (bo *BaseOf) GetBaseOf(key string) (TemplateInfo, bool) {

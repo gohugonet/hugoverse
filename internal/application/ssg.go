@@ -70,18 +70,15 @@ func GenerateStaticSite() error {
 		return err
 	}
 
-	ch.SetTemplateExecutor(exec)
-	if err := ch.CollectPages(); err != nil {
+	if err := ch.CollectPages(exec); err != nil {
+		return err
+	}
+
+	if err := s.Build(exec); err != nil {
 		return err
 	}
 
 	return nil
-	//
-	//if err := site.Build(); err != nil {
-	//	return err
-	//}
-	//
-	//return nil
 }
 
 type resourcesWorkspaceProvider struct {

@@ -14,6 +14,10 @@ func (f *Fs) WalkContent(start string, cb fs.WalkCallback, conf fs.WalkwayConfig
 	return f.Walk(f.Content, start, cb, conf)
 }
 
+func (f *Fs) WalkLayouts(start string, cb fs.WalkCallback, conf fs.WalkwayConfig) error {
+	return f.Walk(f.Layouts, start, cb, conf)
+}
+
 func (f *Fs) Walk(fs afero.Fs, start string, cb fs.WalkCallback, conf fs.WalkwayConfig) error {
 	w, err := valueobject.NewWalkway(fs, cb)
 	if err != nil {

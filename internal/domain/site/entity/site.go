@@ -1,12 +1,15 @@
 package entity
 
 import (
+	"github.com/bep/logg"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
 	"github.com/gohugonet/hugoverse/internal/domain/site"
 	"github.com/gohugonet/hugoverse/internal/domain/site/valueobject"
+	"github.com/gohugonet/hugoverse/pkg/loggers"
 	"github.com/gohugonet/hugoverse/pkg/media"
 	"github.com/gohugonet/hugoverse/pkg/output"
 	"sort"
+	"time"
 )
 
 type Site struct {
@@ -31,11 +34,21 @@ type Site struct {
 
 	ContentHub contenthub.ContentHub
 
+	Template site.Template
+
 	*URL
 	*Language
+
+	Log     loggers.Logger `json:"-"`
+	siteLog logg.LevelLogger
 }
 
-func (s *Site) Build() error {
+func (s *Site) Build(t site.Template) error {
+	s.siteLog = s.Log.InfoCommand("site build")
+	defer loggers.TimeTrackf(s.siteLog, time.Now(), nil, "")
+
+	s.Template = t
+
 	if err := s.setup(); err != nil {
 		return err
 	}
@@ -51,6 +64,16 @@ func (s *Site) Build() error {
 }
 
 func (s *Site) setup() error {
+	l := s.siteLog.WithField("step setup", "setup url and languages")
+	start := time.Now()
+	defer func() {
+		loggers.TimeTrackf(l, start, nil, "")
+	}()
+
+	if err := s.Template.MarkReady(); err != nil {
+		return err
+	}
+
 	if err := s.URL.setup(); err != nil {
 		return err
 	}
@@ -61,6 +84,12 @@ func (s *Site) setup() error {
 }
 
 func (s *Site) render() error {
+	l := s.siteLog.WithField("step render", "render sties")
+	start := time.Now()
+	defer func() {
+		loggers.TimeTrackf(l, start, nil, "")
+	}()
+
 	s.initRenderFormats()
 
 	// Get page output ready

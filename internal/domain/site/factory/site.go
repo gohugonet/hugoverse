@@ -4,6 +4,7 @@ import (
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
 	"github.com/gohugonet/hugoverse/internal/domain/site"
 	"github.com/gohugonet/hugoverse/internal/domain/site/entity"
+	"github.com/gohugonet/hugoverse/pkg/loggers"
 	"github.com/gohugonet/hugoverse/pkg/media"
 	"github.com/gohugonet/hugoverse/pkg/output"
 )
@@ -21,6 +22,7 @@ func New(fs site.Fs, ch contenthub.ContentHub, conf site.Config) *entity.Site {
 		Publisher: &entity.DestinationPublisher{Fs: fs.Publish()},
 
 		ContentHub: ch,
+		Template:   nil,
 
 		URL: &entity.URL{
 			Base:      conf.BaseUrl(),
@@ -29,6 +31,8 @@ func New(fs site.Fs, ch contenthub.ContentHub, conf site.Config) *entity.Site {
 		Language: &entity.Language{
 			Config: conf.Languages(),
 		},
+
+		Log: loggers.NewDefault(),
 	}
 }
 

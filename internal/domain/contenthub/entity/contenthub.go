@@ -23,14 +23,12 @@ type ContentHub struct {
 	pagesLog logg.LevelLogger
 }
 
-func (ch *ContentHub) SetTemplateExecutor(exec contenthub.Template) {
-	ch.TemplateExecutor = exec
-	ch.PageMap.PageBuilder.TemplateSvc = exec
-}
-
-func (ch *ContentHub) CollectPages() error {
+func (ch *ContentHub) CollectPages(exec contenthub.Template) error {
 	ch.pagesLog = ch.Log.InfoCommand("ContentHub.CollectPages")
 	defer loggers.TimeTrackf(ch.pagesLog, time.Now(), nil, "")
+
+	ch.TemplateExecutor = exec
+	ch.PageMap.PageBuilder.TemplateSvc = exec
 
 	if err := ch.process(); err != nil {
 		return fmt.Errorf("process: %w", err)

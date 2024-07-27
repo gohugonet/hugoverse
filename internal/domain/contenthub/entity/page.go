@@ -3,10 +3,12 @@ package entity
 import (
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/lazy"
+	"github.com/gohugonet/hugoverse/pkg/output"
 )
 
 type Page struct {
 	*Source
+	*Layout
 
 	*valueobject.Content
 	*Output
@@ -15,6 +17,27 @@ type Page struct {
 
 	// Lazily initialized dependencies.
 	lazyInit *lazy.Init
+}
+
+func (p *Page) Layouts() []string {
+	switch p.kind {
+	case valueobject.KindHome:
+		return p.Layout.home()
+	case valueobject.KindPage:
+		return p.Layout.page()
+	case valueobject.KindSection:
+		return p.Layout.section(p.source.File.Section())
+	case valueobject.KindTaxonomy:
+		return p.Layout.taxonomy()
+	case valueobject.KindTerm:
+		return p.Layout.term()
+	case valueobject.KindStatus404:
+		return p.Layout.standalone(output.HTTPStatusHTMLFormat.BaseName)
+	case valueobject.KindSitemap:
+		return p.Layout.standalone(output.SitemapFormat.BaseName)
+	default:
+		return nil
+	}
 }
 
 type TaxonomyPage struct {
@@ -34,6 +57,8 @@ func newPage(source *Source, content *valueobject.Content) (*Page, error) {
 		Source:  source,
 		Content: content,
 		kind:    valueobject.KindPage,
+
+		Layout: &Layout{},
 	}
 
 	if err := p.outputSetup(); err != nil {

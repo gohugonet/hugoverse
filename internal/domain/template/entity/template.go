@@ -2,8 +2,7 @@ package entity
 
 import (
 	"fmt"
-	fsFactory "github.com/gohugonet/hugoverse/internal/domain/fs/factory"
-	fsVO "github.com/gohugonet/hugoverse/internal/domain/fs/valueobject"
+	"github.com/gohugonet/hugoverse/internal/domain/fs"
 	"github.com/gohugonet/hugoverse/internal/domain/template"
 	"github.com/gohugonet/hugoverse/internal/domain/template/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/herrors"
@@ -26,8 +25,12 @@ type Template struct {
 	*Shortcode
 }
 
-func (t *Template) LookupLayout(d template.LayoutDescriptor) (template.Preparer, bool, error) {
-	p, found, err := t.Lookup.lookupLayout(d, t.Main)
+func (t *Template) MarkReady() error {
+	return t.Parser.MarkReady()
+}
+
+func (t *Template) LookupLayout(names []string) (template.Preparer, bool, error) {
+	p, found, err := t.Lookup.findStandalone(names, t.Main)
 	if err != nil {
 		return nil, false, err
 	}
@@ -36,7 +39,7 @@ func (t *Template) LookupLayout(d template.LayoutDescriptor) (template.Preparer,
 		return p, true, nil
 	}
 
-	overlay, base, found := t.Lookup.findLayoutInfo(d)
+	overlay, base, found := t.Lookup.findDependentInfo(names)
 	if found {
 		ts, found, err := t.Parser.ParseOverlap(overlay, base)
 		if found {
@@ -55,10 +58,7 @@ func (t *Template) LookupLayout(d template.LayoutDescriptor) (template.Preparer,
 }
 
 func (t *Template) LoadTemplates() error {
-	walker := func(path string, fi fsVO.FileMetaInfo, err error) error {
-		if err != nil {
-			fmt.Println("LoadTemplates --- ", path, err)
-		}
+	walker := func(path string, fi fs.FileMetaInfo) error {
 
 		if fi.IsDir() {
 			return nil
@@ -77,17 +77,20 @@ func (t *Template) LoadTemplates() error {
 		return nil
 	}
 
-	if err := fsFactory.NewWalkway(t.Fs.LayoutFs(), "", walker).Walk(); err != nil {
+	if err := t.Fs.WalkLayouts("", fs.WalkCallback{
+		HookPre:  nil,
+		WalkFn:   walker,
+		HookPost: nil,
+	}, fs.WalkwayConfig{}); err != nil {
 		if !herrors.IsNotExist(err) {
 			return err
 		}
-		return nil
 	}
 
 	return nil
 }
 
-func (t *Template) addTemplateFile(name string, fim fsVO.FileMetaInfo) error {
+func (t *Template) addTemplateFile(name string, fim fs.FileMetaInfo) error {
 	tinfo, err := valueobject.LoadTemplate(name, fim)
 	if err != nil {
 		return err

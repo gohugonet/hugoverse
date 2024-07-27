@@ -2,6 +2,7 @@ package template
 
 import (
 	"context"
+	"github.com/gohugonet/hugoverse/internal/domain/fs"
 	"github.com/gohugonet/hugoverse/pkg/template/funcs/collections"
 	"github.com/gohugonet/hugoverse/pkg/template/funcs/compare"
 	"github.com/gohugonet/hugoverse/pkg/template/funcs/os"
@@ -10,7 +11,6 @@ import (
 	"github.com/gohugonet/hugoverse/pkg/template/funcs/transform"
 	"github.com/gohugonet/hugoverse/pkg/template/funcs/urls"
 	template "github.com/gohugonet/hugoverse/pkg/template/texttemplate"
-	"github.com/spf13/afero"
 	"io"
 	"reflect"
 )
@@ -24,7 +24,7 @@ const (
 )
 
 type Fs interface {
-	LayoutFs() afero.Fs
+	WalkLayouts(start string, cb fs.WalkCallback, conf fs.WalkwayConfig) error
 }
 
 type Service interface {
@@ -41,13 +41,8 @@ type Executor interface {
 }
 
 type Lookup interface {
-	LookupLayout(d LayoutDescriptor) (Preparer, bool, error)
+	LookupLayout(names []string) (Preparer, bool, error)
 	GetFunc(name string) (reflect.Value, bool)
-}
-
-type LayoutDescriptor interface {
-	Names() []string
-	BaseNames() []string
 }
 
 type Preparer interface {

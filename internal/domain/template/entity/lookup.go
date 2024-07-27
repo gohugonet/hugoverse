@@ -11,8 +11,8 @@ type Lookup struct {
 	Funcsv map[string]reflect.Value
 }
 
-func (t *Lookup) lookupLayout(d template.LayoutDescriptor, ns *Namespace) (template.Preparer, bool, error) {
-	for _, name := range d.Names() {
+func (t *Lookup) findStandalone(names []string, ns *Namespace) (template.Preparer, bool, error) {
+	for _, name := range names {
 		templ, found := ns.Lookup(name)
 		if found {
 			return templ, true, nil
@@ -21,8 +21,8 @@ func (t *Lookup) lookupLayout(d template.LayoutDescriptor, ns *Namespace) (templ
 	return nil, false, nil
 }
 
-func (t *Lookup) findLayoutInfo(d template.LayoutDescriptor) (valueobject.TemplateInfo, valueobject.TemplateInfo, bool) {
-	for _, name := range d.Names() {
+func (t *Lookup) findDependentInfo(names []string) (valueobject.TemplateInfo, valueobject.TemplateInfo, bool) {
+	for _, name := range names {
 		overlay, found := t.BaseOf.GetNeedsBaseOf(name)
 
 		if !found {
@@ -31,7 +31,7 @@ func (t *Lookup) findLayoutInfo(d template.LayoutDescriptor) (valueobject.Templa
 
 		var base valueobject.TemplateInfo
 		found = false
-		for _, l := range d.BaseNames() {
+		for _, l := range t.BaseOf.GetTemplateSearchOrder(name) {
 			base, found = t.BaseOf.GetBaseOf(l)
 			if found {
 				break
