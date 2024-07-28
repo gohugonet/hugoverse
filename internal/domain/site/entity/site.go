@@ -1,14 +1,17 @@
 package entity
 
 import (
+	"fmt"
 	"github.com/bep/logg"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
 	"github.com/gohugonet/hugoverse/internal/domain/site"
-	"github.com/gohugonet/hugoverse/internal/domain/site/valueobject"
+	"github.com/gohugonet/hugoverse/pkg/env"
+	"github.com/gohugonet/hugoverse/pkg/herrors"
 	"github.com/gohugonet/hugoverse/pkg/loggers"
 	"github.com/gohugonet/hugoverse/pkg/media"
 	"github.com/gohugonet/hugoverse/pkg/output"
 	"sort"
+	"sync"
 	"time"
 )
 
@@ -32,7 +35,7 @@ type Site struct {
 
 	Publisher site.Publisher
 
-	ContentHub contenthub.ContentHub
+	Content site.Content
 
 	Template site.Template
 
@@ -90,12 +93,8 @@ func (s *Site) render() error {
 		loggers.TimeTrackf(l, start, nil, "")
 	}()
 
-	s.initRenderFormats()
+	spc.clear()
 
-	// Get page output ready
-	if err := s.preparePagesForRender(); err != nil {
-		return err
-	}
 	if err := s.renderPages(); err != nil {
 		return err
 	}
@@ -104,28 +103,85 @@ func (s *Site) render() error {
 }
 
 func (s *Site) renderPages() error {
-	for _, of := range s.RenderFormats {
-		td := valueobject.NewTemplateDescriptor(of.Name, of.MediaType.SubType)
+	numWorkers := env.GetNumWorkerMultiplier()
 
-		err := s.ContentHub.RenderPages(td, func(info contenthub.PageInfo) error {
-			pp, err := valueobject.NewPagePaths(s.OutputFormatsConfig, info)
-			if err != nil {
-				return err
-			}
+	results := make(chan error)
+	pages := make(chan *Page, numWorkers) // buffered for performance
+	errs := make(chan error)
 
-			pd := site.Descriptor{
-				Src:          info.Buffer(),
-				TargetPath:   pp.TargetPaths[of.Name].Paths.TargetFilename,
-				OutputFormat: of,
-			}
-			return s.Publisher.Publish(pd)
-		})
+	go s.errorCollator(results, errs)
 
-		if err != nil {
-			return err
-		}
+	wg := &sync.WaitGroup{}
+
+	for i := 0; i < numWorkers; i++ {
+		wg.Add(1)
+		go pageRenderer(s, pages, results, wg)
+	}
+
+	if err := s.Content.WalkPages(s.Language.currentLanguage.Index, func(p contenthub.Page) error {
+		pages <- &Page{Page: p}
+
+		return nil
+	}); err != nil {
+		return fmt.Errorf("failed to walk pages: %w", herrors.ImproveIfNilPointer(err))
+	}
+
+	close(pages)
+
+	wg.Wait()
+
+	close(results)
+
+	err := <-errs
+	if err != nil {
+		return fmt.Errorf("failed to render pages: %w", herrors.ImproveIfNilPointer(err))
 	}
 	return nil
+}
+
+func (s *Site) errorCollator(results <-chan error, errs chan<- error) {
+	var errors []error
+	for e := range results {
+		errors = append(errors, e)
+	}
+
+	errs <- s.pickOneAndLogTheRest(errors)
+
+	close(errs)
+}
+
+func (s *Site) pickOneAndLogTheRest(errors []error) error {
+	if len(errors) == 0 {
+		return nil
+	}
+
+	var i int
+
+	for j, err := range errors {
+		// If this is in server mode, we want to return an error to the client
+		// with a file context, if possible.
+		if herrors.UnwrapFileError(err) != nil {
+			i = j
+			break
+		}
+	}
+
+	// Log the rest, but add a threshold to avoid flooding the log.
+	const errLogThreshold = 5
+
+	for j, err := range errors {
+		if j == i || err == nil {
+			continue
+		}
+
+		if j >= errLogThreshold {
+			break
+		}
+
+		s.Log.Errorln(err)
+	}
+
+	return errors[i]
 }
 
 func (s *Site) preparePagesForRender() error {

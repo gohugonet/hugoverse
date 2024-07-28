@@ -9,7 +9,7 @@ import (
 	"github.com/gohugonet/hugoverse/pkg/output"
 )
 
-func New(fs site.Fs, ch contenthub.ContentHub, conf site.Config) *entity.Site {
+func New(fs site.Fs, ch site.Content, conf site.Config) *entity.Site {
 	mediaTypes := media.DecodeTypes()
 	formats := output.DecodeFormats(mediaTypes)
 	outputFormats := CreateSiteOutputFormats(formats)
@@ -21,8 +21,8 @@ func New(fs site.Fs, ch contenthub.ContentHub, conf site.Config) *entity.Site {
 
 		Publisher: &entity.DestinationPublisher{Fs: fs.Publish()},
 
-		ContentHub: ch,
-		Template:   nil,
+		Content:  ch,
+		Template: nil,
 
 		URL: &entity.URL{
 			Base:      conf.BaseUrl(),

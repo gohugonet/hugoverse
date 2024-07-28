@@ -231,6 +231,8 @@ type Page interface {
 	Kind() string
 }
 
+type WalkFunc func(Page) error
+
 // RawContentProvider provides the raw, unprocessed content of the page.
 type RawContentProvider interface {
 	// RawContent returns the raw, unprocessed content of the page excluding any front matter.

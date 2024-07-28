@@ -69,29 +69,3 @@ func (ch *ContentHub) assemble() error {
 	}
 	return nil
 }
-
-func (ch *ContentHub) PreparePages() error {
-	var err error
-	ch.PageCollections.PageMap.withEveryBundlePage(func(p *pageState) bool {
-		if err = p.initOutputFormat(); err != nil {
-			return true
-		}
-		return false
-	})
-	return nil
-}
-
-func (ch *ContentHub) RenderPages(td contenthub.TemplateDescriptor, cb func(info contenthub.PageInfo) error) error {
-	ch.render = &render{
-		pageMap:          ch.PageCollections.PageMap,
-		templateExecutor: ch.TemplateExecutor,
-		td:               td,
-		cb:               cb,
-	}
-
-	if err := ch.renderPages(); err != nil {
-		return fmt.Errorf("renderPages: %w", err)
-	}
-
-	return nil
-}

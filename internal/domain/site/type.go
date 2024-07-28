@@ -2,12 +2,17 @@ package site
 
 import (
 	"bytes"
+	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
 	"github.com/gohugonet/hugoverse/pkg/output"
 	"github.com/spf13/afero"
 	"golang.org/x/text/collate"
 	"io"
 	"time"
 )
+
+type Content interface {
+	WalkPages(langIndex int, walker contenthub.WalkFunc) error
+}
 
 type Site interface {
 	URL
