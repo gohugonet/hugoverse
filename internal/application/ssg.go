@@ -3,13 +3,14 @@ package application
 import (
 	configAgr "github.com/gohugonet/hugoverse/internal/domain/config/entity"
 	configFact "github.com/gohugonet/hugoverse/internal/domain/config/factory"
-	"github.com/gohugonet/hugoverse/internal/domain/config/valueobject"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
+	chAgr "github.com/gohugonet/hugoverse/internal/domain/contenthub/entity"
 	contentHubFact "github.com/gohugonet/hugoverse/internal/domain/contenthub/factory"
 	fsAgr "github.com/gohugonet/hugoverse/internal/domain/fs/entity"
 	fsFact "github.com/gohugonet/hugoverse/internal/domain/fs/factory"
 	"github.com/gohugonet/hugoverse/internal/domain/markdown"
 	mdFact "github.com/gohugonet/hugoverse/internal/domain/markdown/factory"
+	moduleAgr "github.com/gohugonet/hugoverse/internal/domain/module/entity"
 	moduleFact "github.com/gohugonet/hugoverse/internal/domain/module/factory"
 	rsAgr "github.com/gohugonet/hugoverse/internal/domain/resources/entity"
 	rsFact "github.com/gohugonet/hugoverse/internal/domain/resources/factory"
@@ -17,6 +18,7 @@ import (
 	siteAgr "github.com/gohugonet/hugoverse/internal/domain/site/entity"
 	siteFact "github.com/gohugonet/hugoverse/internal/domain/site/factory"
 	tmplFact "github.com/gohugonet/hugoverse/internal/domain/template/factory"
+	"sort"
 )
 
 func GenerateStaticSite() error {
@@ -35,14 +37,19 @@ func GenerateStaticSite() error {
 		return err
 	}
 
-	ch, err := contentHubFact.New(fs)
+	ch, err := contentHubFact.New(&chServices{
+		Config: c,
+		Fs:     fs,
+		Module: mods,
+	})
 	if err != nil {
 		return err
 	}
 
-	s := siteFact.New(fs, ch, &siteConfig{
-		baseUrl:   c.BaseUrl(),
-		languages: c.Languages(),
+	s := siteFact.New(&siteServices{
+		Config:     c,
+		Fs:         fs,
+		ContentHub: ch,
 	})
 
 	ws := &resourcesWorkspaceProvider{
@@ -89,26 +96,48 @@ type resourcesWorkspaceProvider struct {
 
 type templateCustomizedFunctionsProvider struct {
 	markdown.Markdown
-	contenthub.ContentHub
+	*chAgr.ContentHub
 	site.Site
 	*rsAgr.Resources
 	*configAgr.Config
 	*fsAgr.Fs
 }
 
-type siteConfig struct {
-	baseUrl   string
-	languages []valueobject.LanguageConfig
+type chServices struct {
+	*configAgr.Config
+	*fsAgr.Fs
+	*moduleAgr.Module
 }
 
-func (s *siteConfig) BaseUrl() string {
-	return s.baseUrl
-}
-
-func (s *siteConfig) Languages() []site.LanguageConfig {
-	var langs []site.LanguageConfig
-	for _, l := range s.languages {
-		langs = append(langs, site.LanguageConfig(l))
+func (s *chServices) Views() []contenthub.Taxonomy {
+	var t []contenthub.Taxonomy
+	for _, v := range s.Config.Views() {
+		t = append(t, taxonomy{
+			singular: v.Singular,
+			plural:   v.Plural,
+		})
 	}
-	return langs
+	sort.Slice(t, func(i, j int) bool {
+		return t[i].Singular() < t[j].Singular()
+	})
+	return t
+}
+
+type taxonomy struct {
+	singular string
+	plural   string
+}
+
+func (t taxonomy) Singular() string {
+	return t.singular
+}
+
+func (t taxonomy) Plural() string {
+	return t.plural
+}
+
+type siteServices struct {
+	*configAgr.Config
+	*fsAgr.Fs
+	*chAgr.ContentHub
 }

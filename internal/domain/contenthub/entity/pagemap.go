@@ -1,10 +1,15 @@
 package entity
 
 import (
+	"context"
 	"fmt"
 	"github.com/bep/logg"
+	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub/valueobject"
+	"github.com/gohugonet/hugoverse/pkg/doctree"
 	"github.com/gohugonet/hugoverse/pkg/loggers"
+	"github.com/gohugonet/hugoverse/pkg/paths"
+	"path"
 )
 
 type PageMap struct {
@@ -16,9 +21,6 @@ type PageMap struct {
 	Cache *valueobject.Cache
 
 	PageBuilder *PageBuilder
-
-	//TODO : add for the cascade in the future
-	//assembleChanges *valueobject.WhatChanged
 
 	Log loggers.Logger
 }
@@ -86,7 +88,7 @@ func (m *PageMap) AddFi(f *valueobject.File) error {
 			return err
 		}
 
-		//TODO check pi changes
+		//TODO in which dimension?
 		m.TreePages.InsertWithLock(ps.Path().Base(), newPageTreesNode(p))
 
 	}
@@ -117,6 +119,10 @@ func (m *PageMap) Assemble() error {
 	}
 
 	if err := m.assembleTerms(); err != nil {
+		return err
+	}
+
+	if err := m.assembleResources(); err != nil {
 		return err
 	}
 
@@ -190,4 +196,111 @@ func (m *PageMap) addMissingStandalone() error {
 	}
 
 	return nil
+}
+
+func (m *PageMap) assembleResources() error {
+	pagesTree := m.PageTrees.TreePages // TODO: In which dimension
+	resourcesTree := m.PageTrees.TreeResources
+
+	lockType := doctree.LockTypeWrite
+	w := &doctree.NodeShiftTreeWalker[*PageTreesNode]{
+		Tree:     pagesTree,
+		LockType: lockType,
+		Handle: func(s string, n *PageTreesNode, match doctree.DimensionFlag) (bool, error) {
+			ps, found := n.getPage()
+			if !found {
+				return false, nil
+			}
+
+			if err := m.forEachResourceInPage(
+				ps, lockType,
+				func(resourceKey string, n *PageTreesNode, match doctree.DimensionFlag) (bool, error) {
+					rs, found := n.getResource()
+					if !found {
+						return false, nil
+					}
+
+					if !match.Has(doctree.DimensionLanguage) {
+						// We got an alternative language version.
+						// Clone this and insert it into the tree.
+						rs = rs.clone()
+						resourcesTree.InsertIntoCurrentDimension(resourceKey, rs)
+					}
+					if rs.r != nil {
+						return false, nil
+					}
+
+					relPathOriginal := rs.Path().Unnormalized().PathRel(ps.Path().Unnormalized())
+					relPath := rs.Path().BaseRel(ps.Path())
+
+					var targetBasePaths []string
+					if ps.s.Conf.IsMultihost() {
+						baseTarget = targetPaths.SubResourceBaseLink
+						// In multihost we need to publish to the lang sub folder.
+						targetBasePaths = []string{ps.s.GetTargetLanguageBasePath()} // TODO(bep) we don't need this as a slice anymore.
+
+					}
+
+					rd := resources.ResourceSourceDescriptor{
+						OpenReadSeekCloser:   rs.opener,
+						Path:                 rs.path,
+						GroupIdentity:        rs.path,
+						TargetPath:           relPathOriginal, // Use the original path for the target path, so the links can be guessed.
+						TargetBasePaths:      targetBasePaths,
+						BasePathRelPermalink: targetPaths.SubResourceBaseLink,
+						BasePathTargetPath:   baseTarget,
+						NameNormalized:       relPath,
+						NameOriginal:         relPathOriginal,
+						LazyPublish:          !ps.m.pageConfig.Build.PublishResources,
+					}
+					r, err := ps.m.s.ResourceSpec.NewResource(rd)
+					if err != nil {
+						return false, err
+					}
+					rs.r = r
+					return false, nil
+				},
+			); err != nil {
+				return false, err
+			}
+
+			return false, nil
+		},
+	}
+
+	return w.Walk(context.Background())
+}
+
+func (m *PageMap) forEachResourceInPage(
+	ps contenthub.Page,
+	lockType doctree.LockType,
+	handle func(resourceKey string, n *PageTreesNode, match doctree.DimensionFlag) (bool, error),
+) error {
+	keyPage := ps.Path().Path()
+	if keyPage == "/" {
+		keyPage = ""
+	}
+	prefix := paths.AddTrailingSlash(keyPage)
+	isBranch := ps.Kind() != valueobject.KindPage
+
+	rw := &doctree.NodeShiftTreeWalker[*PageTreesNode]{
+		Tree:     m.TreeResources,
+		Prefix:   prefix,
+		LockType: lockType,
+		Exact:    false,
+	}
+
+	rw.Handle = func(resourceKey string, n *PageTreesNode, match doctree.DimensionFlag) (bool, error) {
+		if isBranch {
+			ownerKey, _ := m.TreePages.LongestPrefixAll(resourceKey)
+			if ownerKey != keyPage && path.Dir(ownerKey) != path.Dir(resourceKey) {
+				// Stop walking downwards, someone else owns this resource.
+				rw.SkipPrefix(ownerKey + "/")
+				return false, nil
+			}
+		}
+		return handle(resourceKey, n, match)
+	}
+
+	return rw.Walk(context.Background())
 }

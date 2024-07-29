@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/site"
 	"golang.org/x/text/collate"
 	"golang.org/x/text/language"
@@ -8,11 +9,19 @@ import (
 )
 
 type Language struct {
-	Config []site.LanguageConfig
+	LangSvc site.LanguageService
 
 	currentLocation *time.Location
-	currentLanguage site.LanguageConfig
+	currentLanguage string
 	collator        *Collator
+}
+
+func (l *Language) CurrentLanguageIndex() int {
+	curr, err := l.LangSvc.GetLanguageIndex(l.currentLanguage)
+	if err != nil {
+		panic(fmt.Sprintf("language %q not found", l.currentLanguage))
+	}
+	return curr
 }
 
 func (l *Language) setup() error {
@@ -23,7 +32,7 @@ func (l *Language) setup() error {
 
 func (l *Language) Collator() *collate.Collator {
 	if l.collator == nil {
-		tag, err := language.Parse(l.currentLanguage.Code())
+		tag, err := language.Parse(l.currentLanguage)
 		if err == nil {
 			l.collator = &Collator{
 				c: collate.New(tag),

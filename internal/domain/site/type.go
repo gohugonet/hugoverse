@@ -10,8 +10,28 @@ import (
 	"time"
 )
 
-type Content interface {
+type Services interface {
+	ContentService
+	LanguageService
+	FsService
+	URLService
+}
+
+type LanguageService interface {
+	LanguageKeys() []string
+	GetLanguageIndex(lang string) (int, error)
+}
+
+type ContentService interface {
 	WalkPages(langIndex int, walker contenthub.WalkFunc) error
+}
+
+type FsService interface {
+	Publish() afero.Fs
+}
+
+type URLService interface {
+	BaseUrl() string
 }
 
 type Site interface {
@@ -32,20 +52,6 @@ type URL interface {
 
 type Config interface {
 	URLConfig
-	Languages() []LanguageConfig
-}
-
-type URLConfig interface {
-	BaseUrl() string
-}
-
-type LanguageConfig interface {
-	Name() string
-	Code() string
-}
-
-type Fs interface {
-	Publish() afero.Fs
 }
 
 type Template interface {

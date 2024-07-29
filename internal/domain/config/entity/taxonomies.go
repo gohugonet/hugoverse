@@ -17,6 +17,10 @@ type Taxonomy struct {
 	viewsByTreeKey map[string]valueobject.ViewName
 }
 
+func (t Taxonomy) Views() []valueobject.ViewName {
+	return t.views
+}
+
 func (t Taxonomy) SetupViews() {
 	var views []valueobject.ViewName
 	for k, v := range t.Taxonomies {

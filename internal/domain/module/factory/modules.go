@@ -12,7 +12,7 @@ import (
 	"path/filepath"
 )
 
-func New(info module.LoadInfo) (module.Modules, error) {
+func New(info module.LoadInfo) (*entity.Module, error) {
 	if !checkGoModule(info.WorkingDir(), info.Fs()) {
 		return nil, errors.New("go.mod file not found, go module hugo project supported only")
 	}

@@ -35,7 +35,7 @@ type Site struct {
 
 	Publisher site.Publisher
 
-	Content site.Content
+	ContentSvc site.ContentService
 
 	Template site.Template
 
@@ -55,7 +55,7 @@ func (s *Site) Build(t site.Template) error {
 	if err := s.setup(); err != nil {
 		return err
 	}
-	for _, l := range s.Language.Config {
+	for _, l := range s.LangSvc.LanguageKeys() {
 		s.Language.currentLanguage = l
 		err := s.render()
 		if err != nil {
@@ -118,11 +118,14 @@ func (s *Site) renderPages() error {
 		go pageRenderer(s, pages, results, wg)
 	}
 
-	if err := s.Content.WalkPages(s.Language.currentLanguage.Index, func(p contenthub.Page) error {
+	if err := s.ContentSvc.WalkPages(s.Language.CurrentLanguageIndex(), func(p contenthub.Page) error {
 		pages <- &Page{Page: p}
 
 		return nil
 	}); err != nil {
+		close(pages)
+		close(results)
+
 		return fmt.Errorf("failed to walk pages: %w", herrors.ImproveIfNilPointer(err))
 	}
 
@@ -182,10 +185,6 @@ func (s *Site) pickOneAndLogTheRest(errors []error) error {
 	}
 
 	return errors[i]
-}
-
-func (s *Site) preparePagesForRender() error {
-	return s.ContentHub.PreparePages()
 }
 
 func (s *Site) initRenderFormats() {

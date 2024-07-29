@@ -81,6 +81,10 @@ func (l Language) SetIndices() {
 	l.indices = languages
 }
 
+func (l Language) LanguageKeys() []string {
+	return l.indices
+}
+
 func (l Language) GetLanguageIndex(lang string) (int, error) {
 	for i, v := range l.indices {
 		if v == lang {

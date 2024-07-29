@@ -146,3 +146,10 @@ func (n *PageTreesNode) getPage() (contenthub.Page, bool) {
 	}
 	return nil, false
 }
+
+func (n *PageTreesNode) getResource() (contenthub.PageSource, bool) {
+	for _, v := range n.nodes {
+		return v.(contenthub.PageSource), true
+	}
+	return nil, false
+}

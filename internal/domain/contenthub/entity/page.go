@@ -2,7 +2,6 @@ package entity
 
 import (
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub/valueobject"
-	"github.com/gohugonet/hugoverse/pkg/lazy"
 	"github.com/gohugonet/hugoverse/pkg/output"
 )
 
@@ -14,9 +13,6 @@ type Page struct {
 	*Output
 
 	kind string
-
-	// Lazily initialized dependencies.
-	lazyInit *lazy.Init
 }
 
 func (p *Page) Layouts() []string {
@@ -87,16 +83,13 @@ func (p *Page) isStandalone() bool {
 }
 
 func (p *Page) outputSetup() error {
-	p.lazyInit.Add(func() (any, error) {
-		p.Output = &Output{
-			source:   p.Source,
-			pageKind: p.Kind(),
-		}
-		if err := p.Output.Build(); err != nil {
-			return nil, err
-		}
-		return nil, nil
-	})
+	p.Output = &Output{
+		source:   p.Source,
+		pageKind: p.Kind(),
+	}
+	if err := p.Output.Build(); err != nil {
+		return err
+	}
 	return nil
 }
 

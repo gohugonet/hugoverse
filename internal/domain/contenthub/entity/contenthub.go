@@ -6,6 +6,7 @@ import (
 	"github.com/bep/logg"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
 	"github.com/gohugonet/hugoverse/pkg/loggers"
+	goTmpl "html/template"
 	"time"
 )
 
@@ -21,6 +22,11 @@ type ContentHub struct {
 
 	Log      loggers.Logger `json:"-"`
 	pagesLog logg.LevelLogger
+}
+
+func (ch *ContentHub) RenderString(ctx context.Context, args ...any) (goTmpl.HTML, error) {
+	//TODO
+	return "", nil
 }
 
 func (ch *ContentHub) CollectPages(exec contenthub.Template) error {
