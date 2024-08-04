@@ -33,8 +33,6 @@ type ResourcePaths struct {
 	// This is the directory component for the link will be prepended to Dir.
 	BaseDirLink string
 
-	BasePathNoTrailingSlash string
-
 	// Set when publishing in a multihost setup.
 	TargetBasePaths []string
 
@@ -73,15 +71,7 @@ func (d ResourcePaths) Path() string {
 }
 
 func (d ResourcePaths) TargetPaths() []string {
-	if len(d.TargetBasePaths) == 0 {
-		return []string{d.TargetPath()}
-	}
-
-	var paths []string
-	for _, p := range d.TargetBasePaths {
-		paths = append(paths, p+d.TargetPath())
-	}
-	return paths
+	return []string{d.TargetPath()}
 }
 
 func (d ResourcePaths) TargetFilenames() []string {

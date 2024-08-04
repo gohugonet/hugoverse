@@ -85,7 +85,6 @@ type TaxonomyService interface {
 
 type Template interface {
 	ExecuteWithContext(ctx context.Context, tmpl template.Preparer, wr io.Writer, data any) error
-	LookupLayout(d template.LayoutDescriptor) (template.Preparer, bool, error)
 	LookupVariants(name string) []template.Preparer
 }
 

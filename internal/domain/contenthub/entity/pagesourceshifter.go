@@ -12,12 +12,15 @@ func (s *SourceShifter) Delete(n *PageTreesNode, dimension doctree.Dimension) (b
 }
 
 func (s *SourceShifter) Shift(n *PageTreesNode, dimension doctree.Dimension, exact bool) (*PageTreesNode, bool, doctree.DimensionFlag) {
-	newNode := n.shift(dimension[doctree.DimensionLanguage.Index()], exact)
+	newNode, found := n.shift(dimension[doctree.DimensionLanguage.Index()], exact)
 	if newNode != nil {
-		return newNode, true, doctree.DimensionLanguage
+		if found {
+			return newNode, true, doctree.DimensionLanguage
+		}
+		return newNode, true, doctree.DimensionNone
 	}
 
-	return nil, false, 0
+	return nil, false, doctree.DimensionNone
 }
 
 func (s *SourceShifter) ForEachInDimension(n *PageTreesNode, d int, f func(*PageTreesNode) bool) {

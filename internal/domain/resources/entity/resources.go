@@ -46,7 +46,7 @@ func (rs *Resources) GetResource(pathname string) (resources.Resource, error) {
 		// The resource file will not be read before it gets used (e.g. in .Content),
 		// so we need to check that the file exists here.
 		filename := filepath.FromSlash(pathname)
-		fi, err := rs.FsService.AssetsFs().Stat(filename)
+		_, err := rs.FsService.AssetsFs().Stat(filename)
 		if err != nil {
 			if os.IsNotExist(err) {
 				return nil, nil
@@ -55,19 +55,14 @@ func (rs *Resources) GetResource(pathname string) (resources.Resource, error) {
 			return nil, err
 		}
 
-		// TODO, refactor PathInfo
-		pi := fi.(fs.FileMetaInfo).Path()
+		rsb := newResourceBuilder(pathname, func() (io.ReadSeekCloser, error) {
+			return rs.FsService.AssetsFs().Open(filename)
+		})
+		rsb.withCache(rs.Cache).withMediaService(rs.MediaService).
+			withImageService(rs.ImageService).withImageProcessor(rs.ImageProc).
+			withPublishFs(rs.FsService.PublishFs())
 
-		sd, err := valueobject.NewResourceSourceDescriptor(
-			pathname, pi, rs.MediaService,
-			func() (io.ReadSeekCloser, error) {
-				return rs.FsService.AssetsFs().Open(filename)
-			},
-		)
-		if err != nil {
-			return nil, err
-		}
-		return rs.newResource(sd)
+		return rsb.build()
 	})
 }
 

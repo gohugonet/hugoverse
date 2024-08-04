@@ -83,7 +83,7 @@ func (r *ResourceTransformer) transform(key string) (*Resource, error) {
 		Ctx:                   context.Background(),
 		Data:                  make(map[string]any),
 		OpenResourcePublisher: r.Resource.openPublishFileForWriting,
-		DependencyManager:     r.Resource.sd.DependencyManager,
+		DependencyManager:     r.Resource.dependencyManager,
 	}
 
 	tctx.InMediaType = r.Resource.MediaType()

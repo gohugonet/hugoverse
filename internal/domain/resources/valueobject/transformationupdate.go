@@ -2,6 +2,7 @@ package valueobject
 
 import (
 	"context"
+	"fmt"
 	"github.com/gohugonet/hugoverse/pkg/identity"
 	"github.com/gohugonet/hugoverse/pkg/media"
 	"github.com/gohugonet/hugoverse/pkg/paths"
@@ -95,6 +96,11 @@ func (ctx *ResourceTransformationCtx) AddOutPathIdentifier(identifier string) {
 // with the ".map" extension added.
 func (ctx *ResourceTransformationCtx) PublishSourceMap(content string) error {
 	target := ctx.OutPath + ".map"
+	if ctx.OpenResourcePublisher == nil {
+		// TODO
+		fmt.Printf("Publishing source map not supported yet for %s\n", target)
+		return nil
+	}
 	f, err := ctx.OpenResourcePublisher(target)
 	if err != nil {
 		return err

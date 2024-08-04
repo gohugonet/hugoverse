@@ -97,10 +97,6 @@ type Resource interface {
 	TypeProvider
 	MediaTypeProvider
 	LinksProvider
-	NameTitleProvider
-	ParamsProvider
-	DataProvider
-	ErrProvider
 }
 
 type ResourceCopier interface {

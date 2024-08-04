@@ -88,7 +88,6 @@ func (m *PageMap) AddFi(f *valueobject.File) error {
 			return err
 		}
 
-		//TODO in which dimension?
 		m.TreePages.InsertWithLock(ps.Path().Base(), newPageTreesNode(p))
 
 	}
@@ -119,10 +118,6 @@ func (m *PageMap) Assemble() error {
 	}
 
 	if err := m.assembleTerms(); err != nil {
-		return err
-	}
-
-	if err := m.assembleResources(); err != nil {
 		return err
 	}
 
@@ -198,82 +193,7 @@ func (m *PageMap) addMissingStandalone() error {
 	return nil
 }
 
-func (m *PageMap) assembleResources() error {
-	pagesTree := m.PageTrees.TreePages // TODO: In which dimension
-	resourcesTree := m.PageTrees.TreeResources
-
-	lockType := doctree.LockTypeWrite
-	w := &doctree.NodeShiftTreeWalker[*PageTreesNode]{
-		Tree:     pagesTree,
-		LockType: lockType,
-		Handle: func(s string, n *PageTreesNode, match doctree.DimensionFlag) (bool, error) {
-			ps, found := n.getPage()
-			if !found {
-				return false, nil
-			}
-
-			if err := m.forEachResourceInPage(
-				ps, lockType,
-				func(resourceKey string, n *PageTreesNode, match doctree.DimensionFlag) (bool, error) {
-					rs, found := n.getResource()
-					if !found {
-						return false, nil
-					}
-
-					if !match.Has(doctree.DimensionLanguage) {
-						// We got an alternative language version.
-						// Clone this and insert it into the tree.
-						rs = rs.clone()
-						resourcesTree.InsertIntoCurrentDimension(resourceKey, rs)
-					}
-					if rs.r != nil {
-						return false, nil
-					}
-
-					relPathOriginal := rs.Path().Unnormalized().PathRel(ps.Path().Unnormalized())
-					relPath := rs.Path().BaseRel(ps.Path())
-
-					var targetBasePaths []string
-					if ps.s.Conf.IsMultihost() {
-						baseTarget = targetPaths.SubResourceBaseLink
-						// In multihost we need to publish to the lang sub folder.
-						targetBasePaths = []string{ps.s.GetTargetLanguageBasePath()} // TODO(bep) we don't need this as a slice anymore.
-
-					}
-
-					rd := resources.ResourceSourceDescriptor{
-						OpenReadSeekCloser:   rs.opener,
-						Path:                 rs.path,
-						GroupIdentity:        rs.path,
-						TargetPath:           relPathOriginal, // Use the original path for the target path, so the links can be guessed.
-						TargetBasePaths:      targetBasePaths,
-						BasePathRelPermalink: targetPaths.SubResourceBaseLink,
-						BasePathTargetPath:   baseTarget,
-						NameNormalized:       relPath,
-						NameOriginal:         relPathOriginal,
-						LazyPublish:          !ps.m.pageConfig.Build.PublishResources,
-					}
-					r, err := ps.m.s.ResourceSpec.NewResource(rd)
-					if err != nil {
-						return false, err
-					}
-					rs.r = r
-					return false, nil
-				},
-			); err != nil {
-				return false, err
-			}
-
-			return false, nil
-		},
-	}
-
-	return w.Walk(context.Background())
-}
-
-func (m *PageMap) forEachResourceInPage(
-	ps contenthub.Page,
-	lockType doctree.LockType,
+func (m *PageMap) forEachResourceInPage(ps contenthub.Page, lockType doctree.LockType, exact bool,
 	handle func(resourceKey string, n *PageTreesNode, match doctree.DimensionFlag) (bool, error),
 ) error {
 	keyPage := ps.Path().Path()
@@ -287,7 +207,7 @@ func (m *PageMap) forEachResourceInPage(
 		Tree:     m.TreeResources,
 		Prefix:   prefix,
 		LockType: lockType,
-		Exact:    false,
+		Exact:    exact,
 	}
 
 	rw.Handle = func(resourceKey string, n *PageTreesNode, match doctree.DimensionFlag) (bool, error) {

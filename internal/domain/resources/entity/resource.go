@@ -6,13 +6,12 @@ import (
 	"github.com/gohugonet/hugoverse/internal/domain/resources/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/cache/stale"
 	"github.com/gohugonet/hugoverse/pkg/helpers"
+	"github.com/gohugonet/hugoverse/pkg/identity"
 	pio "github.com/gohugonet/hugoverse/pkg/io"
-	"github.com/gohugonet/hugoverse/pkg/maps"
 	"github.com/gohugonet/hugoverse/pkg/media"
 	"github.com/gohugonet/hugoverse/pkg/paths"
 	"github.com/spf13/afero"
 	"io"
-	"strings"
 )
 
 var (
@@ -25,18 +24,18 @@ type Resource struct {
 	stale.Staler
 	h *valueobject.ResourceHash // A hash of the source content. Is only calculated in caching situations.
 
-	title  string
-	name   string
-	params map[string]any
+	openReadSeekCloser pio.OpenReadSeekCloser
+	mediaType          media.Type
 
-	sd    valueobject.ResourceSourceDescriptor
 	paths valueobject.ResourcePaths
 
-	publishFs afero.Fs
+	publishFs         afero.Fs
+	data              map[string]any
+	dependencyManager identity.Manager
 }
 
 func (l *Resource) MediaType() media.Type {
-	return l.sd.MediaType
+	return l.mediaType
 }
 
 func (l *Resource) ResourceType() string {
@@ -44,27 +43,17 @@ func (l *Resource) ResourceType() string {
 }
 
 func (l *Resource) RelPermalink() string {
-	return l.paths.BasePathNoTrailingSlash + paths.PathEscape(l.paths.TargetLink())
+	// TODO: use config BaseURL
+	return paths.PathEscape(l.paths.TargetLink())
 }
 
 func (l *Resource) Permalink() string {
-	return l.paths.BasePathNoTrailingSlash + paths.PathEscape(l.paths.TargetPath())
-}
-
-func (l *Resource) Name() string {
-	return l.name
-}
-
-func (l *Resource) Title() string {
-	return l.title
-}
-
-func (l *Resource) Params() maps.Params {
-	return l.params
+	// TODO: use config BaseURL
+	return paths.PathEscape(l.paths.TargetPath())
 }
 
 func (l *Resource) Data() any {
-	return l.sd.Data
+	return l.data
 }
 
 func (l *Resource) Err() resources.ResourceError {
@@ -72,7 +61,7 @@ func (l *Resource) Err() resources.ResourceError {
 }
 
 func (l *Resource) ReadSeekCloser() (pio.ReadSeekCloser, error) {
-	return l.sd.OpenReadSeekCloser()
+	return l.openReadSeekCloser()
 }
 
 func (l *Resource) Hash() string {
@@ -99,15 +88,8 @@ func (l *Resource) clone() *Resource {
 }
 
 func (l *Resource) Key() string {
-	basePath := l.paths.BasePathNoTrailingSlash
-	var key string
-	if basePath == "" {
-		key = l.RelPermalink()
-	} else {
-		key = strings.TrimPrefix(l.RelPermalink(), basePath)
-	}
-
-	return key
+	// TODO, use config BaseURL
+	return l.RelPermalink()
 }
 
 func (l *Resource) openPublishFileForWriting(relTargetPath string) (io.WriteCloser, error) {
@@ -119,18 +101,18 @@ func (l *Resource) cloneWithUpdates(u *valueobject.TransformationUpdate) (*Resou
 	r := l.clone()
 
 	if u.Content != nil {
-		r.sd.OpenReadSeekCloser = func() (pio.ReadSeekCloser, error) {
+		r.openReadSeekCloser = func() (pio.ReadSeekCloser, error) {
 			return pio.NewReadSeekerNoOpCloserFromString(*u.Content), nil
 		}
 	}
 
-	r.sd.MediaType = u.MediaType
+	r.mediaType = u.MediaType
 
 	if u.SourceFilename != nil {
 		if u.SourceFs == nil {
 			return nil, errors.New("sourceFs is nil")
 		}
-		r.sd.OpenReadSeekCloser = func() (pio.ReadSeekCloser, error) {
+		r.openReadSeekCloser = func() (pio.ReadSeekCloser, error) {
 			return u.SourceFs.Open(*u.SourceFilename)
 		}
 	} else if u.SourceFs != nil {
@@ -151,12 +133,12 @@ func (l *Resource) mergeData(in map[string]any) {
 	if len(in) == 0 {
 		return
 	}
-	if l.sd.Data == nil {
-		l.sd.Data = make(map[string]any)
+	if l.data == nil {
+		l.data = make(map[string]any)
 	}
 	for k, v := range in {
-		if _, found := l.sd.Data[k]; !found {
-			l.sd.Data[k] = v
+		if _, found := l.data[k]; !found {
+			l.data[k] = v
 		}
 	}
 }

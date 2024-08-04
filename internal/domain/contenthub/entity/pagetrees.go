@@ -1,7 +1,6 @@
 package entity
 
 import (
-	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
 	"github.com/gohugonet/hugoverse/pkg/cache/stale"
 	"github.com/gohugonet/hugoverse/pkg/doctree"
@@ -58,12 +57,12 @@ func (n *PageTreesNode) merge(newNode *PageTreesNode) *PageTreesNode {
 	// Create a map to track existing keys by their IDs
 	existingKeys := make(map[string]contenthub.PageIdentity)
 	for key := range n.nodes {
-		existingKeys[key.IdentifierBase()] = key
+		existingKeys[key.Language()] = key
 	}
 
 	// Update or add entries from the new map
 	for newKey, newValue := range newNode.nodes {
-		if oldKey, exists := existingKeys[newKey.IdentifierBase()]; exists {
+		if oldKey, exists := existingKeys[newKey.Language()]; exists {
 			// Replace the old value with the new value
 			n.nodes[oldKey] = newValue
 		} else {
@@ -118,26 +117,22 @@ func (n *PageTreesNode) isEmpty() bool {
 	return len(n.nodes) == 0
 }
 
-func (n *PageTreesNode) shift(languageIndex int, exact bool) *PageTreesNode {
+func (n *PageTreesNode) shift(languageIndex int, exact bool) (*PageTreesNode, bool) {
 	var firstV contenthub.PageSource = nil
 	for k, v := range n.nodes {
 		if firstV == nil {
 			firstV = v
 		}
 		if n.nodes[k].LanguageIndex() == languageIndex {
-			return newPageTreesNode(v)
+			return newPageTreesNode(v), true
 		}
 	}
 
-	if exact {
-		fmt.Println("TODO exact for page resource, because page can share resource in different language")
+	if firstV != nil && !exact {
+		return newPageTreesNode(firstV), false
 	}
 
-	if firstV != nil {
-		return newPageTreesNode(firstV)
-	}
-
-	return nil
+	return nil, false
 }
 
 func (n *PageTreesNode) getPage() (contenthub.Page, bool) {

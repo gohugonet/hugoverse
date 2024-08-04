@@ -14,8 +14,9 @@
 package doctree
 
 const (
-	// Language is currently the only dimension in the Hugo build matrix.
+	// DimensionLanguage Language is currently the only dimension in the Hugo build matrix.
 	DimensionLanguage DimensionFlag = 1 << iota
+	DimensionNone
 )
 
 // Dimension is a row in the Hugo build matrix which currently has one value: language.
