@@ -191,7 +191,7 @@ func (t *scssTransformation) Transform(ctx *valueobject.ResourceTransformationCt
 		ImportResolver: valueobject.ImportResolver{
 			BaseDir:           baseDir,
 			FsService:         t.c.FsService,
-			DependencyManager: ctx.DependencyManager,
+			DependencyManager: ctx.DepSvc.DependencyManager(),
 
 			VarsStylesheet: godartsass.Import{Content: valueobject.CreateVarsStyleSheet(opts.Vars)},
 		},
@@ -226,7 +226,9 @@ func (t *scssTransformation) Transform(ctx *valueobject.ResourceTransformationCt
 	}
 
 	if opts.EnableSourceMap && res.SourceMap != "" {
-		if err := ctx.PublishSourceMap(res.SourceMap); err != nil {
+		target := ctx.OutPath + ".map"
+
+		if err := ctx.PubSvc.PublishContentToTarget(res.SourceMap, target); err != nil {
 			return err
 		}
 		_, err = fmt.Fprintf(ctx.To, "\n\n/*# sourceMappingURL=%s */", path.Base(ctx.OutPath)+".map")

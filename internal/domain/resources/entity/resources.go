@@ -16,6 +16,7 @@ import (
 
 type Resources struct {
 	*Cache
+	*Publisher
 
 	ExecHelper *hexec.Exec
 
@@ -60,7 +61,7 @@ func (rs *Resources) GetResource(pathname string) (resources.Resource, error) {
 		})
 		rsb.withCache(rs.Cache).withMediaService(rs.MediaService).
 			withImageService(rs.ImageService).withImageProcessor(rs.ImageProc).
-			withPublishFs(rs.FsService.PublishFs())
+			withPublisher(rs.Publisher)
 
 		return rsb.build()
 	})

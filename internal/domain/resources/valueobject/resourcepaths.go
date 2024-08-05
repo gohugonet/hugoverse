@@ -40,6 +40,22 @@ type ResourcePaths struct {
 	File string
 }
 
+func NewResourcePaths(targetPath string) ResourcePaths {
+	targetPath = filepath.ToSlash(targetPath)
+	dir, file := path.Split(targetPath)
+	dir = paths.ToSlashPreserveLeading(dir)
+	if dir == "/" {
+		dir = ""
+	}
+
+	return ResourcePaths{
+		Dir:           dir,
+		File:          file,
+		BaseDirLink:   "",
+		BaseDirTarget: "",
+	}
+}
+
 func (d ResourcePaths) join(p ...string) string {
 	var s string
 	for i, pp := range p {

@@ -9,7 +9,6 @@ import (
 	"github.com/gohugonet/hugoverse/pkg/io"
 	"github.com/gohugonet/hugoverse/pkg/media"
 	"github.com/gohugonet/hugoverse/pkg/paths"
-	"github.com/spf13/afero"
 	"mime"
 	"os"
 	"path"
@@ -22,7 +21,7 @@ type resourceBuilder struct {
 	openReadSeekCloser io.OpenReadSeekCloser
 	mediaType          media.Type
 
-	publishFs afero.Fs
+	publisher *Publisher
 
 	mediaSvc  resources.MediaTypesConfig
 	cache     *Cache
@@ -37,8 +36,8 @@ func newResourceBuilder(relPathname string, openReadSeekCloser io.OpenReadSeekCl
 	}
 }
 
-func (rs *resourceBuilder) withPublishFs(publishFs afero.Fs) *resourceBuilder {
-	rs.publishFs = publishFs
+func (rs *resourceBuilder) withPublisher(publisher *Publisher) *resourceBuilder {
+	rs.publisher = publisher
 	return rs
 }
 
@@ -142,7 +141,6 @@ func (rs *resourceBuilder) buildResource() (resources.Resource, error) {
 
 		paths: rs.resPaths,
 
-		publishFs:         rs.publishFs,
 		data:              make(map[string]any),
 		dependencyManager: identity.NewManager("resource"),
 	}
@@ -150,7 +148,9 @@ func (rs *resourceBuilder) buildResource() (resources.Resource, error) {
 	switch valueobject.ClassifyType(rs.mediaType.Type) {
 	case "transformer":
 		rt := &ResourceTransformer{
-			Resource:                *gr,
+			Resource:  *gr,
+			publisher: rs.publisher,
+
 			resourceTransformations: &resourceTransformations{},
 
 			TransformationCache: rs.cache,

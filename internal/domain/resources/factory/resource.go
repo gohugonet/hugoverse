@@ -46,7 +46,9 @@ func NewResources(ws resources.Workspace) (*entity.Resources, error) {
 	}
 
 	rs := &entity.Resources{
-		Cache:        c,
+		Cache:     c,
+		Publisher: &entity.Publisher{PubFs: ws.PublishFs()},
+
 		FsService:    ws,
 		MediaService: ws,
 		UrlService:   ws,

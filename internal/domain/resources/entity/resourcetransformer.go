@@ -17,6 +17,8 @@ import (
 type ResourceTransformer struct {
 	Resource
 
+	publisher *Publisher
+
 	TransformationCache *Cache
 
 	*resourceTransformations
@@ -74,38 +76,22 @@ func (r *ResourceTransformer) getOrTransform() error {
 func (r *ResourceTransformer) transform(key string) (*Resource, error) {
 	cache := r.TransformationCache
 
-	b1 := bp.GetBuffer()
-	b2 := bp.GetBuffer()
-	defer bp.PutBuffer(b1)
-	defer bp.PutBuffer(b2)
-
-	tctx := &valueobject.ResourceTransformationCtx{
-		Ctx:                   context.Background(),
-		Data:                  make(map[string]any),
-		OpenResourcePublisher: r.Resource.openPublishFileForWriting,
-		DependencyManager:     r.Resource.dependencyManager,
-	}
-
-	tctx.InMediaType = r.Resource.MediaType()
-	tctx.OutMediaType = r.Resource.MediaType()
-
-	startCtx := *tctx
-	updates := &valueobject.TransformationUpdate{StartCtx: startCtx}
-
 	var contentrc pio.ReadSeekCloser
-
 	contentrc, err := valueobject.ContentReadSeekerCloser(&r.Resource)
 	if err != nil {
 		return nil, err
 	}
-
 	defer contentrc.Close()
 
-	tctx.From = contentrc
-	tctx.To = b1
+	ctxBuilder := valueobject.NewResourceTransformationCtxBuilder(&r.Resource, r.publisher).
+		WithMediaType(r.Resource.mediaType).
+		WithSource(contentrc).
+		WithTargetPath(r.Resource.paths.TargetPath())
+	tctx := ctxBuilder.Build()
+	defer tctx.Close()
 
-	tctx.InPath = r.Resource.paths.TargetPath()
-	tctx.SourcePath = strings.TrimPrefix(tctx.InPath, "/")
+	startCtx := *tctx
+	updates := &valueobject.TransformationUpdate{StartCtx: startCtx}
 
 	counter := 0
 	writeToFileCache := false
@@ -183,7 +169,7 @@ func (r *ResourceTransformer) transform(key string) (*Resource, error) {
 
 	var publishwriters []io.WriteCloser
 
-	publicw, err := r.Resource.openPublishFileForWriting(updates.TargetPath)
+	publicw, err := r.publisher.OpenPublishFileForWriting(updates.TargetPath)
 	if err != nil {
 		return nil, err
 	}

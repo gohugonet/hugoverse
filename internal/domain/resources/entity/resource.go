@@ -5,13 +5,10 @@ import (
 	"github.com/gohugonet/hugoverse/internal/domain/resources"
 	"github.com/gohugonet/hugoverse/internal/domain/resources/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/cache/stale"
-	"github.com/gohugonet/hugoverse/pkg/helpers"
 	"github.com/gohugonet/hugoverse/pkg/identity"
 	pio "github.com/gohugonet/hugoverse/pkg/io"
 	"github.com/gohugonet/hugoverse/pkg/media"
 	"github.com/gohugonet/hugoverse/pkg/paths"
-	"github.com/spf13/afero"
-	"io"
 )
 
 var (
@@ -22,6 +19,7 @@ var (
 
 type Resource struct {
 	stale.Staler
+
 	h *valueobject.ResourceHash // A hash of the source content. Is only calculated in caching situations.
 
 	openReadSeekCloser pio.OpenReadSeekCloser
@@ -29,7 +27,6 @@ type Resource struct {
 
 	paths valueobject.ResourcePaths
 
-	publishFs         afero.Fs
 	data              map[string]any
 	dependencyManager identity.Manager
 }
@@ -92,9 +89,8 @@ func (l *Resource) Key() string {
 	return l.RelPermalink()
 }
 
-func (l *Resource) openPublishFileForWriting(relTargetPath string) (io.WriteCloser, error) {
-	filenames := l.paths.FromTargetPath(relTargetPath).TargetFilenames()
-	return helpers.OpenFilesForWriting(l.publishFs, filenames...)
+func (l *Resource) DependencyManager() identity.Manager {
+	return l.dependencyManager
 }
 
 func (l *Resource) cloneWithUpdates(u *valueobject.TransformationUpdate) (*Resource, error) {
