@@ -165,7 +165,7 @@ func (t *scssTransformation) Key() valueobject.ResourceTransformationKey {
 }
 
 func (t *scssTransformation) Transform(ctx *valueobject.ResourceTransformationCtx) error {
-	ctx.OutMediaType = media.Builtin.CSSType
+	ctx.Target.OutMediaType = media.Builtin.CSSType
 
 	opts, err := valueobject.DecodeDartSassOptions(t.optsm)
 	if err != nil {
@@ -173,16 +173,16 @@ func (t *scssTransformation) Transform(ctx *valueobject.ResourceTransformationCt
 	}
 
 	if opts.TargetPath != "" {
-		ctx.OutPath = opts.TargetPath
+		ctx.Target.OutPath = opts.TargetPath
 	} else {
 		ctx.ReplaceOutPathExtension(".css")
 	}
 
-	baseDir := path.Dir(ctx.SourcePath)
+	baseDir := path.Dir(ctx.SourcePath())
 	filename := dartSassStdinPrefix
 
-	if ctx.SourcePath != "" {
-		filename += t.c.FsService.AssetsFsRealFilename(ctx.SourcePath)
+	if ctx.SourcePath() != "" {
+		filename += t.c.FsService.AssetsFsRealFilename(ctx.SourcePath())
 	}
 
 	args := godartsass.Args{
@@ -209,29 +209,29 @@ func (t *scssTransformation) Transform(ctx *valueobject.ResourceTransformationCt
 		}
 	}
 
-	if ctx.InMediaType.SubType == media.Builtin.SASSType.SubType {
+	if ctx.Source.InMediaType.SubType == media.Builtin.SASSType.SubType {
 		args.SourceSyntax = godartsass.SourceSyntaxSASS
 	}
 
-	res, err := t.c.toCSS(args, ctx.From)
+	res, err := t.c.toCSS(args, ctx.Source.From)
 	if err != nil {
 		return err
 	}
 
 	out := res.CSS
 
-	_, err = io.WriteString(ctx.To, out)
+	_, err = io.WriteString(ctx.Target.To, out)
 	if err != nil {
 		return err
 	}
 
 	if opts.EnableSourceMap && res.SourceMap != "" {
-		target := ctx.OutPath + ".map"
+		target := ctx.Target.OutPath + ".map"
 
 		if err := ctx.PubSvc.PublishContentToTarget(res.SourceMap, target); err != nil {
 			return err
 		}
-		_, err = fmt.Fprintf(ctx.To, "\n\n/*# sourceMappingURL=%s */", path.Base(ctx.OutPath)+".map")
+		_, err = fmt.Fprintf(ctx.Target.To, "\n\n/*# sourceMappingURL=%s */", path.Base(ctx.Target.OutPath)+".map")
 	}
 
 	return err

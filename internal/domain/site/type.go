@@ -2,7 +2,11 @@ package site
 
 import (
 	"bytes"
+	"context"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
+	"github.com/gohugonet/hugoverse/internal/domain/resources"
+	"github.com/gohugonet/hugoverse/internal/domain/template"
+	pio "github.com/gohugonet/hugoverse/pkg/io"
 	"github.com/gohugonet/hugoverse/pkg/output"
 	"github.com/spf13/afero"
 	"golang.org/x/text/collate"
@@ -12,6 +16,7 @@ import (
 
 type Services interface {
 	ContentService
+	ResourceService
 	LanguageService
 	FsService
 	URLService
@@ -24,6 +29,11 @@ type LanguageService interface {
 
 type ContentService interface {
 	WalkPages(langIndex int, walker contenthub.WalkFunc) error
+	GetPageSources(page contenthub.Page) ([]contenthub.PageSource, error)
+}
+
+type ResourceService interface {
+	GetResourceWithOpener(pathname string, opener pio.OpenReadSeekCloser) (resources.Resource, error)
 }
 
 type FsService interface {
@@ -50,12 +60,10 @@ type URL interface {
 	URLize(uri string) string
 }
 
-type Config interface {
-	URLConfig
-}
-
 type Template interface {
 	MarkReady() error
+	LookupLayout(names []string) (template.Preparer, bool, error)
+	ExecuteWithContext(ctx context.Context, t template.Preparer, wr io.Writer, data any) error
 }
 
 type ContentSpec interface {

@@ -3,6 +3,8 @@ package valueobject
 import (
 	"github.com/gohugonet/hugoverse/internal/domain/fs"
 	"github.com/gohugonet/hugoverse/pkg/herrors"
+	"github.com/gohugonet/hugoverse/pkg/loggers"
+	"github.com/gohugonet/hugoverse/pkg/overlayfs"
 	"github.com/spf13/afero"
 	iofs "io/fs"
 	"os"
@@ -16,6 +18,18 @@ type ComponentFs struct {
 	Component string
 
 	OverlayFs afero.Fs
+
+	log loggers.Logger
+}
+
+func NewComponentFs(component string, overlayFs *overlayfs.OverlayFs) *ComponentFs {
+	return &ComponentFs{
+		Component: component,
+		OverlayFs: overlayFs,
+		Fs:        NewBasePathFs(overlayFs, component),
+
+		log: loggers.NewDefault(),
+	}
 }
 
 func (cfs *ComponentFs) UnwrapFilesystem() afero.Fs {
@@ -44,21 +58,16 @@ func (cfs *ComponentFs) Stat(name string) (os.FileInfo, error) {
 
 func (cfs *ComponentFs) Open(name string) (afero.File, error) {
 	f, err := cfs.Fs.Open(name)
+	cfs.log.Printf("Open (ComponentFs): %s, %+v", name, f)
 	if err != nil {
 		return nil, err
 	}
 
-	fi, err := cfs.Fs.Stat(name)
-	if err != nil {
-		f.Close()
-		return nil, err
-	}
-
-	if fi.IsDir() {
-		df := NewDirFile(f, FileMeta{filename: name, component: cfs.Component}, cfs)
-		df.filter = symlinkFilter
-
-		return df, nil
+	if baseFile, ok := f.(*afero.BasePathFile); ok {
+		if dirFile, ok := baseFile.File.(*DirFile); ok {
+			dirFile.filter = symlinkFilter
+			return dirFile, nil
+		}
 	}
 
 	return f, nil

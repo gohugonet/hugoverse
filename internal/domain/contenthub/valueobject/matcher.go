@@ -40,7 +40,7 @@ func (m PageMatcher) Matches(p contenthub.Page) bool {
 
 	if m.Lang != "" {
 		g, err := glob.GetGlob(m.Lang)
-		if err == nil && !g.Match(p.Lang()) {
+		if err == nil && !g.Match(p.Language()) {
 			return false
 		}
 	}
@@ -48,7 +48,7 @@ func (m PageMatcher) Matches(p contenthub.Page) bool {
 	if m.Path != "" {
 		g, err := glob.GetGlob(m.Path)
 		// TODO(bep) RelPath() vs filepath vs leading slash.
-		p := strings.ToLower(filepath.ToSlash(p.Path()))
+		p := strings.ToLower(filepath.ToSlash(p.Path().Path()))
 		if !(strings.HasPrefix(p, "/")) {
 			p = "/" + p
 		}

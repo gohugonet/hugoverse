@@ -18,7 +18,7 @@ package valueobject
 import (
 	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
-	"github.com/gohugonet/hugoverse/internal/domain/fs/valueobject"
+	"github.com/gohugonet/hugoverse/internal/domain/fs"
 )
 
 // ZeroFile represents a zero value of source.File with warnings if invoked.
@@ -81,7 +81,7 @@ func (z zeroFile) UniqueID() (o0 string) {
 	fmt.Println(".File.UniqueID on zero object. Wrap it in if or with: {{ with .File }}{{ .UniqueID }}{{ end }}")
 	return
 }
-func (z zeroFile) FileInfo() (o0 valueobject.FileMetaInfo) {
+func (z zeroFile) FileInfo() (o0 fs.FileMetaInfo) {
 	fmt.Println(".File.FileInfo on zero object. Wrap it in if or with: {{ with .File }}{{ .FileInfo }}{{ end }}")
 	return
 }

@@ -111,7 +111,7 @@ func (w *Walkway) walk(path string, info fs.FileMetaInfo, dirEntries []fs.FileMe
 
 	if dirEntries == nil {
 		f, err := w.Fs.Open(path)
-		fmt.Println("555 open file: ", path)
+		w.logger.Printf("fs walk open file: %s, %+v", path, f)
 		if err != nil {
 			if w.checkErr(path, err) {
 				return nil

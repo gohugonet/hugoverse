@@ -16,6 +16,8 @@ type ContentHub struct {
 	// ExecTemplate handling.
 	TemplateExecutor contenthub.Template
 
+	*Cache
+
 	*PageMap
 
 	*Title
@@ -74,4 +76,20 @@ func (ch *ContentHub) assemble() error {
 		return err
 	}
 	return nil
+}
+
+func (ch *ContentHub) GetPageSources(page contenthub.Page) ([]contenthub.PageSource, error) {
+	keyPage := page.Path().Path()
+	if keyPage == "/" {
+		keyPage = ""
+	}
+	key := keyPage + "/get-sources-for-page"
+	v, err := ch.Cache.GetOrCreateResources(key, func() ([]contenthub.PageSource, error) {
+		return ch.PageMap.getResourcesForPage(page)
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return v, nil
 }

@@ -148,8 +148,10 @@ func (rs *resourceBuilder) buildResource() (resources.Resource, error) {
 	switch valueobject.ClassifyType(rs.mediaType.Type) {
 	case "transformer":
 		rt := &ResourceTransformer{
-			Resource:  *gr,
+			Resource: *gr,
+
 			publisher: rs.publisher,
+			mediaSvc:  rs.mediaSvc,
 
 			resourceTransformations: &resourceTransformations{},
 

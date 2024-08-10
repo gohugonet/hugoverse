@@ -14,7 +14,7 @@ const (
 
 type Standalone struct {
 	FsSvc contenthub.FsService
-	Cache *valueobject.Cache
+	Cache *Cache
 }
 
 func (s *Standalone) Assemble(pages *doctree.NodeShiftTree[*PageTreesNode], pb *PageBuilder) error {

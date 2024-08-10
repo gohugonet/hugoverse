@@ -1,7 +1,6 @@
 package entity
 
 import (
-	"encoding/json"
 	"github.com/gohugonet/hugoverse/internal/domain/resources"
 	"github.com/gohugonet/hugoverse/internal/domain/resources/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/cache/dynacache"
@@ -16,9 +15,9 @@ import (
 )
 
 type Cache struct {
-	filecache.Caches
-
 	sync.RWMutex
+
+	filecache.Caches
 
 	CacheImage                  *dynacache.Partition[string, *ResourceImage]
 	CacheResource               *dynacache.Partition[string, resources.Resource]
@@ -57,10 +56,10 @@ func (c *Cache) GetOrCreateImageResource(parent *ResourceImage, conf valueobject
 			targetPath := img.paths
 			targetPath.File = relTarget.File
 			img.paths = targetPath
-			img.sd.OpenReadSeekCloser = func() (pio.ReadSeekCloser, error) {
+			img.Resource.openReadSeekCloser = func() (pio.ReadSeekCloser, error) {
 				return c.Caches.ImageCache().Fs.Open(info.Name)
 			}
-			img.sd.MediaType = valueobject.MediaType(conf.TargetFormat)
+			img.Resource.mediaType = valueobject.MediaType(conf.TargetFormat)
 
 			if err := img.InitConfig(r); err != nil {
 				return err
@@ -81,7 +80,7 @@ func (c *Cache) GetOrCreateImageResource(parent *ResourceImage, conf valueobject
 			targetPath := img.paths
 			targetPath.File = relTarget.File
 			img.paths = targetPath
-			img.sd.OpenReadSeekCloser = func() (pio.ReadSeekCloser, error) {
+			img.Resource.openReadSeekCloser = func() (pio.ReadSeekCloser, error) {
 				return c.Caches.ImageCache().Fs.Open(info.Name)
 			}
 			return img.EncodeTo(conf, conv, w)
@@ -111,12 +110,8 @@ func (c *Cache) CleanKey(key string) string {
 }
 
 // WriteMeta writes the metadata to file and returns a writer for the content part.
-func (c *Cache) WriteMeta(key string, meta valueobject.TransformedResourceMetadata) (filecache.ItemInfo, io.WriteCloser, error) {
+func (c *Cache) WriteMeta(key string, metaRaw []byte) (filecache.ItemInfo, io.WriteCloser, error) {
 	filenameMeta, filenameContent := c.getFilenames(key)
-	raw, err := json.Marshal(meta)
-	if err != nil {
-		return filecache.ItemInfo{}, nil, err
-	}
 
 	_, fm, err := c.Caches.AssetsCache().WriteCloser(filenameMeta)
 	if err != nil {
@@ -124,7 +119,7 @@ func (c *Cache) WriteMeta(key string, meta valueobject.TransformedResourceMetada
 	}
 	defer fm.Close()
 
-	if _, err := fm.Write(raw); err != nil {
+	if _, err := fm.Write(metaRaw); err != nil {
 		return filecache.ItemInfo{}, nil, err
 	}
 
@@ -138,4 +133,17 @@ func (c *Cache) getFilenames(key string) (string, string) {
 	filenameContent := key + ".Content"
 
 	return filenameMeta, filenameContent
+}
+
+func (c *Cache) GetFile(key string) (filecache.ItemInfo, io.ReadCloser, []byte, bool) {
+	c.RLock()
+	defer c.RUnlock()
+
+	filenameMeta, filenameContent := c.getFilenames(key)
+
+	_, jsonContent, _ := c.Caches.AssetsCache().GetBytes(filenameMeta)
+
+	fi, rc, _ := c.Caches.AssetsCache().Get(filenameContent)
+
+	return fi, rc, jsonContent, rc != nil
 }

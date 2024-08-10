@@ -350,7 +350,7 @@ func (i *ResourceImage) doWithImageConfig(conf valueobject.ImageConfig, f func(s
 		targetPath := i.relTargetPathFromConfig(conf)
 		ci.paths = targetPath
 		ci.ImageFormat = conf.TargetFormat
-		ci.sd.MediaType = valueobject.MediaType(conf.TargetFormat)
+		ci.mediaType = valueobject.MediaType(conf.TargetFormat)
 
 		return ci, converted, nil
 	})

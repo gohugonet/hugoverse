@@ -55,7 +55,7 @@ func pagesEqual(p1, p2 Pages) bool {
 	}
 
 	for i := 0; i < len(p1); i++ {
-		if p1[i] != p2[i] {
+		if p1[i].PageIdentity() != p2[i].PageIdentity() {
 			return false
 		}
 	}

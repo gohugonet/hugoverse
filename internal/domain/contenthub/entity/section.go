@@ -15,7 +15,7 @@ type Section struct {
 	seen map[string]bool
 
 	FsSvc contenthub.FsService
-	Cache *valueobject.Cache
+	Cache *Cache
 }
 
 func (s *Section) isHome(key string) bool {

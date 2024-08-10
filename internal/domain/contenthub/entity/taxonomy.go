@@ -15,7 +15,7 @@ type Taxonomy struct {
 	Views []contenthub.Taxonomy
 
 	FsSvc contenthub.FsService
-	Cache *valueobject.Cache
+	Cache *Cache
 }
 
 func (t *Taxonomy) Assemble(pages *doctree.NodeShiftTree[*PageTreesNode], pb *PageBuilder) error {

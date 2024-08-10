@@ -59,6 +59,28 @@ func (ctx *ResourceTransformationCtx) Close() {
 	bp.PutBuffer(ctx.b2)
 }
 
+func (ctx *ResourceTransformationCtx) UpdateSource() {
+	ctx.Source.InMediaType = ctx.Target.OutMediaType
+	if ctx.Target.OutPath != "" {
+		ctx.Source.InPath = ctx.Target.OutPath
+	}
+}
+
+func (ctx *ResourceTransformationCtx) UpdateBuffer() {
+	hasWrites := ctx.Target.To.(*bytes.Buffer).Len() > 0
+	if hasWrites {
+		if ctx.Target.To == ctx.b1 {
+			ctx.Source.From = ctx.b1
+			ctx.b2.Reset()
+			ctx.Target.To = ctx.b2
+		} else {
+			ctx.Source.From = ctx.b2
+			ctx.b1.Reset()
+			ctx.Target.To = ctx.b1
+		}
+	}
+}
+
 func (ctx *ResourceTransformationCtx) SourcePath() string {
 	return strings.TrimPrefix(ctx.Source.InPath, "/")
 }

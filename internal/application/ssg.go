@@ -15,7 +15,6 @@ import (
 	rsAgr "github.com/gohugonet/hugoverse/internal/domain/resources/entity"
 	rsFact "github.com/gohugonet/hugoverse/internal/domain/resources/factory"
 	"github.com/gohugonet/hugoverse/internal/domain/site"
-	siteAgr "github.com/gohugonet/hugoverse/internal/domain/site/entity"
 	siteFact "github.com/gohugonet/hugoverse/internal/domain/site/factory"
 	tmplFact "github.com/gohugonet/hugoverse/internal/domain/template/factory"
 	"sort"
@@ -46,21 +45,21 @@ func GenerateStaticSite() error {
 		return err
 	}
 
-	s := siteFact.New(&siteServices{
-		Config:     c,
-		Fs:         fs,
-		ContentHub: ch,
-	})
-
 	ws := &resourcesWorkspaceProvider{
 		Config: c,
 		Fs:     fs,
-		Site:   s,
 	}
 	resources, err := rsFact.NewResources(ws)
 	if err != nil {
 		return err
 	}
+
+	s := siteFact.New(&siteServices{
+		Config:     c,
+		Fs:         fs,
+		ContentHub: ch,
+		Resources:  resources,
+	})
 
 	exec, err := tmplFact.New(fs, &templateCustomizedFunctionsProvider{
 		Markdown:   mdFact.NewMarkdown(),
@@ -91,7 +90,6 @@ func GenerateStaticSite() error {
 type resourcesWorkspaceProvider struct {
 	*configAgr.Config
 	*fsAgr.Fs
-	*siteAgr.Site
 }
 
 type templateCustomizedFunctionsProvider struct {
@@ -140,4 +138,5 @@ type siteServices struct {
 	*configAgr.Config
 	*fsAgr.Fs
 	*chAgr.ContentHub
+	*rsAgr.Resources
 }

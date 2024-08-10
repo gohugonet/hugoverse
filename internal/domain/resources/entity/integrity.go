@@ -35,16 +35,16 @@ func (t *fingerprintTransformation) Transform(ctx *valueobject.ResourceTransform
 	}
 
 	var w io.Writer
-	if rc, ok := ctx.From.(io.ReadSeeker); ok {
+	if rc, ok := ctx.Source.From.(io.ReadSeeker); ok {
 		// This transformation does not change the content, so try to
 		// avoid writing to To if we can.
 		defer rc.Seek(0, 0)
 		w = h
 	} else {
-		w = io.MultiWriter(h, ctx.To)
+		w = io.MultiWriter(h, ctx.Target.To)
 	}
 
-	io.Copy(w, ctx.From)
+	io.Copy(w, ctx.Source.From)
 	d, err := digest(h)
 	if err != nil {
 		return err

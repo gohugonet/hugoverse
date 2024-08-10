@@ -49,7 +49,7 @@ func newPageTreesNode(ps contenthub.PageSource) *PageTreesNode {
 		nodes: make(map[contenthub.PageIdentity]contenthub.PageSource),
 	}
 
-	n.nodes[ps.Identity()] = ps
+	n.nodes[ps.PageIdentity()] = ps
 	return n
 }
 

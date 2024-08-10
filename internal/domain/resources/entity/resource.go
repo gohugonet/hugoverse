@@ -1,7 +1,6 @@
 package entity
 
 import (
-	"errors"
 	"github.com/gohugonet/hugoverse/internal/domain/resources"
 	"github.com/gohugonet/hugoverse/internal/domain/resources/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/cache/stale"
@@ -48,6 +47,9 @@ func (l *Resource) Permalink() string {
 	// TODO: use config BaseURL
 	return paths.PathEscape(l.paths.TargetPath())
 }
+func (l *Resource) TargetPath() string {
+	return l.paths.TargetPath()
+}
 
 func (l *Resource) Data() any {
 	return l.data
@@ -93,36 +95,12 @@ func (l *Resource) DependencyManager() identity.Manager {
 	return l.dependencyManager
 }
 
-func (l *Resource) cloneWithUpdates(u *valueobject.TransformationUpdate) (*Resource, error) {
-	r := l.clone()
-
-	if u.Content != nil {
-		r.openReadSeekCloser = func() (pio.ReadSeekCloser, error) {
-			return pio.NewReadSeekerNoOpCloserFromString(*u.Content), nil
-		}
+func (l *Resource) meta() valueobject.ResourceMetadata {
+	return valueobject.ResourceMetadata{
+		MediaTypeV: l.mediaType.Type,
+		Target:     l.paths.TargetPath(),
+		MetaData:   l.data,
 	}
-
-	r.mediaType = u.MediaType
-
-	if u.SourceFilename != nil {
-		if u.SourceFs == nil {
-			return nil, errors.New("sourceFs is nil")
-		}
-		r.openReadSeekCloser = func() (pio.ReadSeekCloser, error) {
-			return u.SourceFs.Open(*u.SourceFilename)
-		}
-	} else if u.SourceFs != nil {
-		return nil, errors.New("sourceFs is set without sourceFilename")
-	}
-
-	if u.TargetPath == "" {
-		return nil, errors.New("missing targetPath")
-	}
-
-	r.paths = r.paths.FromTargetPath(u.TargetPath)
-	r.mergeData(u.Data)
-
-	return r, nil
 }
 
 func (l *Resource) mergeData(in map[string]any) {

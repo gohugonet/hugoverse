@@ -52,16 +52,9 @@ func (l *Language) Location() *time.Location {
 }
 
 func (l *Language) isMultipleLanguage() bool {
-	return len(l.Config) > 1
-}
-
-func (l *Language) DefaultContentLanguage() site.LanguageConfig {
-	return l.Config[0]
+	return len(l.LangSvc.LanguageKeys()) > 1
 }
 
 func (l *Language) LanguagePrefix() string {
-	if !l.isMultipleLanguage() || l.DefaultContentLanguage().Code() == l.currentLanguage.Code() {
-		return ""
-	}
-	return l.currentLanguage.Code()
+	return l.currentLanguage
 }

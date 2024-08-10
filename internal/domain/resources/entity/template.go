@@ -24,15 +24,15 @@ func (t *executeAsTemplateTransform) Key() valueobject.ResourceTransformationKey
 }
 
 func (t *executeAsTemplateTransform) Transform(ctx *valueobject.ResourceTransformationCtx) error {
-	tplStr := helpers.ReaderToString(ctx.From)
-	templ, err := t.t.Parse(ctx.InPath, tplStr)
+	tplStr := helpers.ReaderToString(ctx.Source.From)
+	templ, err := t.t.Parse(ctx.Source.InPath, tplStr)
 	if err != nil {
-		return fmt.Errorf("failed to parse Resource %q as Template:: %w", ctx.InPath, err)
+		return fmt.Errorf("failed to parse Resource %q as Template:: %w", ctx.Source.InPath, err)
 	}
 
-	ctx.OutPath = t.targetPath
+	ctx.Target.OutPath = t.targetPath
 
-	return t.t.ExecuteWithContext(ctx.Ctx, templ, ctx.To, t.data)
+	return t.t.ExecuteWithContext(ctx.Ctx, templ, ctx.Target.To, t.data)
 }
 
 func (c *TemplateClient) ExecuteAsTemplate(ctx context.Context, res resources.Resource, targetPath string, data any) (resources.Resource, error) {

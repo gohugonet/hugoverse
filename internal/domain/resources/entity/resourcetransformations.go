@@ -5,16 +5,6 @@ import (
 	"sync"
 )
 
-// These are transformations that need special support in Hugo that may not
-// be available when building the theme/site so we write the transformation
-// result to disk and reuse if needed for these,
-// TODO(bep) it's a little fragile having these constants redefined here.
-var transformationsToCacheOnDisk = map[string]bool{
-	"postcss":    true,
-	"tocss":      true,
-	"tocss-dart": true,
-}
-
 type resourceTransformations struct {
 	transformationsInit sync.Once
 	transformationsErr  error

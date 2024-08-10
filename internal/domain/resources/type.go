@@ -7,7 +7,7 @@ import (
 	"github.com/gohugonet/hugoverse/internal/domain/fs"
 	"github.com/gohugonet/hugoverse/pkg/hexec"
 	"github.com/gohugonet/hugoverse/pkg/images/exif"
-	pio "github.com/gohugonet/hugoverse/pkg/io"
+	"github.com/gohugonet/hugoverse/pkg/io"
 	"github.com/gohugonet/hugoverse/pkg/maps"
 	"github.com/gohugonet/hugoverse/pkg/media"
 	"github.com/gohugonet/hugoverse/pkg/output"
@@ -26,8 +26,6 @@ type Workspace interface {
 	SecurityConfig
 	OutputFormatsConfig
 	MinifyConfig
-
-	SiteUrl
 }
 
 type OutputFormatsConfig interface {
@@ -86,17 +84,13 @@ type SiteUrl interface {
 }
 
 type Resources interface {
-	Creator
-}
-
-type Creator interface {
 	GetResource(pathname string) (Resource, error)
+	GetResourceWithOpener(pathname string, opener io.OpenReadSeekCloser) (Resource, error)
 }
 
 type Resource interface {
-	TypeProvider
-	MediaTypeProvider
-	LinksProvider
+	ReadSeekCloser() (io.ReadSeekCloser, error)
+	TargetPath() string
 }
 
 type ResourceCopier interface {
@@ -251,5 +245,5 @@ type MetaProvider interface {
 // ReadSeekCloserResource is a Resource that supports loading its content.
 type ReadSeekCloserResource interface {
 	MediaType() media.Type
-	pio.ReadSeekCloserProvider
+	io.ReadSeekCloserProvider
 }

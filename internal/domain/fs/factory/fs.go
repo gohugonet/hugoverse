@@ -5,12 +5,9 @@ import (
 	"github.com/gohugonet/hugoverse/internal/domain/fs/entity"
 	"github.com/gohugonet/hugoverse/internal/domain/fs/valueobject"
 	"github.com/gohugonet/hugoverse/internal/domain/module"
-	"github.com/gohugonet/hugoverse/pkg/loggers"
 	"github.com/gohugonet/hugoverse/pkg/overlayfs"
 	"github.com/gohugonet/hugoverse/pkg/paths/files"
 )
-
-var log = loggers.NewDefault()
 
 func New(dir fs.Dir, mods module.Modules) (*entity.Fs, error) {
 	f := &entity.Fs{
@@ -36,24 +33,12 @@ func New(dir fs.Dir, mods module.Modules) (*entity.Fs, error) {
 	f.I18n = newComponentFs(files.ComponentFolderI18n, overlayMountsPreserveDupes)
 	f.AssetsWithDuplicatesPreserved = newComponentFs(files.ComponentFolderAssets, overlayMountsPreserveDupes)
 
+	f.Content = newComponentFs(files.ComponentFolderContent, collector.OverlayMountsContent)
 	f.Work = valueobject.NewReadOnlyFs(collector.OverlayFull)
-
-	//bfs, err := NewBaseFS(dir, f.OriginFs, mods)
-	//if err != nil {
-	//	return nil, err
-	//}
-	//
-	//f.PathSpec = &entity.PathSpec{
-	//	BaseFs: bfs,
-	//}
 
 	return f, nil
 }
 
 func newComponentFs(component string, overlayFs *overlayfs.OverlayFs) *valueobject.ComponentFs {
-	return &valueobject.ComponentFs{
-		Component: component,
-		OverlayFs: overlayFs,
-		Fs:        valueobject.NewBasePathFs(overlayFs, component),
-	}
+	return valueobject.NewComponentFs(component, overlayFs)
 }

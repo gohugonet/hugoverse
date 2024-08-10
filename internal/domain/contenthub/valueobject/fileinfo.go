@@ -110,6 +110,12 @@ func (fi *File) Open() (io.ReadSeekCloser, error) {
 	return f, err
 }
 
+func (fi *File) Opener() io.OpenReadSeekCloser {
+	return func() (io.ReadSeekCloser, error) {
+		return fi.Open()
+	}
+}
+
 func (fi *File) IsZero() bool {
 	return fi == nil
 }

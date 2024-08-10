@@ -28,6 +28,6 @@ func (i Identity) LanguageIndex() int {
 	return i.LangIdx
 }
 
-func (i Identity) Identity() contenthub.PageIdentity {
+func (i Identity) PageIdentity() contenthub.PageIdentity {
 	return i
 }

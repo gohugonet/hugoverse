@@ -1,16 +1,19 @@
 package valueobject
 
 import (
+	"github.com/gohugonet/hugoverse/pkg/loggers"
 	"github.com/spf13/afero"
 	"os"
 )
 
 func NewBaseFs(fs afero.Fs) afero.Fs {
-	return &baseFs{Fs: fs}
+	return &baseFs{Fs: fs, log: loggers.NewDefault()}
 }
 
 type baseFs struct {
 	afero.Fs // osFs
+
+	log loggers.Logger
 }
 
 func (fs *baseFs) UnwrapFilesystem() afero.Fs {
@@ -29,11 +32,15 @@ func (fs *baseFs) Stat(absName string) (os.FileInfo, error) {
 		ofi = NewFileInfoWithOpener(fi, absName, func() (afero.File, error) {
 			return fs.openDir(absName)
 		})
+		fs.log.Println("Stat: ", absName, "is dir")
+
+		return ofi, nil
 	}
 
 	ofi = NewFileInfoWithOpener(fi, absName, func() (afero.File, error) {
 		return fs.open(absName)
 	})
+	fs.log.Println("Stat: ", absName, "is file")
 
 	return ofi, nil
 }
@@ -42,11 +49,14 @@ func (fs *baseFs) Open(name string) (afero.File, error) {
 	return fs.open(name)
 }
 
-func (fs *baseFs) open(name string) (afero.File, error) {
+func (fs *baseFs) open(name string) (*File, error) {
 	f, err := fs.Fs.Open(name)
+	fs.log.Println("Open (baseFs): ", name)
+
 	if err != nil {
 		return nil, err
 	}
+
 	return NewFile(f, name), nil
 }
 
@@ -55,5 +65,6 @@ func (fs *baseFs) openDir(name string) (afero.File, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return NewDirFile(f, FileMeta{filename: name}, fs), nil
 }

@@ -24,7 +24,6 @@ type Resources struct {
 
 	FsService    resources.Fs
 	MediaService resources.MediaTypesConfig
-	UrlService   resources.SiteUrl
 
 	ImageService resources.ImageConfig
 	ImageProc    *valueobject.ImageProcessor
@@ -37,6 +36,23 @@ type Resources struct {
 
 func (rs *Resources) SetupTemplateClient(tmpl Template) {
 	rs.TemplateClient = &TemplateClient{tmpl}
+}
+
+func (rs *Resources) GetResourceWithOpener(pathname string, opener io.OpenReadSeekCloser) (resources.Resource, error) {
+	pathname = path.Clean(pathname)
+	key := dynacache.CleanKey(pathname) + "__get"
+
+	return rs.Cache.GetOrCreateResource(key, func() (resources.Resource, error) {
+		rsb := newResourceBuilder(pathname, opener)
+		rsb.withCache(rs.Cache).withMediaService(rs.MediaService).
+			withImageService(rs.ImageService).withImageProcessor(rs.ImageProc).
+			withPublisher(rs.Publisher)
+
+		return rsb.build()
+	})
+
+	// TODO: analysis the impact of default assets filesystem
+	// Will impact the css types source processing in the future
 }
 
 func (rs *Resources) GetResource(pathname string) (resources.Resource, error) {
@@ -86,18 +102,14 @@ func (rs *Resources) match(name, pattern string, matchFunc func(r resources.Reso
 		var res []resources.Resource
 
 		handle := func(info fs.FileMetaInfo) (bool, error) {
-			pinfo := info.Path()
-
-			r, err := rs.newResource(&valueobject.ResourceSourceDescriptor{
-				LazyPublish: true,
-				OpenReadSeekCloser: func() (io.ReadSeekCloser, error) {
-					return meta.Open()
-				},
-				NameNormalized: pinfo.Path(),
-				NameOriginal:   pinfo.Unnormalized().Path(),
-				GroupIdentity:  pinfo,
-				TargetPath:     pinfo.Unnormalized().Path(),
+			rsb := newResourceBuilder(info.FileName(), func() (io.ReadSeekCloser, error) {
+				return rs.FsService.AssetsFs().Open(info.FileName())
 			})
+			rsb.withCache(rs.Cache).withMediaService(rs.MediaService).
+				withImageService(rs.ImageService).withImageProcessor(rs.ImageProc).
+				withPublisher(rs.Publisher)
+
+			r, err := rsb.build()
 			if err != nil {
 				return true, err
 			}
@@ -123,6 +135,6 @@ func (rs *Resources) match(name, pattern string, matchFunc func(r resources.Reso
 func (rs *Resources) Copy(r resources.Resource, targetPath string) (resources.Resource, error) {
 	key := dynacache.CleanKey(targetPath) + "__copy"
 	return rs.Cache.GetOrCreateResource(key, func() (resources.Resource, error) {
-		return valueobject.Copy(r, targetPath), nil
+		return r.(resources.ResourceCopier).CloneTo(targetPath), nil
 	})
 }

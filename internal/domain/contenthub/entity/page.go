@@ -1,21 +1,33 @@
 package entity
 
 import (
+	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/output"
 )
 
 type Page struct {
 	*Source
-	*Layout
-
 	*valueobject.Content
+
+	*Layout
 	*Output
 
 	kind string
 }
 
+func (p *Page) PageOutputs() []contenthub.PageOutput {
+	var res []contenthub.PageOutput
+	for _, o := range p.Output.targets {
+		res = append(res, o)
+	}
+	return res
+}
+
 func (p *Page) Layouts() []string {
+	//TODO: multiple outputs
+	// output map layout
+
 	switch p.kind {
 	case valueobject.KindHome:
 		return p.Layout.home()

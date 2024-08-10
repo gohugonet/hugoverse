@@ -15,10 +15,10 @@ type Source struct {
 	*valueobject.File
 
 	stale.Staler
-	cache *valueobject.Cache
+	cache *Cache
 }
 
-func newPageSource(fi *valueobject.File, c *valueobject.Cache) (*Source, error) {
+func newPageSource(fi *valueobject.File, c *Cache) (*Source, error) {
 	return &Source{
 		Identity: &valueobject.Identity{
 			Id: pageIDCounter.Add(1),

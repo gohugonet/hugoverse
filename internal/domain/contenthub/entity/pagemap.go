@@ -18,7 +18,7 @@ type PageMap struct {
 	// Main storage for all pages.
 	*PageTrees
 
-	Cache *valueobject.Cache
+	Cache *Cache
 
 	PageBuilder *PageBuilder
 
@@ -94,16 +94,6 @@ func (m *PageMap) AddFi(f *valueobject.File) error {
 	return nil
 }
 
-// Assemble
-// Generalize this function
-// - home page
-// - section page
-// - taxonomy page
-// - term page
-// - resource page
-// - standalone page
-// - Aggregates front matter, and mark changes
-// - Clean page
 func (m *PageMap) Assemble() error {
 	if err := m.assembleStructurePages(); err != nil {
 		return err
@@ -193,9 +183,27 @@ func (m *PageMap) addMissingStandalone() error {
 	return nil
 }
 
+func (m *PageMap) getResourcesForPage(ps contenthub.Page) ([]contenthub.PageSource, error) {
+	var res []contenthub.PageSource
+
+	if err := m.forEachResourceInPage(ps, doctree.LockTypeNone, false,
+		func(resourceKey string, n *PageTreesNode, match doctree.DimensionFlag) (bool, error) {
+			rs, found := n.getResource()
+			if found {
+				res = append(res, rs)
+			}
+			return false, nil
+		}); err != nil {
+
+		return nil, err
+	}
+
+	return res, nil
+}
+
 func (m *PageMap) forEachResourceInPage(ps contenthub.Page, lockType doctree.LockType, exact bool,
-	handle func(resourceKey string, n *PageTreesNode, match doctree.DimensionFlag) (bool, error),
-) error {
+	handle func(resourceKey string, n *PageTreesNode, match doctree.DimensionFlag) (bool, error)) error {
+
 	keyPage := ps.Path().Path()
 	if keyPage == "/" {
 		keyPage = ""
@@ -204,7 +212,7 @@ func (m *PageMap) forEachResourceInPage(ps contenthub.Page, lockType doctree.Loc
 	isBranch := ps.Kind() != valueobject.KindPage
 
 	rw := &doctree.NodeShiftTreeWalker[*PageTreesNode]{
-		Tree:     m.TreeResources,
+		Tree:     m.TreeResources.Shape(0, ps.LanguageIndex()),
 		Prefix:   prefix,
 		LockType: lockType,
 		Exact:    exact,

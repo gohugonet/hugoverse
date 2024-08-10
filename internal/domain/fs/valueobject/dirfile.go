@@ -4,14 +4,12 @@ import (
 	"fmt"
 	"github.com/spf13/afero"
 	"io/fs"
-	"path/filepath"
 )
 
 type DirOpener func() ([]fs.DirEntry, error)
 
 type DirFile struct {
 	*File
-	fs afero.Fs
 
 	virtualOpener DirOpener
 
@@ -23,12 +21,13 @@ func NewDirFileWithVirtualOpener(f *File, opener DirOpener) *DirFile {
 }
 
 func NewDirFile(file afero.File, meta FileMeta, fs afero.Fs) *DirFile {
-	return &DirFile{File: &File{File: file, FileMeta: meta}, fs: fs, virtualOpener: nil}
+	return &DirFile{File: &File{File: file, FileMeta: meta, fs: fs, isDir: true}, virtualOpener: nil}
 }
 
 func (f *DirFile) ReadDir(count int) ([]fs.DirEntry, error) {
 	if f.File.File != nil {
-		fis, err := f.File.File.(fs.ReadDirFile).ReadDir(count)
+		fis, err := f.File.ReadDir(count)
+		fmt.Println("ReadDir 666: ", fis, err)
 		if err != nil {
 			return nil, err
 		}
@@ -40,27 +39,7 @@ func (f *DirFile) ReadDir(count int) ([]fs.DirEntry, error) {
 			}
 		}
 
-		var result []fs.DirEntry
-		for _, fi := range fis {
-			filename := filepath.Join(f.File.filename, fi.Name())
-
-			meta := &FileMeta{
-				filename: filename,
-				OpenFunc: func() (afero.File, error) {
-					return f.fs.Open(filename)
-				},
-			}
-			meta.Merge(&f.File.FileMeta)
-
-			fim, err := NewFileInfoWithDirEntryMeta(fi, meta)
-
-			if err != nil {
-				return nil, err
-			}
-			result = append(result, fim)
-		}
-
-		return result, nil
+		return fis, nil
 	}
 
 	return f.readVirtualDir()

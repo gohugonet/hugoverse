@@ -27,7 +27,7 @@ func (t *minifyTransformation) Key() valueobject.ResourceTransformationKey {
 
 func (t *minifyTransformation) Transform(ctx *valueobject.ResourceTransformationCtx) error {
 	ctx.AddOutPathIdentifier(".min")
-	return t.m.Minify(ctx.InMediaType.Type, ctx.To, ctx.From)
+	return t.m.Minify(ctx.Source.InMediaType.Type, ctx.Target.To, ctx.Source.From)
 }
 
 func (c *MinifierClient) Minify(res resources.Resource) (resources.Resource, error) {

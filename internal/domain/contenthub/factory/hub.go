@@ -4,6 +4,8 @@ import (
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub/entity"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub/valueobject"
+	"github.com/gohugonet/hugoverse/pkg/cache/dynacache"
+	"github.com/gohugonet/hugoverse/pkg/cache/stale"
 	"github.com/gohugonet/hugoverse/pkg/doctree"
 	"github.com/gohugonet/hugoverse/pkg/loggers"
 )
@@ -16,9 +18,10 @@ func New(services contenthub.Services) (*entity.ContentHub, error) {
 		return nil, err
 	}
 
-	cache := valueobject.NewCache()
+	cache := newCache()
 
 	ch := &entity.ContentHub{
+		Cache:            cache,
 		Fs:               services,
 		TemplateExecutor: nil,
 		PageMap: &entity.PageMap{
@@ -52,6 +55,27 @@ func New(services contenthub.Services) (*entity.ContentHub, error) {
 	}
 
 	return ch, nil
+}
+
+func newCache() *entity.Cache {
+	memCache := dynacache.New(dynacache.Options{Running: true, Log: loggers.NewDefault()})
+
+	return &entity.Cache{
+		CacheContentSource: dynacache.GetOrCreatePartition[string, *stale.Value[[]byte]](
+			memCache, "/cont/src",
+			dynacache.OptionsPartition{Weight: 70, ClearWhen: dynacache.ClearOnChange},
+		),
+		CachePageSource: dynacache.GetOrCreatePartition[string, contenthub.PageSource](
+			memCache,
+			"/page/source",
+			dynacache.OptionsPartition{ClearWhen: dynacache.ClearOnChange, Weight: 40},
+		),
+		CachePageSources: dynacache.GetOrCreatePartition[string, []contenthub.PageSource](
+			memCache,
+			"/page/sources",
+			dynacache.OptionsPartition{ClearWhen: dynacache.ClearOnRebuild, Weight: 40},
+		),
+	}
 }
 
 // newContentSpec returns a ContentSpec initialized

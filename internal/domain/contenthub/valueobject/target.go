@@ -19,6 +19,18 @@ type Target struct {
 	SubResourceBaseTarget string
 }
 
+func (t *Target) TargetFilePath() string {
+	return t.FilePath
+}
+
+func (t *Target) TargetSubResourceDir() string {
+	return t.SubResourceBaseTarget
+}
+
+func (t *Target) TargetPrefix() string {
+	return t.Prefix
+}
+
 // PagePathBuilder When adding state here, remember to update putPagePathBuilder.
 type PagePathBuilder struct {
 	els []string

@@ -1,6 +1,7 @@
 package io
 
 import (
+	"bytes"
 	"io"
 	"strings"
 )
@@ -27,6 +28,12 @@ type ReadSeekCloserProvider interface {
 // from the given string.
 func NewReadSeekerNoOpCloserFromString(content string) ReadSeekerNoOpCloser {
 	return ReadSeekerNoOpCloser{strings.NewReader(content)}
+}
+
+// NewReadSeekerNoOpCloserFromBytes uses strings.NewReader to create a new ReadSeekerNoOpCloser
+// from the given bytes slice.
+func NewReadSeekerNoOpCloserFromBytes(content []byte) ReadSeekerNoOpCloser {
+	return ReadSeekerNoOpCloser{bytes.NewReader(content)}
 }
 
 // ReadSeekerNoOpCloser implements ReadSeekCloser by doing nothing in Close.

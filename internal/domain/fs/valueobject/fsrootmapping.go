@@ -3,6 +3,7 @@ package valueobject
 import (
 	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/fs"
+	"github.com/gohugonet/hugoverse/pkg/loggers"
 	"github.com/gohugonet/hugoverse/pkg/overlayfs"
 	"github.com/gohugonet/hugoverse/pkg/paths"
 	"github.com/gohugonet/hugoverse/pkg/paths/files"
@@ -68,6 +69,8 @@ func NewRootMappingFs(fs afero.Fs, rms ...RootMapping) (*RootMappingFs, error) {
 		Fs:            fs,
 		rootMapToReal: rootMapToReal,
 		realMapToRoot: realMapToRoot,
+
+		log: loggers.NewDefault(),
 	}
 
 	return rfs, nil
@@ -77,6 +80,8 @@ type RootMappingFs struct {
 	afero.Fs
 	rootMapToReal *radixtree.Tree
 	realMapToRoot *radixtree.Tree
+
+	log loggers.Logger
 }
 
 func (rmfs *RootMappingFs) UnwrapFilesystem() afero.Fs {
@@ -159,6 +164,7 @@ func (rmfs *RootMappingFs) doDoStat(name string) ([]fs.FileMetaInfo, error) {
 
 	return []fs.FileMetaInfo{NewFileInfoWithOpener(roots[0].ToFi, name,
 		func() (afero.File, error) {
+			rmfs.log.Println("doDoStat (RootMappingFs): ", name)
 			return NewDirFileWithVirtualOpener(
 				&File{File: nil, FileMeta: FileMeta{filename: name}},
 				func() ([]iofs.DirEntry, error) {
@@ -298,6 +304,7 @@ func (rmfs *RootMappingFs) collectRootDirEntries(prefix string) ([]iofs.DirEntry
 
 	// First add any real files/directories.
 	rms := rmfs.getRoot(prefix)
+	rmfs.log.Println("getRoot", prefix)
 	for _, rm := range rms {
 		if err := collectDir(rm, rm.ToFi); err != nil {
 			return nil, err
@@ -382,6 +389,9 @@ func (rmfs *RootMappingFs) virtualPath(rmFrom, name string) string {
 // Open opens the named file for reading.
 func (rmfs *RootMappingFs) Open(name string) (afero.File, error) {
 	fis, err := rmfs.doStat(name)
+	if len(fis) >= 1 {
+		rmfs.log.Printf("Open (RootMappingFs): %s, %+v", name, fis[0])
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -391,6 +401,7 @@ func (rmfs *RootMappingFs) Open(name string) (afero.File, error) {
 
 func (rmfs *RootMappingFs) newUnionFile(fis ...fs.FileMetaInfo) (afero.File, error) {
 	if len(fis) == 1 {
+		rmfs.log.Println("newUnionFile (RootMappingFs)")
 		return fis[0].Open()
 	}
 

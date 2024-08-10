@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/gohugonet/hugoverse/internal/domain/resources"
 	"github.com/gohugonet/hugoverse/internal/domain/resources/valueobject"
 	bp "github.com/gohugonet/hugoverse/pkg/bufferpool"
 	"github.com/gohugonet/hugoverse/pkg/helpers"
@@ -18,6 +19,7 @@ type ResourceTransformer struct {
 	Resource
 
 	publisher *Publisher
+	mediaSvc  resources.MediaTypesConfig
 
 	TransformationCache *Cache
 
@@ -63,6 +65,15 @@ func (r *ResourceTransformer) getOrTransform() error {
 	key := r.TransformationKey()
 	res, err := r.TransformationCache.CacheResourceTransformation.GetOrCreate(
 		key, func(string) (*Resource, error) {
+			res, err := r.getFromFile(key)
+			if err != nil {
+				return nil, err
+			}
+
+			if res != nil {
+				return res, nil
+			}
+
 			return r.transform(key)
 		})
 	if err != nil {
@@ -71,6 +82,34 @@ func (r *ResourceTransformer) getOrTransform() error {
 
 	r.Resource = *res
 	return nil
+}
+
+func (r *ResourceTransformer) getFromFile(key string) (*Resource, error) {
+	_, f, metaBytes, found := r.TransformationCache.GetFile(key)
+	if !found {
+		return nil, nil
+	}
+
+	meta, err := r.Resource.meta().Unmarshal(metaBytes)
+	if err != nil {
+		return nil, err
+	}
+
+	m, found := r.mediaSvc.LookByType(meta.MediaTypeV)
+	if !found {
+		return nil, errors.New("media type not found")
+	}
+
+	r2 := r.Resource.clone()
+
+	r2.mediaType = m
+	r2.paths = valueobject.NewResourcePaths(meta.Target)
+	r2.mergeData(meta.MetaData)
+	r2.openReadSeekCloser = func() (pio.ReadSeekCloser, error) {
+		return f.(pio.ReadSeekCloser), nil
+	}
+
+	return r2, nil
 }
 
 func (r *ResourceTransformer) transform(key string) (*Resource, error) {
@@ -90,43 +129,12 @@ func (r *ResourceTransformer) transform(key string) (*Resource, error) {
 	tctx := ctxBuilder.Build()
 	defer tctx.Close()
 
-	startCtx := *tctx
-	updates := &valueobject.TransformationUpdate{StartCtx: startCtx}
+	for _, tr := range r.transformations {
 
-	counter := 0
-	writeToFileCache := false
-
-	var transformedContentr io.Reader
-
-	for i, tr := range r.transformations {
-		if i != 0 {
-			tctx.InMediaType = tctx.OutMediaType
-		}
-
-		mayBeCachedOnDisk := transformationsToCacheOnDisk[tr.Key().Name] // is css
-		if !writeToFileCache {
-			writeToFileCache = mayBeCachedOnDisk
-		}
-
-		if i > 0 {
-			hasWrites := tctx.To.(*bytes.Buffer).Len() > 0
-			if hasWrites {
-				counter++
-				// Switch the buffers
-				if counter%2 == 0 {
-					tctx.From = b2
-					b1.Reset()
-					tctx.To = b1
-				} else {
-					tctx.From = b1
-					b2.Reset()
-					tctx.To = b2
-				}
-			}
-		}
+		tctx.UpdateBuffer()
 
 		newErr := func(err error) error {
-			msg := fmt.Sprintf("%s: failed to transform %q (%s)", strings.ToUpper(tr.Key().Name), tctx.InPath, tctx.InMediaType.Type)
+			msg := fmt.Sprintf("%s: failed to transform %q (%s)", strings.ToUpper(tr.Key().Name), tctx.Source.InPath, tctx.Source.InMediaType.Type)
 
 			if herrors.IsFeatureNotAvailableError(err) {
 				var errMsg string
@@ -153,48 +161,38 @@ func (r *ResourceTransformer) transform(key string) (*Resource, error) {
 			return nil, newErr(err)
 		}
 
-		if err != nil {
-			return nil, newErr(err)
-		}
-
-		if tctx.OutPath != "" {
-			tctx.InPath = tctx.OutPath
-			tctx.OutPath = ""
-		}
+		tctx.UpdateSource()
 	}
 
-	if transformedContentr == nil {
-		updates.UpdateFromCtx(tctx)
-	}
+	updates := r.Resource.clone()
+
+	updates.mediaType = tctx.Source.InMediaType
+	updates.data = tctx.Data
+	updates.paths = valueobject.NewResourcePaths(tctx.Source.InPath)
 
 	var publishwriters []io.WriteCloser
-
-	publicw, err := r.publisher.OpenPublishFileForWriting(updates.TargetPath)
+	publicw, err := r.publisher.OpenPublishFileForWriting(updates.paths.TargetPath())
 	if err != nil {
 		return nil, err
 	}
 	publishwriters = append(publishwriters, publicw)
 
-	if transformedContentr == nil {
-		if writeToFileCache {
-			// Also write it to the cache
-			fi, metaw, err := cache.WriteMeta(key, updates.ToTransformedResourceMetadata())
-			if err != nil {
-				return nil, err
-			}
-			updates.SourceFilename = &fi.Name
-			updates.SourceFs = cache.Caches.AssetsCache().Fs
-			publishwriters = append(publishwriters, metaw)
-		}
+	// Also write it to the cache
+	metaBytes, err := updates.meta().Marshal()
+	if err != nil {
+		return nil, err
+	}
+	_, file, err := cache.WriteMeta(key, metaBytes)
+	if err != nil {
+		return nil, err
+	}
+	publishwriters = append(publishwriters, file)
 
-		// Any transformations reading from From must also write to To.
-		// This means that if the target buffer is empty, we can just reuse
-		// the original reader.
-		if b, ok := tctx.To.(*bytes.Buffer); ok && b.Len() > 0 {
-			transformedContentr = tctx.To.(*bytes.Buffer)
-		} else {
-			transformedContentr = contentrc
-		}
+	var transformedContentr io.Reader
+	if b, ok := tctx.Source.From.(*bytes.Buffer); ok && b.Len() > 0 {
+		transformedContentr = tctx.Source.From.(*bytes.Buffer)
+	} else {
+		transformedContentr = contentrc
 	}
 
 	// Also write it to memory
@@ -211,13 +209,9 @@ func (r *ResourceTransformer) transform(key string) (*Resource, error) {
 	}
 	publishw.Close()
 
-	s := contentmemw.String()
-	updates.Content = &s
-
-	newTarget, err := r.Resource.cloneWithUpdates(updates)
-	if err != nil {
-		return nil, err
+	updates.openReadSeekCloser = func() (pio.ReadSeekCloser, error) {
+		return pio.NewReadSeekerNoOpCloserFromString(contentmemw.String()), nil
 	}
 
-	return newTarget, nil
+	return updates, nil
 }

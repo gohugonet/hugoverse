@@ -8,6 +8,7 @@ import (
 	"github.com/gohugonet/hugoverse/internal/domain/template"
 	"github.com/gohugonet/hugoverse/pkg/cache/stale"
 	"github.com/gohugonet/hugoverse/pkg/identity"
+	pio "github.com/gohugonet/hugoverse/pkg/io"
 	"github.com/gohugonet/hugoverse/pkg/paths"
 	"github.com/spf13/afero"
 	goTmpl "html/template"
@@ -100,13 +101,14 @@ type PageIdentity interface {
 }
 
 type PageSource interface {
-	Identity() PageIdentity
+	PageIdentity() PageIdentity
 
 	stale.Staler
 	Language() string
 	LanguageIndex() int
 
 	Path() *paths.Path
+	Opener() pio.OpenReadSeekCloser
 }
 
 type ContentNode interface {
@@ -228,6 +230,14 @@ type Page interface {
 	PageSource
 
 	Kind() string
+	Layouts() []string
+	PageOutputs() []PageOutput
+}
+
+type PageOutput interface {
+	TargetFilePath() string
+	TargetSubResourceDir() string
+	TargetPrefix() string
 }
 
 type WalkFunc func(Page) error

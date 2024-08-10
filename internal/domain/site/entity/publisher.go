@@ -1,23 +1,53 @@
 package entity
 
 import (
+	"bytes"
 	"errors"
 	"github.com/gohugonet/hugoverse/internal/domain/site"
+	"github.com/gohugonet/hugoverse/pkg/helpers"
 	"github.com/spf13/afero"
 	"io"
 	"os"
 	"path/filepath"
 )
 
-// DestinationPublisher is the default and currently only publisher in Hugo. This
-// publisher prepares and publishes an item to the defined destination, e.g. /public.
-type DestinationPublisher struct {
+type Publisher struct {
 	Fs afero.Fs
+}
+
+func (p *Publisher) PublishSource(src *bytes.Buffer, filename ...string) error {
+	fw, err := helpers.OpenFilesForWriting(p.Fs, filename...)
+	if err != nil {
+		return err
+	}
+	defer fw.Close()
+
+	_, err = io.Copy(fw, src)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (p *Publisher) PublishFiles(fr io.ReadSeekCloser, filenames ...string) error {
+	var fw io.WriteCloser
+	fw, err := helpers.OpenFilesForWriting(p.Fs, filenames...)
+	if err != nil {
+		return err
+	}
+	defer fw.Close()
+
+	if _, err = io.Copy(fw, fr); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Publish applies any relevant transformations and writes the file
 // to its destination, e.g. /public.
-func (p *DestinationPublisher) Publish(d site.Descriptor) error {
+func (p *Publisher) Publish(d site.Descriptor) error {
 	if d.TargetPath == "" {
 		return errors.New("publish: must provide a TargetPath")
 	}
