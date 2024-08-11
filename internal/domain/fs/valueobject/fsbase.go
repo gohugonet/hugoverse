@@ -32,7 +32,7 @@ func (fs *baseFs) Stat(absName string) (os.FileInfo, error) {
 		ofi = NewFileInfoWithOpener(fi, absName, func() (afero.File, error) {
 			return fs.openDir(absName)
 		})
-		fs.log.Println("Stat: ", absName, "is dir")
+		fs.log.Println("Stat1 (baseFs):", absName, "is dir")
 
 		return ofi, nil
 	}
@@ -40,7 +40,7 @@ func (fs *baseFs) Stat(absName string) (os.FileInfo, error) {
 	ofi = NewFileInfoWithOpener(fi, absName, func() (afero.File, error) {
 		return fs.open(absName)
 	})
-	fs.log.Println("Stat: ", absName, "is file")
+	fs.log.Println("Stat2 (baseFs):", absName, "is file")
 
 	return ofi, nil
 }

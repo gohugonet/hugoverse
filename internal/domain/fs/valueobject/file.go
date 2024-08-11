@@ -1,7 +1,6 @@
 package valueobject
 
 import (
-	"fmt"
 	"github.com/spf13/afero"
 	"io/fs"
 	"path/filepath"
@@ -15,6 +14,10 @@ type File struct {
 	isDir bool
 }
 
+func (f *File) isNop() bool {
+	return f.File == nil
+}
+
 func (f *File) Close() error {
 	if f.File == nil {
 		return nil
@@ -26,8 +29,6 @@ func (f *File) ReadDir(count int) ([]fs.DirEntry, error) {
 	var result []fs.DirEntry
 
 	if f.isDir {
-		fmt.Println("000: ", f.filename, f.File.Name())
-
 		fis, err := f.File.Readdir(count)
 		if err != nil {
 			return result, err
@@ -35,7 +36,6 @@ func (f *File) ReadDir(count int) ([]fs.DirEntry, error) {
 
 		for _, fi := range fis {
 			filename := filepath.Join(f.filename, fi.Name())
-			fmt.Println("123: ", filename)
 
 			meta := &FileMeta{
 				filename: filename,

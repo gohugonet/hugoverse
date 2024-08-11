@@ -21,11 +21,13 @@ func MkTestContent() (string, func(), error) {
 %s
 -- content.en/post/index.md --
 %s
--- blog/_index.md --
+-- content/blog/_index.md --
 %s
--- blog/abc.md --
+-- content/blog/abc.md --
 %s
-`, configContent, goModContent, post1Content, post2Content, post1Content, post2Content, blog1Content, blog2Content)
+-- content/post/ddd/_index.md --
+%s
+`, configContent, goModContent, post1Content, post2Content, post1Content, post2Content, blog1Content, blog2Content, post1Content)
 
 	prepareFS(tempDir, files)
 	return tempDir, clean, nil

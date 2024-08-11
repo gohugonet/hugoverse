@@ -25,9 +25,9 @@ func NewDirFile(file afero.File, meta FileMeta, fs afero.Fs) *DirFile {
 }
 
 func (f *DirFile) ReadDir(count int) ([]fs.DirEntry, error) {
-	if f.File.File != nil {
+	if !f.File.isNop() {
 		fis, err := f.File.ReadDir(count)
-		fmt.Println("ReadDir 666: ", fis, err)
+		fmt.Println("ReadDir (DirFile): ", fis, err)
 		if err != nil {
 			return nil, err
 		}

@@ -57,8 +57,9 @@ func (cfs *ComponentFs) Stat(name string) (os.FileInfo, error) {
 }
 
 func (cfs *ComponentFs) Open(name string) (afero.File, error) {
+	cfs.log.Printf("Open (ComponentFs): %s", name)
+
 	f, err := cfs.Fs.Open(name)
-	cfs.log.Printf("Open (ComponentFs): %s, %+v", name, f)
 	if err != nil {
 		return nil, err
 	}

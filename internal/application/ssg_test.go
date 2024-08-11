@@ -1,7 +1,6 @@
 package application
 
 import (
-	"fmt"
 	configFact "github.com/gohugonet/hugoverse/internal/domain/config/factory"
 	"github.com/gohugonet/hugoverse/internal/domain/fs"
 	fsFact "github.com/gohugonet/hugoverse/internal/domain/fs/factory"
@@ -104,9 +103,9 @@ func TestFs(t *testing.T) {
 
 	var files []fs.FileMetaInfo
 
-	walk := func(path string, info fs.FileMetaInfo) error {
-		fmt.Println("???", path)
+	// TODO, test open
 
+	walk := func(path string, info fs.FileMetaInfo) error {
 		if info.IsDir() {
 			return nil
 		}
@@ -123,7 +122,7 @@ func TestFs(t *testing.T) {
 		t.Fatalf("WalkContent returned an error: %v", err)
 	}
 
-	if len(files) != 2 {
+	if len(files) != 7 {
 		t.Fatalf("Expected 2 modules, but got %d", len(files))
 	}
 }
