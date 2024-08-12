@@ -137,7 +137,7 @@ func (rmfs *RootMappingFs) doDoStat(name string) ([]fs.FileMetaInfo, error) {
 		// Find any real directories with this key.
 		_, roots := rmfs.getRoots(key)
 		if roots == nil {
-			return nil, &os.PathError{Op: "LStat", Path: name, Err: os.ErrNotExist}
+			return nil, &os.PathError{Op: "no roots for key", Path: name, Err: os.ErrNotExist}
 		}
 
 		var err error
@@ -198,7 +198,7 @@ func (rmfs *RootMappingFs) statRoot(root RootMapping, name string) (fs.FileMetaI
 			df := NewDirFile(f, FileMeta{
 				filename: filename,
 				root:     root.To,
-			}, rmfs)
+			}, rmfs.Fs)
 			return df, nil
 		}
 	}
@@ -314,6 +314,7 @@ func (rmfs *RootMappingFs) collectRootDirEntries(prefix string) ([]iofs.DirEntry
 		}
 	}
 
+	// TODO: do we still need it?
 	// Next add any file mounts inside the given directory.
 	prefixInside := prefix + paths.FilePathSeparator
 	rmfs.rootMapToReal.WalkPrefix(prefixInside, func(s string, v any) bool {

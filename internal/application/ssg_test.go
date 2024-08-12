@@ -103,13 +103,17 @@ func TestFs(t *testing.T) {
 
 	var files []fs.FileMetaInfo
 
-	// TODO, test open
-
 	walk := func(path string, info fs.FileMetaInfo) error {
 		if info.IsDir() {
 			return nil
 		}
 		files = append(files, info)
+
+		f, err := info.Open()
+		if err != nil {
+			return err
+		}
+		defer f.Close()
 
 		return nil
 	}
