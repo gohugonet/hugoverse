@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"context"
 	"github.com/gohugonet/hugoverse/internal/domain/resources"
 	"github.com/gohugonet/hugoverse/internal/domain/resources/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/cache/stale"
@@ -61,6 +62,16 @@ func (l *Resource) Err() resources.ResourceError {
 
 func (l *Resource) ReadSeekCloser() (pio.ReadSeekCloser, error) {
 	return l.openReadSeekCloser()
+}
+
+func (l *Resource) Content(context.Context) (any, error) {
+	r, err := l.ReadSeekCloser()
+	if err != nil {
+		return "", err
+	}
+	defer r.Close()
+
+	return pio.ReadString(r)
 }
 
 func (l *Resource) Hash() string {

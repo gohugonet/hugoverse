@@ -26,7 +26,7 @@ type CommonDirs struct {
 	// The archetypes source directory.
 	ArcheTypeDir string
 	// The assets source directory.
-	AssetDir string
+	AssetsDir string
 }
 
 func (dirs CommonDirs) GetDirectoryByName(folderName string) string {
@@ -42,7 +42,7 @@ func (dirs CommonDirs) GetDirectoryByName(folderName string) string {
 	case "archetypes":
 		return dirs.ArcheTypeDir
 	case "assets":
-		return dirs.AssetDir
+		return dirs.AssetsDir
 	default:
 		return ""
 	}

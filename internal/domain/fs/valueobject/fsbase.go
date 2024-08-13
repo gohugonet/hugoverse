@@ -21,6 +21,7 @@ func (fs *baseFs) UnwrapFilesystem() afero.Fs {
 }
 
 func (fs *baseFs) Stat(absName string) (os.FileInfo, error) {
+	fs.log.Println("Stat (baseFs):", absName)
 	fi, err := fs.Fs.Stat(absName)
 	if err != nil {
 		return nil, err

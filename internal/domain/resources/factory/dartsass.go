@@ -18,9 +18,14 @@ func newDartSass(exec *hexec.Exec, fs resources.Fs) (*entity.SassClient, error) 
 		return &entity.SassClient{BinaryFound: true, AllowedExec: false}, err
 	}
 
-	return &entity.SassClient{
+	sc := &entity.SassClient{
 		BinaryFound: true,
 		AllowedExec: true,
 		FsService:   fs,
-	}, nil
+	}
+	if err := sc.Open(); err != nil {
+		return sc, err
+	}
+
+	return sc, nil
 }

@@ -79,7 +79,8 @@ func (t ImportResolver) CanonicalizeURL(url string) (string, error) {
 		if err == nil {
 			if fim, ok := fi.(fs.FileMetaInfo); ok {
 				t.DependencyManager.AddIdentity(identity.CleanStringIdentity(filenameToCheck))
-				return "file://" + filepath.ToSlash(fim.FileName()), nil
+
+				return "file:///" + filepath.ToSlash(fim.FileName()), nil
 			}
 		}
 	}

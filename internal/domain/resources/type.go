@@ -91,6 +91,7 @@ type Resources interface {
 type Resource interface {
 	ReadSeekCloser() (io.ReadSeekCloser, error)
 	TargetPath() string
+	Content(context.Context) (any, error)
 }
 
 type ResourceCopier interface {

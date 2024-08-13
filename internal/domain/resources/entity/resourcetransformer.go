@@ -189,8 +189,8 @@ func (r *ResourceTransformer) transform(key string) (*Resource, error) {
 	publishwriters = append(publishwriters, file)
 
 	var transformedContentr io.Reader
-	if b, ok := tctx.Source.From.(*bytes.Buffer); ok && b.Len() > 0 {
-		transformedContentr = tctx.Source.From.(*bytes.Buffer)
+	if b, ok := tctx.Target.To.(*bytes.Buffer); ok && b.Len() > 0 {
+		transformedContentr = tctx.Target.To.(*bytes.Buffer)
 	} else {
 		transformedContentr = contentrc
 	}
@@ -209,8 +209,9 @@ func (r *ResourceTransformer) transform(key string) (*Resource, error) {
 	}
 	publishw.Close()
 
+	content := contentmemw.String()
 	updates.openReadSeekCloser = func() (pio.ReadSeekCloser, error) {
-		return pio.NewReadSeekerNoOpCloserFromString(contentmemw.String()), nil
+		return pio.NewReadSeekerNoOpCloserFromString(content), nil
 	}
 
 	return updates, nil

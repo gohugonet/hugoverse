@@ -86,10 +86,11 @@ func (c *SassClient) Open() error {
 		})
 
 		if err != nil {
-			return err
+			return fmt.Errorf("dart sass client error: %s, %s", err.Error(), c.generateErrorMessage(c.BinaryFound, c.AllowedExec))
 		}
 	}
-	return fmt.Errorf("dart sass client error: %s", c.generateErrorMessage(c.BinaryFound, c.AllowedExec))
+
+	return nil
 }
 
 func (c *SassClient) generateErrorMessage(binaryFound, allowedExec bool) string {
@@ -114,7 +115,7 @@ func (c *SassClient) Close() error {
 
 func (c *SassClient) ToCSS(res resources.Resource, args map[string]any) (resources.Resource, error) {
 	transRes := res.(Transformer)
-	return transRes.Transform(&scssTransformation{c: c, optsm: args})
+	return transRes.Transform(&scssTransformation{c: c, optsm: args, log: loggers.NewDefault()})
 }
 
 func (c *SassClient) toCSS(args godartsass.Args, src io.Reader) (godartsass.Result, error) {
@@ -156,6 +157,8 @@ func (c *SassClient) toCSS(args godartsass.Args, src io.Reader) (godartsass.Resu
 type scssTransformation struct {
 	optsm map[string]any
 	c     *SassClient
+
+	log loggers.Logger
 }
 
 const transformationName = "tocss-dart"
@@ -183,6 +186,7 @@ func (t *scssTransformation) Transform(ctx *valueobject.ResourceTransformationCt
 
 	if ctx.SourcePath() != "" {
 		filename += t.c.FsService.AssetsFsRealFilename(ctx.SourcePath())
+		t.log.Println("toCSS filename", filename, ctx.SourcePath())
 	}
 
 	args := godartsass.Args{
@@ -213,15 +217,19 @@ func (t *scssTransformation) Transform(ctx *valueobject.ResourceTransformationCt
 		args.SourceSyntax = godartsass.SourceSyntaxSASS
 	}
 
+	t.log.Println("toCSS with args", args, "and source from:", ctx.Source.From)
 	res, err := t.c.toCSS(args, ctx.Source.From)
 	if err != nil {
+		t.log.Printf("toCSS error: %s", err)
 		return err
 	}
 
 	out := res.CSS
+	t.log.Printf("toCSS get css: %s", out)
 
 	_, err = io.WriteString(ctx.Target.To, out)
 	if err != nil {
+		t.log.Printf("toCSS write string error: %s", err)
 		return err
 	}
 

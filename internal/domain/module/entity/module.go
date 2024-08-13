@@ -95,7 +95,7 @@ func (m *Module) applyProjMounts() error {
 			return err
 		}
 		if dir == "" {
-			continue
+			dir = component // No customized config, use default component name as folder name
 		}
 
 		m.projMod.AppendMount(valueobject.Mount{

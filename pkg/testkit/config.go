@@ -135,3 +135,8 @@ path = 'github.com/sunwei/hugo-book'
   BookTranslatedOnly = false
 
 `
+
+const configEmptyContent = `
+title = 'Deep Dive into Hugo: Becoming an Expert in the Static Site Generator Domain'
+
+`

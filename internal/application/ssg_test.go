@@ -1,12 +1,16 @@
 package application
 
 import (
+	"context"
 	configFact "github.com/gohugonet/hugoverse/internal/domain/config/factory"
 	"github.com/gohugonet/hugoverse/internal/domain/fs"
 	fsFact "github.com/gohugonet/hugoverse/internal/domain/fs/factory"
 	moduleFact "github.com/gohugonet/hugoverse/internal/domain/module/factory"
+	rsFact "github.com/gohugonet/hugoverse/internal/domain/resources/factory"
 	"github.com/gohugonet/hugoverse/pkg/testkit"
+	"github.com/spf13/cast"
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -128,5 +132,66 @@ func TestFs(t *testing.T) {
 
 	if len(files) != 7 {
 		t.Fatalf("Expected 2 modules, but got %d", len(files))
+	}
+}
+
+func TestResource(t *testing.T) {
+	tmpDir, clean, err := testkit.MkTestResource()
+	defer clean()
+
+	if err != nil {
+		t.Fatalf("MkTestConfig returned an error: %v", err)
+	}
+
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatalf("Failed to change directory: %v", err)
+	}
+
+	config, err := configFact.LoadConfig()
+	if err != nil {
+		t.Fatalf("LoadConfig returned an error: %v", err)
+	}
+
+	mods, err := moduleFact.New(config)
+	if err != nil {
+		t.Fatalf("New returned an error: %v", err)
+	}
+
+	fsInstance, err := fsFact.New(config, mods)
+	if err != nil {
+		t.Fatalf("New returned an error: %v", err)
+	}
+
+	ws := &resourcesWorkspaceProvider{
+		Config: config,
+		Fs:     fsInstance,
+	}
+	resources, err := rsFact.NewResources(ws)
+	if err != nil {
+		t.Fatalf("New resource returned an error: %v", err)
+	}
+
+	r, err := resources.GetResource("book.scss")
+	if err != nil {
+		t.Fatalf("Get resource `book.scss` returned an error: %v", err)
+	}
+
+	if r.TargetPath() != "/book.scss" {
+		t.Fatalf("Expected target path `/book.scss`, but got %s", r.TargetPath())
+	}
+
+	r, err = resources.ToCSS(r, make(map[string]any))
+	if err != nil {
+		t.Fatalf("ToCSS resource `book.scss` returned an error: %v", err)
+	}
+
+	c, err := r.Content(context.Background())
+
+	if !strings.Contains(cast.ToString(c), "html") {
+		t.Fatalf("Expected result contains `html`, but got %s", c)
+	}
+
+	if r.TargetPath() != "/book.css" {
+		t.Fatalf("Expected resource target path `/book.css`, but got %s", r.TargetPath())
 	}
 }
