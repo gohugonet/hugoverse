@@ -11,6 +11,6 @@ type Caches struct {
 
 func (c Caches) CachesIterator(cb func(cacheKey string, isResourceDir bool, dir string, age time.Duration)) {
 	for k, v := range c.CachesConfig {
-		cb(k, v.IsResourceDir, v.Dir, v.MaxAge)
+		cb(k, v.IsResourceDir, v.DirCompiled, v.MaxAge)
 	}
 }

@@ -2,7 +2,6 @@ package entity
 
 import (
 	"fmt"
-	godartsassv1 "github.com/bep/godartsass"
 	"github.com/bep/godartsass/v2"
 	"github.com/bep/logg"
 	"github.com/gohugonet/hugoverse/internal/domain/fs"
@@ -12,7 +11,6 @@ import (
 	"github.com/gohugonet/hugoverse/pkg/herrors"
 	"github.com/gohugonet/hugoverse/pkg/loggers"
 	"github.com/gohugonet/hugoverse/pkg/media"
-	"github.com/mitchellh/mapstructure"
 	"io"
 	"path"
 	"path/filepath"
@@ -35,18 +33,16 @@ type SassClient struct {
 	// This is mostly to avoid creating one per site build test.
 	once sync.Once
 	// One of these are non-nil.
-	transpiler   *godartsass.Transpiler
-	transpilerV1 *godartsassv1.Transpiler
+	transpiler *godartsass.Transpiler
 }
 
 func (c *SassClient) Open() error {
 	if c.AllowedExec && c.BinaryFound {
 		var (
-			transpiler   *godartsass.Transpiler
-			transpilerv1 *godartsassv1.Transpiler
-			err          error
-			infol        = loggers.NewDefault().InfoCommand("Dart Sass")
-			warnl        = loggers.NewDefault().WarnCommand("Dart Sass")
+			transpiler *godartsass.Transpiler
+			err        error
+			infol      = loggers.NewDefault().InfoCommand("Dart Sass")
+			warnl      = loggers.NewDefault().WarnCommand("Dart Sass")
 		)
 
 		c.once.Do(func() {
@@ -67,21 +63,7 @@ func (c *SassClient) Open() error {
 				})
 				c.transpiler = transpiler
 			} else {
-				transpilerv1, err = godartsassv1.Start(godartsassv1.Options{
-					DartSassEmbeddedFilename: valueobject.DartSassBinaryName,
-					LogEventHandler: func(event godartsassv1.LogEvent) {
-						message := strings.ReplaceAll(event.Message, dartSassStdinPrefix, "")
-						switch event.Type {
-						case godartsassv1.LogEventTypeDebug:
-							// Log as Info for now, we may adjust this if it gets too chatty.
-							infol.Log(logg.String(message))
-						default:
-							// The rest are either deprecations or @warn statements.
-							warnl.Log(logg.String(message))
-						}
-					},
-				})
-				c.transpilerV1 = transpilerv1
+				panic(fmt.Sprintf("Unexpected Dart Sass version, only supported v2: %s", valueobject.DartSassBinaryName))
 			}
 		})
 
@@ -104,9 +86,6 @@ func (c *SassClient) generateErrorMessage(binaryFound, allowedExec bool) string 
 }
 
 func (c *SassClient) Close() error {
-	if c.transpilerV1 != nil {
-		return c.transpilerV1.Close()
-	}
 	if c.transpiler != nil {
 		return c.transpiler.Close()
 	}
@@ -128,20 +107,7 @@ func (c *SassClient) toCSS(args godartsass.Args, src io.Reader) (godartsass.Resu
 		res godartsass.Result
 	)
 
-	if c.transpilerV1 != nil {
-		var resv1 godartsassv1.Result
-		var argsv1 godartsassv1.Args
-		mapstructure.Decode(args, &argsv1)
-		if args.ImportResolver != nil {
-			argsv1.ImportResolver = valueobject.ImportResolverV1{ImportResolver: args.ImportResolver}
-		}
-		resv1, err = c.transpilerV1.Execute(argsv1)
-		if err == nil {
-			mapstructure.Decode(resv1, &res)
-		}
-	} else {
-		res, err = c.transpiler.Execute(args)
-	}
+	res, err = c.transpiler.Execute(args)
 
 	if err != nil {
 		if err.Error() == "unexpected EOF" {

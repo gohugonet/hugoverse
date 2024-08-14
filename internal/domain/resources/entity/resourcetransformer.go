@@ -32,7 +32,7 @@ func (r *ResourceTransformer) Transform(t ...ResourceTransformation) (ResourceTr
 
 func (r *ResourceTransformer) TransformWithContext(ctx context.Context, t ...ResourceTransformation) (ResourceTransformable, error) {
 	r.resourceTransformations = &resourceTransformations{
-		transformations: append(r.transformations, t...),
+		transformations: append([]ResourceTransformation{}, t...),
 	}
 
 	r.startTransform()

@@ -194,4 +194,29 @@ func TestResource(t *testing.T) {
 	if r.TargetPath() != "/book.css" {
 		t.Fatalf("Expected resource target path `/book.css`, but got %s", r.TargetPath())
 	}
+
+	r, err = resources.Minify(r)
+	if err != nil {
+		t.Fatalf("Minify resource `book.scss` returned an error: %v", err)
+	}
+
+	r, err = resources.Fingerprint(r, "")
+	if err != nil {
+		t.Fatalf("Fingerprint resource `book.scss` returned an error: %v", err)
+	}
+
+	d := r.Data()
+
+	if !checkIntegrity(d) {
+		t.Fatalf("Expected integrity, but got %s", d)
+	}
+}
+
+func checkIntegrity(data any) bool {
+	if m, ok := data.(map[string]any); ok {
+		if integrity, exists := m["Integrity"]; exists && integrity != "" {
+			return true
+		}
+	}
+	return false
 }
