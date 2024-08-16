@@ -5,6 +5,7 @@ import (
 	"github.com/gohugonet/hugoverse/internal/domain/fs"
 	"github.com/gohugonet/hugoverse/internal/domain/template"
 	"github.com/gohugonet/hugoverse/pkg/herrors"
+	pio "github.com/gohugonet/hugoverse/pkg/io"
 	"io"
 	"strings"
 )
@@ -22,6 +23,20 @@ var DefaultParseConfig = ParseConfig{
 
 var DefaultParseInfo = ParseInfo{
 	Config: DefaultParseConfig,
+}
+
+func LoadTemplateContent(name string, content string) (TemplateInfo, error) {
+	s := removeLeadingBOM(content)
+
+	var isText bool
+	name, isText = nameIsText(name)
+
+	return TemplateInfo{
+		Name:     name,
+		IsText:   isText,
+		Template: s,
+		Fi:       nil,
+	}, nil
 }
 
 func LoadTemplate(name string, fim fs.FileMetaInfo) (TemplateInfo, error) {
@@ -86,11 +101,8 @@ func (info TemplateInfo) IdentifierBase() string {
 
 func (info TemplateInfo) ErrWithFileContext(what string, err error) error {
 	err = fmt.Errorf(what+": %w", err)
-	fe := herrors.NewFileErrorFromName(err, info.Fi.FileName())
-	f, err := info.Fi.Open()
-	if err != nil {
-		return err
-	}
+	fe := herrors.NewFileErrorFromName(err, info.Name)
+	f := pio.NewReadSeekerNoOpCloserFromString(info.Template)
 	defer f.Close()
 	return fe.UpdateContent(f, nil)
 }

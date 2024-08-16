@@ -5,8 +5,10 @@ import (
 	"github.com/gohugonet/hugoverse/internal/domain/fs"
 	"github.com/gohugonet/hugoverse/pkg/template/funcs/collections"
 	"github.com/gohugonet/hugoverse/pkg/template/funcs/compare"
+	"github.com/gohugonet/hugoverse/pkg/template/funcs/hugo"
 	"github.com/gohugonet/hugoverse/pkg/template/funcs/os"
 	"github.com/gohugonet/hugoverse/pkg/template/funcs/resource"
+	"github.com/gohugonet/hugoverse/pkg/template/funcs/site"
 	"github.com/gohugonet/hugoverse/pkg/template/funcs/strings"
 	"github.com/gohugonet/hugoverse/pkg/template/funcs/transform"
 	"github.com/gohugonet/hugoverse/pkg/template/funcs/urls"
@@ -71,4 +73,6 @@ type CustomizedFunctions interface {
 	strings.Title
 	resource.Resource
 	os.Os
+	site.Author
+	hugo.Version
 }

@@ -14,7 +14,7 @@ import (
 	moduleFact "github.com/gohugonet/hugoverse/internal/domain/module/factory"
 	rsAgr "github.com/gohugonet/hugoverse/internal/domain/resources/entity"
 	rsFact "github.com/gohugonet/hugoverse/internal/domain/resources/factory"
-	"github.com/gohugonet/hugoverse/internal/domain/site"
+	siteAgr "github.com/gohugonet/hugoverse/internal/domain/site/entity"
 	siteFact "github.com/gohugonet/hugoverse/internal/domain/site/factory"
 	tmplFact "github.com/gohugonet/hugoverse/internal/domain/template/factory"
 	"sort"
@@ -95,7 +95,7 @@ type resourcesWorkspaceProvider struct {
 type templateCustomizedFunctionsProvider struct {
 	markdown.Markdown
 	*chAgr.ContentHub
-	site.Site
+	*siteAgr.Site
 	*rsAgr.Resources
 	*configAgr.Config
 	*fsAgr.Fs

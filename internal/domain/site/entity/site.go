@@ -5,6 +5,7 @@ import (
 	"github.com/bep/logg"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
 	"github.com/gohugonet/hugoverse/internal/domain/site"
+	"github.com/gohugonet/hugoverse/internal/domain/site/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/herrors"
 	"github.com/gohugonet/hugoverse/pkg/loggers"
 	"time"
@@ -17,6 +18,9 @@ type Site struct {
 	Publisher *Publisher
 
 	Template site.Template
+
+	*valueobject.Author
+	*valueobject.Compiler
 
 	*URL
 	*Language

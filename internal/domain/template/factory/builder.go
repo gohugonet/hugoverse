@@ -4,6 +4,7 @@ import (
 	"github.com/gohugonet/hugoverse/internal/domain/template"
 	"github.com/gohugonet/hugoverse/internal/domain/template/entity"
 	"github.com/gohugonet/hugoverse/internal/domain/template/valueobject"
+	"github.com/gohugonet/hugoverse/pkg/loggers"
 	htmltemplate "github.com/gohugonet/hugoverse/pkg/template/htmltemplate"
 	texttemplate "github.com/gohugonet/hugoverse/pkg/template/texttemplate"
 	"reflect"
@@ -18,10 +19,14 @@ type builder struct {
 }
 
 func newBuilder() *builder {
-	return &builder{tmpl: &entity.Template{}}
+	return &builder{tmpl: &entity.Template{Log: loggers.NewDefault()}}
 }
 
 func (b *builder) build() (*entity.Template, error) {
+	if err := b.tmpl.LoadEmbedded(); err != nil {
+		return nil, err
+	}
+
 	if err := b.tmpl.LoadTemplates(); err != nil {
 		return nil, err
 	}

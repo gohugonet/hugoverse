@@ -1,12 +1,16 @@
 package entity
 
 import (
+	"bytes"
+	"embed"
 	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/fs"
 	"github.com/gohugonet/hugoverse/internal/domain/template"
 	"github.com/gohugonet/hugoverse/internal/domain/template/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/herrors"
+	"github.com/gohugonet/hugoverse/pkg/loggers"
 	texttemplate "github.com/gohugonet/hugoverse/pkg/template/texttemplate"
+	iofs "io/fs"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -23,6 +27,8 @@ type Template struct {
 
 	shortcodeOnce sync.Once
 	*Shortcode
+
+	Log loggers.Logger
 }
 
 func (t *Template) MarkReady() error {
@@ -57,6 +63,61 @@ func (t *Template) LookupLayout(names []string) (template.Preparer, bool, error)
 	return nil, false, nil
 }
 
+//go:embed all:embedded/templates/*
+//go:embed embedded/templates/_default/*
+//go:embed embedded/templates/_server/*
+var embeddedTemplatesFs embed.FS
+var embeddedTemplatesAliases = map[string][]string{
+	"shortcodes/twitter.html": {"shortcodes/tweet.html"},
+}
+
+func (t *Template) LoadEmbedded() error {
+	return iofs.WalkDir(embeddedTemplatesFs, ".", func(path string, d iofs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d == nil || d.IsDir() {
+			return nil
+		}
+
+		templb, err := embeddedTemplatesFs.ReadFile(path)
+		if err != nil {
+			return err
+		}
+
+		// Get the newlines on Windows in line with how we had it back when we used Go Generate
+		// to write the templates to Go files.
+		templ := string(bytes.ReplaceAll(templb, []byte("\r\n"), []byte("\n")))
+		name := strings.TrimPrefix(filepath.ToSlash(path), "embedded/templates/")
+		templateName := name
+
+		// For the render hooks and the server templates it does not make sense to preserve the
+		// double _internal double book-keeping,
+		// just add it if its now provided by the user.
+		if !strings.Contains(path, "_default/_markup") && !strings.HasPrefix(name, "_server/") && !strings.HasPrefix(name, "partials/_funcs/") {
+			templateName = internalPathPrefix + name
+		}
+
+		if _, found := t.Main.findTemplate(templateName); !found {
+			if err := t.addTemplateContent(embeddedPathPrefix+templateName, templ); err != nil {
+				return err
+			}
+		}
+
+		if aliases, found := embeddedTemplatesAliases[name]; found {
+			// TODO(bep) avoid reparsing these aliases
+			for _, alias := range aliases {
+				alias = internalPathPrefix + alias
+				if err := t.addTemplateContent(embeddedPathPrefix+alias, templ); err != nil {
+					return err
+				}
+			}
+		}
+
+		return nil
+	})
+}
+
 func (t *Template) LoadTemplates() error {
 	walker := func(path string, fi fs.FileMetaInfo) error {
 
@@ -70,7 +131,7 @@ func (t *Template) LoadTemplates() error {
 
 		name := strings.TrimPrefix(filepath.ToSlash(path), "/")
 
-		if err := t.addTemplateFile(name, fi); err != nil {
+		if err := t.addTemplateFileInfo(name, fi); err != nil {
 			return err
 		}
 
@@ -90,12 +151,25 @@ func (t *Template) LoadTemplates() error {
 	return nil
 }
 
-func (t *Template) addTemplateFile(name string, fim fs.FileMetaInfo) error {
+func (t *Template) addTemplateFileInfo(name string, fim fs.FileMetaInfo) error {
 	tinfo, err := valueobject.LoadTemplate(name, fim)
 	if err != nil {
 		return err
 	}
 
+	return t.addTemplate(tinfo.Name, tinfo)
+}
+
+func (t *Template) addTemplateContent(name, tpl string) error {
+	tinfo, err := valueobject.LoadTemplateContent(name, tpl)
+	if err != nil {
+		return err
+	}
+
+	return t.addTemplate(tinfo.Name, tinfo)
+}
+
+func (t *Template) addTemplate(name string, tinfo valueobject.TemplateInfo) error {
 	if t.Lookup.BaseOf.IsBaseTemplatePath(name) {
 		t.Lookup.BaseOf.AddBaseOf(name, tinfo)
 		return nil
@@ -116,6 +190,8 @@ func (t *Template) addTemplateFile(name string, fim fs.FileMetaInfo) error {
 	if err := t.Parser.Transform(t.Main, state); err != nil {
 		fmt.Println(tinfo.ErrWithFileContext("ast transform parse failed", err))
 	}
+
+	t.Log.Println("Added template", tinfo.Name)
 
 	return nil
 }

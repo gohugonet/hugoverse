@@ -2,11 +2,16 @@ package application
 
 import (
 	"context"
+	"fmt"
 	configFact "github.com/gohugonet/hugoverse/internal/domain/config/factory"
+	contentHubFact "github.com/gohugonet/hugoverse/internal/domain/contenthub/factory"
 	"github.com/gohugonet/hugoverse/internal/domain/fs"
 	fsFact "github.com/gohugonet/hugoverse/internal/domain/fs/factory"
+	mdFact "github.com/gohugonet/hugoverse/internal/domain/markdown/factory"
 	moduleFact "github.com/gohugonet/hugoverse/internal/domain/module/factory"
 	rsFact "github.com/gohugonet/hugoverse/internal/domain/resources/factory"
+	siteFact "github.com/gohugonet/hugoverse/internal/domain/site/factory"
+	tmplFact "github.com/gohugonet/hugoverse/internal/domain/template/factory"
 	"github.com/gohugonet/hugoverse/pkg/testkit"
 	"github.com/spf13/cast"
 	"os"
@@ -219,4 +224,74 @@ func checkIntegrity(data any) bool {
 		}
 	}
 	return false
+}
+
+func TestTemplate(t *testing.T) {
+	tmpDir, clean, err := testkit.MkTestTemplate()
+	defer clean()
+
+	if err != nil {
+		t.Fatalf("MkTestConfig returned an error: %v", err)
+	}
+
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatalf("Failed to change directory: %v", err)
+	}
+
+	config, err := configFact.LoadConfig()
+	if err != nil {
+		t.Fatalf("LoadConfig returned an error: %v", err)
+	}
+
+	mods, err := moduleFact.New(config)
+	if err != nil {
+		t.Fatalf("New returned an error: %v", err)
+	}
+
+	fsInstance, err := fsFact.New(config, mods)
+	if err != nil {
+		t.Fatalf("New returned an error: %v", err)
+	}
+
+	ch, err := contentHubFact.New(&chServices{
+		Config: config,
+		Fs:     fsInstance,
+		Module: mods,
+	})
+	if err != nil {
+		t.Fatalf("New content hub returned an error: %v", err)
+	}
+
+	ws := &resourcesWorkspaceProvider{
+		Config: config,
+		Fs:     fsInstance,
+	}
+	resources, err := rsFact.NewResources(ws)
+	if err != nil {
+		t.Fatalf("New resource returned an error: %v", err)
+	}
+
+	s := siteFact.New(&siteServices{
+		Config:     config,
+		Fs:         fsInstance,
+		ContentHub: ch,
+		Resources:  resources,
+	})
+
+	exec, err := tmplFact.New(fsInstance, &templateCustomizedFunctionsProvider{
+		Markdown:   mdFact.NewMarkdown(),
+		ContentHub: ch,
+		Site:       s,
+		Resources:  resources,
+		Config:     config,
+		Fs:         fsInstance,
+	})
+
+	if err != nil {
+		t.Fatalf("New returned an error: %v", err)
+	}
+
+	//TODO: test lookup and executing template
+	fmt.Println(exec)
+
 }

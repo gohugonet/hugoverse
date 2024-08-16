@@ -20,6 +20,9 @@ func RegisterNamespaces() {
 	registerCrypto()
 	registerPath()
 	registerInflect()
+	registerDiagram()
+	registerReflect()
+	registerMath()
 }
 
 func RegisterCallbackNamespaces(cb func(ctx context.Context, name string, data any) (tmpl, res string, err error)) {
@@ -33,6 +36,8 @@ func RegisterExtendedNamespaces(functions template.CustomizedFunctions) {
 	registerStrings(functions)
 	registerResources(functions)
 	registerOs(functions)
+	registerSite(functions)
+	registerHugo(functions)
 }
 
 func RegisterLookerNamespaces(functions template.CustomizedFunctions, looker collections.FuncLooker) {

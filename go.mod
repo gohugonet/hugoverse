@@ -16,6 +16,7 @@ require (
 	github.com/armon/go-radix v1.0.0 // indirect
 	github.com/bep/clocks v0.5.0 // indirect
 	github.com/bep/debounce v1.2.1 // indirect
+	github.com/bep/goat v0.5.0 // indirect
 	github.com/bep/godartsass v1.2.0 // indirect
 	github.com/bep/godartsass/v2 v2.0.0 // indirect
 	github.com/bep/golibsass v1.1.1 // indirect
