@@ -95,11 +95,11 @@ func (t *Template) LoadEmbedded() error {
 		// double _internal double book-keeping,
 		// just add it if its now provided by the user.
 		if !strings.Contains(path, "_default/_markup") && !strings.HasPrefix(name, "_server/") && !strings.HasPrefix(name, "partials/_funcs/") {
-			templateName = internalPathPrefix + name
+			templateName = valueobject.InternalPathPrefix + name
 		}
 
 		if _, found := t.Main.findTemplate(templateName); !found {
-			if err := t.addTemplateContent(embeddedPathPrefix+templateName, templ); err != nil {
+			if err := t.addTemplateContent(valueobject.EmbeddedPathPrefix+templateName, templ); err != nil {
 				return err
 			}
 		}
@@ -107,8 +107,8 @@ func (t *Template) LoadEmbedded() error {
 		if aliases, found := embeddedTemplatesAliases[name]; found {
 			// TODO(bep) avoid reparsing these aliases
 			for _, alias := range aliases {
-				alias = internalPathPrefix + alias
-				if err := t.addTemplateContent(embeddedPathPrefix+alias, templ); err != nil {
+				alias = valueobject.InternalPathPrefix + alias
+				if err := t.addTemplateContent(valueobject.EmbeddedPathPrefix+alias, templ); err != nil {
 					return err
 				}
 			}

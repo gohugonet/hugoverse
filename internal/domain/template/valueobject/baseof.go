@@ -9,11 +9,6 @@ import (
 	"unicode/utf8"
 )
 
-const (
-	baseFileBase = "baseof"
-	baseDefault  = "_default"
-)
-
 type BaseOf struct {
 	baseof      map[string]TemplateInfo
 	needsBaseof map[string]TemplateInfo

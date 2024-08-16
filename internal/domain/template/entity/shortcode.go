@@ -6,17 +6,6 @@ import (
 	"strings"
 )
 
-const (
-	textTmplNamePrefix = "_text/"
-
-	shortcodesPathPrefix = "shortcodes/"
-	internalPathPrefix   = "_internal/"
-	embeddedPathPrefix   = "_embedded/"
-	baseFileBase         = "baseof"
-
-	numTemplateVariants = 3
-)
-
 type Shortcode struct {
 	// shortcodes maps shortcode name to template variants
 	// (language, output format etc.) of that shortcode.
@@ -67,17 +56,17 @@ func (t *Shortcode) addShortcodeVariant(ts *valueobject.State) {
 
 // resolves _internal/shortcodes/param.html => param.html etc.
 func templateBaseName(typ template.Type, name string) string {
-	name = strings.TrimPrefix(name, internalPathPrefix)
+	name = strings.TrimPrefix(name, valueobject.InternalPathPrefix)
 	switch typ {
 	case template.TypeShortcode:
-		return strings.TrimPrefix(name, shortcodesPathPrefix)
+		return strings.TrimPrefix(name, valueobject.ShortcodesPathPrefix)
 	default:
 		panic("not implemented")
 	}
 }
 
 func templateNameAndVariants(name string) (string, []string) {
-	variants := make([]string, numTemplateVariants)
+	variants := make([]string, valueobject.NumTemplateVariants)
 
 	parts := strings.Split(name, ".")
 
@@ -111,5 +100,5 @@ func templateNameAndVariants(name string) (string, []string) {
 }
 
 func isInternal(name string) bool {
-	return strings.HasPrefix(name, internalPathPrefix)
+	return strings.HasPrefix(name, valueobject.InternalPathPrefix)
 }

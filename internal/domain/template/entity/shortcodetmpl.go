@@ -11,7 +11,7 @@ type shortcodeVariant struct {
 	// gtag.html
 	// gtag.no.html
 	// gtag.no.amp.html
-	// A slice of length numTemplateVariants.
+	// A slice of length NumTemplateVariants.
 	variants []string
 
 	ts *valueobject.State

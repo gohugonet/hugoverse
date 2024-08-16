@@ -10,13 +10,6 @@ import (
 	"strings"
 )
 
-const (
-	textTmplNamePrefix = "_text/"
-
-	shortcodesPathPrefix = "shortcodes/"
-	TemplateVersion      = 2
-)
-
 var DefaultParseConfig = ParseConfig{
 	Version: TemplateVersion,
 }
@@ -28,14 +21,21 @@ var DefaultParseInfo = ParseInfo{
 func LoadTemplateContent(name string, content string) (TemplateInfo, error) {
 	s := removeLeadingBOM(content)
 
+	var isEmbedded bool
+	if strings.HasPrefix(name, EmbeddedPathPrefix) {
+		isEmbedded = true
+		name = strings.TrimPrefix(name, EmbeddedPathPrefix)
+	}
+
 	var isText bool
 	name, isText = nameIsText(name)
 
 	return TemplateInfo{
-		Name:     name,
-		IsText:   isText,
-		Template: s,
-		Fi:       nil,
+		Name:       name,
+		IsText:     isText,
+		IsEmbedded: isEmbedded,
+		Template:   s,
+		Fi:         nil,
 	}, nil
 }
 
@@ -52,14 +52,21 @@ func LoadTemplate(name string, fim fs.FileMetaInfo) (TemplateInfo, error) {
 
 	s := removeLeadingBOM(string(b))
 
+	var isEmbedded bool
+	if strings.HasPrefix(name, EmbeddedPathPrefix) {
+		isEmbedded = true
+		name = strings.TrimPrefix(name, EmbeddedPathPrefix)
+	}
+
 	var isText bool
 	name, isText = nameIsText(name)
 
 	return TemplateInfo{
-		Name:     name,
-		IsText:   isText,
-		Template: s,
-		Fi:       fim,
+		Name:       name,
+		IsText:     isText,
+		IsEmbedded: isEmbedded,
+		Template:   s,
+		Fi:         fim,
 	}, nil
 }
 
@@ -128,5 +135,5 @@ func resolveTemplateType(name string) template.Type {
 }
 
 func isShortcode(name string) bool {
-	return strings.Contains(name, shortcodesPathPrefix)
+	return strings.Contains(name, ShortcodesPathPrefix)
 }

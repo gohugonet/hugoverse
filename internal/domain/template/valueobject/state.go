@@ -37,6 +37,7 @@ func NewTemplateState(templ template.Preparer, info TemplateInfo, id template.Id
 }
 
 func (t *State) IsInternalTemplate() bool {
+	// TODO: extend md render hooks
 	return t.Info.IsEmbedded
 }
 
