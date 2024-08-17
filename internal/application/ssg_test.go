@@ -291,7 +291,13 @@ func TestTemplate(t *testing.T) {
 		t.Fatalf("New returned an error: %v", err)
 	}
 
-	//TODO: test lookup and executing template
-	fmt.Println(exec)
+	tmpl, found, err := exec.LookupLayout([]string{"index.html"})
+	if err != nil {
+		t.Fatalf("LookupLayout returned an error: %v", err)
+	}
+	if !found {
+		t.Fatalf("Template not found")
+	}
 
+	fmt.Println(tmpl.Name())
 }
