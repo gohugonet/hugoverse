@@ -60,7 +60,7 @@ func NewExecuter(helper ExecHelper) Executor {
 	return &executer{helper: helper}
 }
 
-// Note: The context is currently not fully implemented in Hugo. This is a work in progress.
+// ExecuteWithContext Note: The context is currently not fully implemented in Hugo. This is a work in progress.
 func (t *executer) ExecuteWithContext(ctx context.Context, p Preparer, wr io.Writer, data any) error {
 	if ctx == nil {
 		panic("nil context")

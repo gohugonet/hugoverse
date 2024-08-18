@@ -1,11 +1,12 @@
 package testkit
 
 const indexTemplateContent = `
+{{ define "main" }}
 <head>
   {{ partial "doc/head.html" . }}
 </head>
 <body>{{ .Content }}</body>
-
+{{ end }}
 `
 
 const headTemplateContent = `

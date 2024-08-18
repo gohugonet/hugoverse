@@ -50,12 +50,13 @@ func (t *Template) LookupLayout(names []string) (template.Preparer, bool, error)
 		ts, found, err := t.Parser.ParseOverlap(overlay, base)
 		if found {
 			if err = t.Parser.Transform(t.Main, ts); err != nil {
-				fmt.Printf("LookupLayout 3 %+v, %v, %v--- ", ts, err, found)
+				t.Log.Printf("LookupLayout transform %+v, %v, %v--- ", ts, err, found)
 			}
 
 			if err := t.extractPartials(ts.Preparer); err != nil {
 				return nil, false, err
 			}
+			t.Log.Println("LookupLayout with overlay: ", overlay.Name, " base: ", base.Name)
 			return ts.Preparer, found, nil
 		}
 	}
@@ -176,6 +177,7 @@ func (t *Template) addTemplate(name string, tinfo valueobject.TemplateInfo) erro
 	}
 
 	if t.Lookup.BaseOf.NeedsBaseOf(name, tinfo.Template) {
+		t.Log.Println("Needs base of", name)
 		t.Lookup.BaseOf.AddNeedsBaseOf(name, tinfo)
 		return nil
 	}

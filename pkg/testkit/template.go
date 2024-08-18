@@ -31,10 +31,12 @@ func MkTestTemplate() (string, func(), error) {
 %s
 -- layouts/partials/doc/head.html --
 %s
+-- layouts/_default/baseof.html --
+%s
 `, configContent, goModContent,
 		post1Content, post2Content, post1Content, post2Content,
 		blog1Content, blog2Content, post1Content,
-		indexTemplateContent, headTemplateContent)
+		indexTemplateContent, headTemplateContent, baseofTemplateContent)
 
 	prepareFS(tempDir, files)
 	return tempDir, clean, nil

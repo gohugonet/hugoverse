@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+	"fmt"
 	configFact "github.com/gohugonet/hugoverse/internal/domain/config/factory"
 	contentHubFact "github.com/gohugonet/hugoverse/internal/domain/contenthub/factory"
 	"github.com/gohugonet/hugoverse/internal/domain/fs"
@@ -311,4 +312,6 @@ func TestTemplate(t *testing.T) {
 	if !strings.Contains(renderBuffer.String(), "<body>Content</body>") {
 		t.Fatalf("Expected result not contains `<body>Content</body>`, but got %s", renderBuffer.String())
 	}
+
+	fmt.Println(renderBuffer.String())
 }
