@@ -2,7 +2,6 @@ package application
 
 import (
 	"context"
-	"fmt"
 	configFact "github.com/gohugonet/hugoverse/internal/domain/config/factory"
 	contentHubFact "github.com/gohugonet/hugoverse/internal/domain/contenthub/factory"
 	"github.com/gohugonet/hugoverse/internal/domain/fs"
@@ -12,6 +11,7 @@ import (
 	rsFact "github.com/gohugonet/hugoverse/internal/domain/resources/factory"
 	siteFact "github.com/gohugonet/hugoverse/internal/domain/site/factory"
 	tmplFact "github.com/gohugonet/hugoverse/internal/domain/template/factory"
+	bp "github.com/gohugonet/hugoverse/pkg/bufferpool"
 	"github.com/gohugonet/hugoverse/pkg/testkit"
 	"github.com/spf13/cast"
 	"os"
@@ -299,5 +299,16 @@ func TestTemplate(t *testing.T) {
 		t.Fatalf("Template not found")
 	}
 
-	fmt.Println(tmpl.Name())
+	data := testkit.NewTemplateIndex("Index", "Content")
+	renderBuffer := bp.GetBuffer()
+	defer bp.PutBuffer(renderBuffer)
+
+	err = exec.ExecuteWithContext(context.Background(), tmpl, renderBuffer, data)
+	if err != nil {
+		t.Fatalf("ExecuteWithContext returned an error: %v", err)
+	}
+
+	if !strings.Contains(renderBuffer.String(), "<body>Content</body>") {
+		t.Fatalf("Expected result not contains `<body>Content</body>`, but got %s", renderBuffer.String())
+	}
 }

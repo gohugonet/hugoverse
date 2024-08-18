@@ -45,7 +45,7 @@ func (t *State) GetIdentity() template.Identity {
 	return t.Id
 }
 
-func (t *State) ParseInfo() ParseInfo {
+func (t *State) ParseInfo() template.ParseInfo {
 	return t.PInfo
 }
 

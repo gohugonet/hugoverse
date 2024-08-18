@@ -24,6 +24,8 @@ func (t *Template) Execute(ctx context.Context, name string, data any) (tmpl str
 	var info template.ParseInfo
 	if ip, ok := templ.(template.Info); ok {
 		info = ip.ParseInfo()
+	} else {
+		panic("not implemented template info: `ParseInfo() ParseInfo`")
 	}
 
 	var w io.Writer
@@ -51,11 +53,11 @@ func (t *Template) Execute(ctx context.Context, name string, data any) (tmpl str
 	var result any
 
 	if ctx, ok := data.(*contextWrapper); ok {
-		result = ctx.Result
+		result = ctx.Result.(string)
 	} else if _, ok := templ.(*texttemplate.Template); ok {
 		result = w.(fmt.Stringer).String()
 	} else {
-		result = htemplate.HTML(w.(fmt.Stringer).String())
+		result = string(htemplate.HTML(w.(fmt.Stringer).String()))
 	}
 
 	return templ.Name(), result.(string), nil
