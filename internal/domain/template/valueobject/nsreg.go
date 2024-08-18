@@ -25,7 +25,7 @@ func RegisterNamespaces() {
 	registerMath()
 }
 
-func RegisterCallbackNamespaces(cb func(ctx context.Context, name string, data any) (tmpl, res string, err error)) {
+func RegisterCallbackNamespaces(cb func(ctx context.Context, name string, data any) (tmpl string, res any, err error)) {
 	registerPartials(cb)
 }
 

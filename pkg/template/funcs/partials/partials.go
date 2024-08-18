@@ -63,7 +63,7 @@ func (p *partialCache) clear() {
 }
 
 // New returns a new instance of the templates-namespaced template functions.
-func New(cb func(ctx context.Context, name string, data any) (tmpl, res string, err error)) *Namespace {
+func New(cb func(ctx context.Context, name string, data any) (tmpl string, res any, err error)) *Namespace {
 	// This lazycache was introduced in Hugo 0.111.0.
 	// We're going to expand and consolidate all memory caches in Hugo using this,
 	// so just set a high limit for now.
@@ -78,7 +78,7 @@ func New(cb func(ctx context.Context, name string, data any) (tmpl, res string, 
 	}
 }
 
-type TemplateExecutor func(ctx context.Context, name string, data any) (tmpl, res string, err error)
+type TemplateExecutor func(ctx context.Context, name string, data any) (tmpl string, res any, err error)
 
 // Namespace provides template functions for the "templates" namespace.
 type Namespace struct {

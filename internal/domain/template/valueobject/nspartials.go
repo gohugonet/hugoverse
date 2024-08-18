@@ -20,7 +20,7 @@ import (
 
 const nsPartials = "partials"
 
-func registerPartials(cb func(ctx context.Context, name string, data any) (tmpl, res string, err error)) {
+func registerPartials(cb func(ctx context.Context, name string, data any) (tmpl string, res any, err error)) {
 	f := func() *TemplateFuncsNamespace {
 		ctx := partials.New(cb)
 

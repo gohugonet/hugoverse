@@ -10,7 +10,7 @@ import (
 	"io"
 )
 
-func (t *Template) Execute(ctx context.Context, name string, data any) (tmpl string, res string, err error) {
+func (t *Template) Execute(ctx context.Context, name string, data any) (tmpl string, res any, err error) {
 	templ, found := t.Main.Lookup(name)
 	if !found {
 		// For legacy reasons.
@@ -53,14 +53,14 @@ func (t *Template) Execute(ctx context.Context, name string, data any) (tmpl str
 	var result any
 
 	if ctx, ok := data.(*contextWrapper); ok {
-		result = ctx.Result.(string)
+		result = ctx.Result
 	} else if _, ok := templ.(*texttemplate.Template); ok {
 		result = w.(fmt.Stringer).String()
 	} else {
-		result = string(htemplate.HTML(w.(fmt.Stringer).String()))
+		result = htemplate.HTML(w.(fmt.Stringer).String())
 	}
 
-	return templ.Name(), result.(string), nil
+	return templ.Name(), result, nil
 }
 
 // contextWrapper makes room for a return value in a partial invocation.
