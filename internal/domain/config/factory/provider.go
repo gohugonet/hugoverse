@@ -54,7 +54,7 @@ func LoadConfig() (*entity.Config, error) {
 		Caches:    entity.Caches{},
 		Security:  entity.Security{},
 		Module:    entity.Module{},
-		Language:  entity.Language{},
+		Language:  &entity.Language{},
 		Imaging:   entity.Imaging{},
 		MediaType: entity.MediaType{},
 

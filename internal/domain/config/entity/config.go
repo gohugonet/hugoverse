@@ -15,7 +15,7 @@ type Config struct {
 	Caches
 	Security
 	Module
-	Language
+	*Language
 
 	Imaging
 	MediaType

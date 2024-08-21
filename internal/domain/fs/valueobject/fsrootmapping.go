@@ -196,7 +196,7 @@ func (rmfs *RootMappingFs) statRoot(root RootMapping, name string) (fs.FileMetaI
 
 			df := NewDirFile(f, FileMeta{
 				filename:      filename,
-				ComponentRoot: root.To,
+				ComponentRoot: root.diskRoot(),
 				ComponentDir:  root.From,
 			}, rmfs.Fs)
 			return df, nil
@@ -280,7 +280,7 @@ func (rmfs *RootMappingFs) collectRootDirEntries(prefix string) ([]iofs.DirEntry
 		if !ok {
 			panic("collect virtual dir must be a DirFile")
 		}
-		df.ComponentRoot = rm.To
+		df.ComponentRoot = rm.diskRoot()
 		df.ComponentDir = rm.From
 
 		direntries, err := df.ReadDir(-1)

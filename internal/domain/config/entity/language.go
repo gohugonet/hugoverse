@@ -15,20 +15,20 @@ type Language struct {
 	indices []string
 }
 
-func (l Language) Languages() []valueobject.LanguageConfig {
+func (l *Language) Languages() []valueobject.LanguageConfig {
 	return maps.Values(l.Configs)
 }
 
-func (l Language) DefaultLanguageKey() string {
+func (l *Language) DefaultLanguageKey() string {
 	return l.Default
 }
 
-func (l Language) IsLanguageValid(lang string) bool {
+func (l *Language) IsLanguageValid(lang string) bool {
 	_, found := l.Configs[lang]
 	return found
 }
 
-func (l Language) OtherLanguageKeys() []string {
+func (l *Language) OtherLanguageKeys() []string {
 	var keys []string
 	for k := range l.Configs {
 		if k != l.Default {
@@ -38,7 +38,7 @@ func (l Language) OtherLanguageKeys() []string {
 	return keys
 }
 
-func (l Language) GetRelDir(name string, langKey string) (dir string, err error) {
+func (l *Language) GetRelDir(name string, langKey string) (dir string, err error) {
 	root, ok := l.RootConfigs[langKey]
 	if !ok {
 		return "", fmt.Errorf("language %q not found", langKey)
@@ -47,7 +47,7 @@ func (l Language) GetRelDir(name string, langKey string) (dir string, err error)
 	return root.CommonDirs.GetDirectoryByName(name), nil
 }
 
-func (l Language) Validate() error {
+func (l *Language) Validate() error {
 	var found bool
 	for lang := range l.Configs {
 		if lang == l.Default {
@@ -61,11 +61,11 @@ func (l Language) Validate() error {
 	return nil
 }
 
-func (l Language) defaultLangError() error {
+func (l *Language) defaultLangError() error {
 	return fmt.Errorf("config value %q for defaultContentLanguage does not match any language definition", l.Default)
 }
 
-func (l Language) SetIndices() {
+func (l *Language) SetIndices() {
 	var languages []string
 	// Ensure default language is first
 	if _, exists := l.Configs[l.Default]; exists {
@@ -81,11 +81,11 @@ func (l Language) SetIndices() {
 	l.indices = languages
 }
 
-func (l Language) LanguageKeys() []string {
+func (l *Language) LanguageKeys() []string {
 	return l.indices
 }
 
-func (l Language) GetLanguageIndex(lang string) (int, error) {
+func (l *Language) GetLanguageIndex(lang string) (int, error) {
 	for i, v := range l.indices {
 		if v == lang {
 			return i, nil

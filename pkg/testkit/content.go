@@ -58,7 +58,7 @@ func MkTestContentHub() (string, func(), error) {
 %s
 -- content/post/ddd/_index.md --
 %s
-`, configEmptyContent, goModContent, post1Content, post2Content, post1Content, post2Content, blog1Content, blog2Content, post1Content)
+`, configMulLangContent, goModContent, post1Content, post2Content, post1Content, post2Content, blog1Content, blog2Content, post1Content)
 
 	prepareFS(tempDir, files)
 	return tempDir, clean, nil

@@ -140,3 +140,21 @@ const configEmptyContent = `
 title = 'Deep Dive into Hugo: Becoming an Expert in the Static Site Generator Domain'
 
 `
+
+const configMulLangContent = `
+title = 'Deep Dive into Hugo: Becoming an Expert in the Static Site Generator Domain'
+
+defaultContentLanguage = "zh"
+
+[languages]
+[languages.zh]
+  languageName = 'Chinese'
+  contentDir = 'content'
+  weight = 1
+
+[languages.en]
+  languageName = 'English'
+  contentDir = 'content.en'
+  weight = 2
+
+`
