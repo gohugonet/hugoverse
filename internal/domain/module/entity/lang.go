@@ -1,6 +1,9 @@
 package entity
 
-import "github.com/gohugonet/hugoverse/internal/domain/module"
+import (
+	"fmt"
+	"github.com/gohugonet/hugoverse/internal/domain/module"
+)
 
 type Lang struct {
 	sourceLangMap map[string]string
@@ -19,6 +22,7 @@ func NewLang(ms []module.Module) *Lang {
 }
 
 func (l *Lang) GetSourceLang(source string) (string, bool) {
+	fmt.Printf("GetSourceLang: %+v\n", l.sourceLangMap)
 	lang, ok := l.sourceLangMap[source]
 	return lang, ok
 }

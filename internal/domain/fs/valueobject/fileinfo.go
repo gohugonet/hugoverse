@@ -38,6 +38,19 @@ func NewFileInfo(fi os.FileInfo, filename string) *FileInfo {
 	return info
 }
 
+func NewFileInfoWithMeta(fi os.FileInfo, meta *FileMeta) *FileInfo {
+	info := &FileInfo{
+		FileInfo: fi,
+		FileMeta: meta,
+	}
+
+	if fim, ok := fi.(MetaProvider); ok {
+		info.FileMeta.Merge(fim.Meta())
+	}
+
+	return info
+}
+
 func NewFileInfoWithName(filename string) *FileInfo {
 	vf, _ := GetVirtualFileInfo()
 
@@ -63,7 +76,7 @@ func NewFileInfoWithDirEntryMeta(de fs.DirEntry, meta *FileMeta) (*FileInfo, err
 	if err != nil {
 		return nil, err
 	}
-	return NewFileInfoWithMeta(fi, meta), nil
+	return NewFileInfoWithNewMeta(fi, meta), nil
 }
 
 func NewFileInfoWithOpener(fi os.FileInfo, filename string, opener FileOpener) *FileInfo {
@@ -75,12 +88,12 @@ func NewFileInfoWithOpener(fi os.FileInfo, filename string, opener FileOpener) *
 
 func NewFileInfoWithRoot(fi os.FileInfo, filename, root string, opener FileOpener) *FileInfo {
 	info := NewFileInfoWithOpener(fi, filename, opener)
-	info.FileMeta.root = root
+	info.FileMeta.ComponentRoot = root
 
 	return info
 }
 
-func NewFileInfoWithMeta(fi os.FileInfo, meta *FileMeta) *FileInfo {
+func NewFileInfoWithNewMeta(fi os.FileInfo, meta *FileMeta) *FileInfo {
 	info := NewFileInfo(fi, meta.FileName())
 	info.FileMeta = meta
 

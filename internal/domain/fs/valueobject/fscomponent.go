@@ -14,7 +14,7 @@ import (
 type ComponentFs struct {
 	afero.Fs
 
-	// The component name, e.g. "content", "layouts" etc.
+	// The ComponentDir name, e.g. "content", "layouts" etc.
 	Component string
 
 	OverlayFs afero.Fs
@@ -44,8 +44,8 @@ func (cfs *ComponentFs) Stat(name string) (os.FileInfo, error) {
 	}
 
 	meta := &FileMeta{
-		filename:  name,
-		component: cfs.Component,
+		filename:     name,
+		ComponentDir: cfs.Component,
 	}
 
 	if fi.IsDir() {
@@ -54,7 +54,7 @@ func (cfs *ComponentFs) Stat(name string) (os.FileInfo, error) {
 		}
 	}
 
-	return NewFileInfoWithMeta(fi, meta), nil
+	return NewFileInfoWithNewMeta(fi, meta), nil
 }
 
 func (cfs *ComponentFs) Open(name string) (afero.File, error) {
@@ -147,7 +147,7 @@ func (cfs *ComponentFs) MakePathRelative(filename string, checkExists bool) (str
 	return filepath.FromSlash(cps[0].Path), true
 }
 
-// ReverseLookup returns the component paths for the given filename.
+// ReverseLookup returns the ComponentDir paths for the given filename.
 func (cfs *ComponentFs) ReverseLookup(filename string, checkExists bool) ([]ComponentPath, error) {
 	var cps []ComponentPath
 	WalkFilesystems(cfs.Fs, func(fs afero.Fs) bool {

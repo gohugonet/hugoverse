@@ -18,7 +18,7 @@ type Walkway struct {
 	// The filesystem to walk.
 	Fs afero.Fs
 
-	// The root to start from in Fs.
+	// The ComponentRoot to start from in Fs.
 	Root string
 
 	cb fs.WalkCallback

@@ -23,7 +23,7 @@ func NewRootMappingFs(fs afero.Fs, rms ...RootMapping) (*RootMappingFs, error) {
 		var mappings []RootMapping
 		v, found := to.Get(key)
 		if found {
-			// There may be more than one language pointing to the same root.
+			// There may be more than one language pointing to the same ComponentRoot.
 			mappings = v.([]RootMapping)
 		}
 		mappings = append(mappings, rm)
@@ -51,7 +51,6 @@ func NewRootMappingFs(fs afero.Fs, rms ...RootMapping) (*RootMappingFs, error) {
 		if !fi.IsDir() {
 			panic("single file mount not supported yet, " + rm.To)
 		}
-		// fi: baseFs.Stat
 		rm.ToFi = NewFileInfo(fi, rm.To)
 
 		virKey := mapKey(rm.From)
@@ -196,8 +195,9 @@ func (rmfs *RootMappingFs) statRoot(root RootMapping, name string) (fs.FileMetaI
 			}
 
 			df := NewDirFile(f, FileMeta{
-				filename: filename,
-				root:     root.To,
+				filename:      filename,
+				ComponentRoot: root.To,
+				ComponentDir:  root.From,
 			}, rmfs.Fs)
 			return df, nil
 		}
@@ -251,7 +251,7 @@ func (rmfs *RootMappingFs) getRoots(key string) (string, []RootMapping) {
 		}
 		s = ss
 
-		// We may have more than one root for this key, so walk up.
+		// We may have more than one ComponentRoot for this key, so walk up.
 		oldKey := key
 		key = filepath.Dir(key)
 		if key == oldKey {
@@ -275,7 +275,15 @@ func (rmfs *RootMappingFs) collectRootDirEntries(prefix string) ([]iofs.DirEntry
 		if err != nil {
 			return err
 		}
-		direntries, err := f.(iofs.ReadDirFile).ReadDir(-1)
+
+		df, ok := f.(*DirFile)
+		if !ok {
+			panic("collect virtual dir must be a DirFile")
+		}
+		df.ComponentRoot = rm.To
+		df.ComponentDir = rm.From
+
+		direntries, err := df.ReadDir(-1)
 		if err != nil {
 			f.Close()
 			return err
@@ -290,7 +298,7 @@ func (rmfs *RootMappingFs) collectRootDirEntries(prefix string) ([]iofs.DirEntry
 				}
 				seen[name] = true
 				opener := func() (afero.File, error) {
-					return rmfs.Open(rmfs.virtualPath(rm.From, name)) // virtual root, with first level name
+					return rmfs.Open(rmfs.virtualPath(rm.From, name)) // virtual ComponentRoot, with first level name
 				}
 				fi, err = NewFileInfoWithDirEntryOpener(fi, opener)
 				if err != nil {
@@ -308,7 +316,7 @@ func (rmfs *RootMappingFs) collectRootDirEntries(prefix string) ([]iofs.DirEntry
 	// First add any real files/directories.
 	rms := rmfs.getRoot(prefix)
 	for _, rm := range rms {
-		rmfs.log.Println("collectRootDirEntries->collectDir (RootMappingFs): open root", prefix)
+		rmfs.log.Println("collectRootDirEntries->collectDir (RootMappingFs): open ComponentRoot", prefix)
 		if err := collectDir(rm, rm.ToFi); err != nil {
 			return nil, err
 		}

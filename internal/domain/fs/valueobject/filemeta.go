@@ -14,9 +14,10 @@ type MetaProvider interface {
 type FileOpener func() (afero.File, error)
 
 type FileMeta struct {
-	filename  string
-	root      string
-	component string
+	filename string
+
+	ComponentRoot string
+	ComponentDir  string
 
 	OpenFunc FileOpener
 }
@@ -26,11 +27,11 @@ func NewFileMeta() *FileMeta {
 }
 
 func (f *FileMeta) Component() string {
-	return f.component
+	return f.ComponentDir
 }
 
 func (f *FileMeta) Root() string {
-	return f.root
+	return f.ComponentRoot
 }
 
 func (f *FileMeta) Copy() *FileMeta {

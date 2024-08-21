@@ -45,7 +45,7 @@ func (f *File) ReadDir(count int) ([]fs.DirEntry, error) {
 			}
 			meta.Merge(&f.FileMeta)
 
-			fim := NewFileInfoWithMeta(fi, meta)
+			fim := NewFileInfoWithNewMeta(fi, meta)
 
 			result = append(result, fim)
 		}
