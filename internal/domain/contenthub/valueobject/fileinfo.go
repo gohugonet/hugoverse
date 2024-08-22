@@ -136,7 +136,7 @@ func (fi *File) pathToDir(s string) string {
 }
 
 func (fi *File) p() *paths.Path {
-	return fi.path.Unnormalized()
+	return fi.path
 }
 
 func (fi *File) Path() *paths.Path {
