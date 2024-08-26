@@ -132,7 +132,7 @@ func (o *Output) buildPage(f output.Format) error {
 
 	bn := o.baseName
 	if o.baseName == "" {
-		return fmt.Errorf("no base name")
+		return fmt.Errorf("no base name: %+v\n", o.source.File)
 	}
 	pb.Add(bn)
 
@@ -163,6 +163,9 @@ func (o *Output) setBasename() {
 		o.baseName = output.SitemapFormat.BaseName
 	default:
 		o.baseName = o.source.Path().BaseNameNoIdentifier()
+		if o.baseName == "" {
+			o.baseName = "index"
+		}
 	}
 }
 

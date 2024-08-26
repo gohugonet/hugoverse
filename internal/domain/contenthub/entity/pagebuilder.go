@@ -35,8 +35,9 @@ type PageBuilder struct {
 }
 
 func (b *PageBuilder) WithSource(source *Source) *PageBuilder {
-	b.source = source
-	return b
+	cloneBuilder := *b
+	cloneBuilder.source = source // source changed, need light copy
+	return &cloneBuilder
 }
 
 func (b *PageBuilder) Build() (contenthub.Page, error) {
@@ -71,8 +72,10 @@ func (b *PageBuilder) KindBuild() (contenthub.Page, error) {
 
 func (b *PageBuilder) build() (contenthub.Page, error) {
 	switch b.kind {
-	case valueobject.KindHome, valueobject.KindSection:
-		fmt.Println("build section or home, but it will not happen in this case")
+	case valueobject.KindHome:
+		return b.buildHome()
+	case valueobject.KindSection:
+		return b.buildPage()
 	case valueobject.KindPage:
 		return b.buildPage()
 	case valueobject.KindTaxonomy:
@@ -82,12 +85,21 @@ func (b *PageBuilder) build() (contenthub.Page, error) {
 	default:
 		return nil, fmt.Errorf("unknown kind %q", b.kind)
 	}
-
-	return nil, nil
 }
 
 func (b *PageBuilder) buildPage() (*Page, error) {
 	return newPage(b.source, b.c)
+}
+
+func (b *PageBuilder) buildHome() (*Page, error) {
+	p, err := newPage(b.source, b.c)
+	if err != nil {
+		return nil, err
+	}
+
+	p.kind = valueobject.KindHome
+
+	return p, err
 }
 
 func (b *PageBuilder) buildTaxonomy() (*TaxonomyPage, error) {

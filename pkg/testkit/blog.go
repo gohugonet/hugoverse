@@ -2,9 +2,8 @@ package testkit
 
 const blog1Content = `
 ---
-title: Blog
+title: "Blog"
 ---
-
 `
 
 const blog2Content = `

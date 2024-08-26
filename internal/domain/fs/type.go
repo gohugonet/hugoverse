@@ -63,6 +63,7 @@ type FileMeta interface {
 	Open() (afero.File, error)
 
 	FileName() string
+	RelativeFilename() string
 	Component() string
 	Root() string
 }

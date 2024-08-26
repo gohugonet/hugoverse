@@ -300,10 +300,8 @@ func (rmfs *RootMappingFs) collectRootDirEntries(prefix string) ([]iofs.DirEntry
 				opener := func() (afero.File, error) {
 					return rmfs.Open(rmfs.virtualPath(rm.From, name)) // virtual ComponentRoot, with first level name
 				}
-				fi, err = NewFileInfoWithDirEntryOpener(fi, opener)
-				if err != nil {
-					return err
-				}
+				fif := fi.(*FileInfo)
+				fi = NewFileInfoWithOpener(fif, fif.filename, opener)
 			}
 			fis = append(fis, fi)
 		}

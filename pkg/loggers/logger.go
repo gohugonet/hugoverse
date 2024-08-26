@@ -151,8 +151,8 @@ func New(opts Options) Logger {
 // NewDefault creates a new logger with the default options.
 func NewDefault() Logger {
 	opts := Options{
-		DistinctLevel: logg.LevelWarn,
-		Level:         logg.LevelWarn,
+		DistinctLevel: logg.LevelTrace,
+		Level:         logg.LevelTrace,
 		Stdout:        os.Stdout,
 		Stderr:        os.Stdout,
 	}

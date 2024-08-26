@@ -62,7 +62,7 @@ func (d Decoder) UnmarshalTo(data []byte, f Format, v any) error {
 	case YAML:
 		err = yaml.Unmarshal(data, v)
 		if err != nil {
-			return fmt.Errorf("failed to unmarshal YAML: %w", err)
+			return fmt.Errorf("failed to unmarshal YAML: %w, %s", err, string(data))
 		}
 
 		// To support boolean keys, the YAML package unmarshals maps to

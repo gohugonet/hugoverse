@@ -25,14 +25,14 @@ func NewFileInfo(fi fs.FileMetaInfo) *File {
 	f := &File{
 		FileMetaInfo: fi,
 
-		path:       paths.Parse(files.ComponentFolderContent, fi.FileName()),
+		path:       paths.Parse(files.ComponentFolderContent, fi.RelativeFilename()),
 		BundleType: BundleTypeFile,
 	}
 
 	isContent := files.IsContentExt(f.path.Ext())
 
 	if isContent {
-		switch f.path.BaseNameNoIdentifier() {
+		switch f.path.NameNoIdentifier() {
 		case "index":
 			f.BundleType = BundleTypeLeaf
 		case "_index":

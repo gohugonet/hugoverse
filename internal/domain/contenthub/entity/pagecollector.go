@@ -109,6 +109,8 @@ func (c *pagesCollector) collectDirDir(path string, root fs.FileMetaInfo) error 
 
 		leaf := fsm.GetLeaf()
 		if leaf != nil {
+			c.infoLogger.Logf("handleBundleLeaf: %s", leaf.Name())
+
 			if err := c.handleBundleLeaf(dir, leaf, path, readdir); err != nil {
 				return nil, err
 			}

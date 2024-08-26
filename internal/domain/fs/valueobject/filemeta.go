@@ -2,9 +2,11 @@ package valueobject
 
 import (
 	"errors"
+	"fmt"
 	"github.com/gohugonet/hugoverse/pkg/hreflect"
 	"github.com/spf13/afero"
 	"reflect"
+	"strings"
 )
 
 type MetaProvider interface {
@@ -73,4 +75,18 @@ func (f *FileMeta) Open() (afero.File, error) {
 
 func (f *FileMeta) FileName() string {
 	return f.filename
+}
+
+func (f *FileMeta) RelativeFilename() string {
+	if f.Root() == "" {
+		return f.FileName()
+	}
+
+	parts := strings.Split(f.FileName(), f.Root())
+
+	if len(parts) > 1 {
+		return parts[1]
+	}
+
+	panic(fmt.Sprintf("filename %s has no root %s", f.filename, f.Root()))
 }

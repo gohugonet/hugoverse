@@ -4,7 +4,10 @@ go 1.21
 
 require (
 	github.com/blevesearch/bleve v1.0.14
+	github.com/frankban/quicktest v1.14.6
 	github.com/gofrs/uuid v4.4.0+incompatible
+	github.com/mitchellh/hashstructure v1.1.0
+	github.com/spf13/cast v1.6.0
 	golang.org/x/text v0.14.0
 )
 
@@ -47,14 +50,16 @@ require (
 	github.com/gohugoio/localescompressed v1.0.1 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/golang/snappy v0.0.1 // indirect
+	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/gorilla/schema v1.2.1 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/jdkato/prose v1.2.1 // indirect
+	github.com/kr/pretty v0.3.1 // indirect
+	github.com/kr/text v0.2.0 // indirect
 	github.com/kyokomi/emoji/v2 v2.2.12 // indirect
 	github.com/marekm4/color-extractor v1.2.1 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
-	github.com/mitchellh/hashstructure v1.1.0 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/mschoch/smat v0.2.0 // indirect
 	github.com/muesli/smartcrop v0.3.0 // indirect
@@ -63,9 +68,9 @@ require (
 	github.com/pelletier/go-toml/v2 v2.2.0 // indirect
 	github.com/philhofer/fwd v1.0.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
+	github.com/rogpeppe/go-internal v1.9.0 // indirect
 	github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd // indirect
 	github.com/spf13/afero v1.11.0 // indirect
-	github.com/spf13/cast v1.6.0 // indirect
 	github.com/steveyen/gtreap v0.1.0 // indirect
 	github.com/tdewolff/minify/v2 v2.20.20 // indirect
 	github.com/tdewolff/parse/v2 v2.7.13 // indirect
