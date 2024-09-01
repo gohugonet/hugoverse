@@ -52,7 +52,7 @@ func (fi *File) ShiftToResource() {
 }
 
 // Filename returns a file's absolute path and filename on disk.
-func (fi *File) Filename() string { return fi.FileName() }
+func (fi *File) Filename() string { return fi.FileMetaInfo.FileName() }
 
 // RelPath Path gets the relative path including file name and extension.  The directory
 // is relative to the content root.

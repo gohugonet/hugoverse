@@ -32,7 +32,7 @@ func newPageSource(fi *valueobject.File, c *Cache) (*Source, error) {
 }
 
 func (p *Source) sourceKey() string {
-	return filepath.ToSlash(p.File.Filename())
+	return filepath.ToSlash(p.Lang + "/" + p.File.Filename())
 }
 
 func (p *Source) contentSource() ([]byte, error) {

@@ -13,8 +13,6 @@ import (
 )
 
 type PageMap struct {
-	*ContentSpec
-
 	// Main storage for all pages.
 	*PageTrees
 

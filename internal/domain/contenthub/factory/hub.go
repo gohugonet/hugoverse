@@ -25,8 +25,7 @@ func New(services contenthub.Services) (*entity.ContentHub, error) {
 		Fs:               services,
 		TemplateExecutor: nil,
 		PageMap: &entity.PageMap{
-			ContentSpec: cs,
-			PageTrees:   newPageTree(),
+			PageTrees: newPageTree(),
 
 			PageBuilder: &entity.PageBuilder{
 				LangSvc:     services,
@@ -43,6 +42,8 @@ func New(services contenthub.Services) (*entity.ContentHub, error) {
 				},
 				Section:    &entity.Section{FsSvc: services, Cache: cache},
 				Standalone: &entity.Standalone{FsSvc: services, Cache: cache},
+
+				ConvertProvider: cs,
 			},
 
 			Cache: cache,
@@ -74,6 +75,18 @@ func newCache() *entity.Cache {
 			memCache,
 			"/page/sources",
 			dynacache.OptionsPartition{ClearWhen: dynacache.ClearOnRebuild, Weight: 40},
+		),
+
+		CacheContentRendered: dynacache.GetOrCreatePartition[string, *stale.Value[valueobject.ContentSummary]](
+			memCache,
+			"/cont/ren",
+			dynacache.OptionsPartition{Weight: 70, ClearWhen: dynacache.ClearOnChange},
+		),
+
+		ContentTableOfContents: dynacache.GetOrCreatePartition[string, *stale.Value[valueobject.ContentToC]](
+			memCache,
+			"/cont/toc",
+			dynacache.OptionsPartition{Weight: 70, ClearWhen: dynacache.ClearOnChange},
 		),
 	}
 }

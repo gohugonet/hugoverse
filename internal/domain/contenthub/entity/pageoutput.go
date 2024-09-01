@@ -2,7 +2,9 @@ package entity
 
 import (
 	"fmt"
+	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub/valueobject"
+	"github.com/gohugonet/hugoverse/internal/domain/markdown"
 	"github.com/gohugonet/hugoverse/pkg/output"
 )
 
@@ -13,9 +15,50 @@ type Output struct {
 
 	source   *Source
 	pageKind string
+
+	convertProvider *ContentSpec
 }
 
-func (o *Output) Build() error {
+func (o *Output) getConvert() (contenthub.Converter, error) {
+	cp := o.convertProvider.GetContentConvertProvider("markdown")
+
+	return cp.New(markdown.DocumentContext{
+		Document:     nil,
+		DocumentID:   o.source.File.UniqueID(),
+		DocumentName: o.source.File.Path().Path(),
+		Filename:     o.source.File.FileName(),
+	})
+}
+
+func (o *Output) Outputs(p *Page) ([]contenthub.PageOutput, error) {
+	c, err := o.getConvert()
+	if err != nil {
+		return nil, err
+	}
+
+	var res []contenthub.PageOutput
+	for _, target := range o.targets {
+		res = append(res,
+			struct {
+				*valueobject.Target
+				*ContentProvider
+			}{
+				Target: target,
+				ContentProvider: &ContentProvider{
+					sourceKey: o.source.sourceKey(),
+					content:   p.Content,
+					cache:     o.source.cache,
+					f:         target.Format,
+					converter: c,
+				},
+			})
+	}
+
+	return res, nil
+}
+
+func (o *Output) Build(convertProvider *ContentSpec) error {
+	o.convertProvider = convertProvider
 	o.setBasename()
 
 	for _, of := range o.outputFormats() {
@@ -36,6 +79,7 @@ func (o *Output) Build() error {
 			return fmt.Errorf("unknown page kind: %s", o.pageKind)
 		}
 	}
+
 	return nil
 }
 
@@ -63,6 +107,8 @@ func (o *Output) buildSection(f output.Format) error {
 		Prefix:                "",
 		FilePath:              pb.PathFile(),
 		SubResourceBaseTarget: pb.PathDir(),
+
+		Format: f,
 	}
 	o.targets = append(o.targets, target)
 
@@ -205,4 +251,10 @@ func (o *Output) defaultOutputFormats() map[string][]string {
 
 func allFormats() output.Formats {
 	return output.DefaultFormats
+}
+
+func (o *Output) Content() (any, error) {
+	// TODO, put empty here for new page builder
+
+	return nil, nil
 }

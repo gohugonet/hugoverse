@@ -19,6 +19,8 @@ type PageBuilder struct {
 	Section    *Section
 	Standalone *Standalone
 
+	ConvertProvider *ContentSpec
+
 	source          *Source
 	sourceByte      []byte
 	sourceParseInfo *valueobject.SourceParseInfo
@@ -31,13 +33,19 @@ type PageBuilder struct {
 	fmParser *valueobject.FrontMatterParser
 
 	sc *valueobject.ShortcodeParser
-	c  *valueobject.Content
+	c  *Content
 }
 
 func (b *PageBuilder) WithSource(source *Source) *PageBuilder {
 	cloneBuilder := *b
+	cloneBuilder.reset()
+
 	cloneBuilder.source = source // source changed, need light copy
 	return &cloneBuilder
+}
+
+func (b *PageBuilder) reset() {
+	b.c = nil
 }
 
 func (b *PageBuilder) Build() (contenthub.Page, error) {
@@ -86,9 +94,28 @@ func (b *PageBuilder) build() (contenthub.Page, error) {
 		return nil, fmt.Errorf("unknown kind %q", b.kind)
 	}
 }
+func (b *PageBuilder) buildOutput(p *Page) error {
+	p.Output = &Output{
+		source:   p.Source,
+		pageKind: p.Kind(),
+	}
+	if err := p.Output.Build(b.ConvertProvider); err != nil {
+		return err
+	}
+
+	return nil
+}
 
 func (b *PageBuilder) buildPage() (*Page, error) {
-	return newPage(b.source, b.c)
+	p, err := newPage(b.source, b.c)
+	if err != nil {
+		return nil, err
+	}
+	if err := b.buildOutput(p); err != nil {
+		return nil, err
+	}
+
+	return p, nil
 }
 
 func (b *PageBuilder) buildHome() (*Page, error) {
@@ -99,12 +126,25 @@ func (b *PageBuilder) buildHome() (*Page, error) {
 
 	p.kind = valueobject.KindHome
 
+	if err := b.buildOutput(p); err != nil {
+		return nil, err
+	}
+
 	return p, err
 }
 
 func (b *PageBuilder) buildTaxonomy() (*TaxonomyPage, error) {
 	singular := b.Taxonomy.getTaxonomy(b.source.File.Path().Path()).Singular()
-	return newTaxonomy(b.source, b.c, singular)
+	tp, err := newTaxonomy(b.source, b.c, singular)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := b.buildOutput(tp.Page); err != nil {
+		return nil, err
+	}
+
+	return tp, nil
 }
 
 func (b *PageBuilder) buildTerm() (*TermPage, error) {
@@ -112,7 +152,16 @@ func (b *PageBuilder) buildTerm() (*TermPage, error) {
 	singular := b.Taxonomy.getTaxonomy(p.Path()).Singular()
 	term := p.Unnormalized().BaseNameNoIdentifier()
 
-	return newTerm(b.source, b.c, singular, term)
+	t, err := newTerm(b.source, b.c, singular, term)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := b.buildOutput(t.Page); err != nil {
+		return nil, err
+	}
+
+	return t, nil
 }
 
 func (b *PageBuilder) parse(contentBytes []byte) error {
@@ -127,7 +176,7 @@ func (b *PageBuilder) parse(contentBytes []byte) error {
 
 	b.sourceParseInfo = pif
 	b.sc = valueobject.NewShortcodeParser(contentBytes, b.source.Id, b.TemplateSvc)
-	b.c = valueobject.NewContent()
+	b.c = NewContent(contentBytes)
 
 	if err := pif.Handle(); err != nil {
 		return err
@@ -288,7 +337,7 @@ func (b *PageBuilder) SummaryHandler() valueobject.IterHandler {
 
 		// The content may be rendered by Goldmark or similar,
 		// and we need to track the summary.
-		b.c.AddReplacement(valueobject.InternalSummaryDividerPre, it)
+		b.c.AddReplacement(InternalSummaryDividerPre, it)
 
 		return nil
 	}

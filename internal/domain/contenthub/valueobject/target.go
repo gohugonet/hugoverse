@@ -17,6 +17,8 @@ type Target struct {
 	FilePath string
 	// The directory to write sub-resources of the above.
 	SubResourceBaseTarget string
+
+	Format output.Format
 }
 
 func (t *Target) TargetFilePath() string {

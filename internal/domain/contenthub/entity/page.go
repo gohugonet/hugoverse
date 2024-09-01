@@ -8,7 +8,7 @@ import (
 
 type Page struct {
 	*Source
-	*valueobject.Content
+	*Content
 
 	*Layout
 	*Output
@@ -16,16 +16,12 @@ type Page struct {
 	kind string
 }
 
-func (p *Page) PageOutputs() []contenthub.PageOutput {
-	var res []contenthub.PageOutput
-	for _, o := range p.Output.targets {
-		res = append(res, o)
-	}
-	return res
+func (p *Page) PageOutputs() ([]contenthub.PageOutput, error) {
+	return p.Outputs(p)
 }
 
 func (p *Page) Layouts() []string {
-	//TODO: multiple outputs
+	//TODO: multiple outputs, not supported yet
 	// output map layout
 
 	switch p.kind {
@@ -60,17 +56,13 @@ type TermPage struct {
 	term string
 }
 
-func newPage(source *Source, content *valueobject.Content) (*Page, error) {
+func newPage(source *Source, content *Content) (*Page, error) {
 	p := &Page{
 		Source:  source,
 		Content: content,
 		kind:    valueobject.KindPage,
 
 		Layout: &Layout{},
-	}
-
-	if err := p.outputSetup(); err != nil {
-		return nil, err
 	}
 
 	return p, nil
@@ -94,18 +86,11 @@ func (p *Page) isStandalone() bool {
 	return res
 }
 
-func (p *Page) outputSetup() error {
-	p.Output = &Output{
-		source:   p.Source,
-		pageKind: p.Kind(),
-	}
-	if err := p.Output.Build(); err != nil {
-		return err
-	}
-	return nil
+func (p *Page) isVirtualPage() bool {
+	return p.Content == nil
 }
 
-func newTaxonomy(source *Source, content *valueobject.Content, singular string) (*TaxonomyPage, error) {
+func newTaxonomy(source *Source, content *Content, singular string) (*TaxonomyPage, error) {
 	p, err := newPage(source, content)
 	if err != nil {
 		return nil, err
@@ -120,7 +105,7 @@ func newTaxonomy(source *Source, content *valueobject.Content, singular string) 
 	return taxonomy, nil
 }
 
-func newTerm(source *Source, content *valueobject.Content, singular string, term string) (*TermPage, error) {
+func newTerm(source *Source, content *Content, singular string, term string) (*TermPage, error) {
 	taxonomy, err := newTaxonomy(source, content, singular)
 	if err != nil {
 		return nil, err
