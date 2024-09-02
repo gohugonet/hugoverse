@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"github.com/gohugonet/hugoverse/internal/domain/template"
 	"github.com/gohugonet/hugoverse/internal/domain/template/valueobject"
 	"strings"
 )
@@ -34,7 +35,7 @@ L:
 	return -1
 }
 
-func (s *shortcodeTemplates) fromVariants(variants TemplateVariants) (shortcodeVariant, bool) {
+func (s *shortcodeTemplates) fromVariants(variants template.Variants) (shortcodeVariant, bool) {
 	return s.fromVariantsSlice([]string{
 		variants.Language,
 		strings.ToLower(variants.OutputFormat.Name),

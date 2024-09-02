@@ -1,6 +1,9 @@
 package valueobject
 
-import "html/template"
+import (
+	"github.com/gohugonet/hugoverse/internal/domain/markdown"
+	"html/template"
+)
 
 type ContentSummary struct {
 	Content          template.HTML
@@ -9,9 +12,6 @@ type ContentSummary struct {
 }
 
 type ContentToC struct {
-	// For Goldmark we split Parse and Render.
-	astDoc any
-
-	tableOfContents     *tableofcontents.Fragments
+	tableOfContents     markdown.TocFragments
 	tableOfContentsHTML template.HTML
 }

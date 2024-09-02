@@ -12,6 +12,23 @@ type Shortcode struct {
 	shortcodes map[string]*shortcodeTemplates
 }
 
+func (t *Shortcode) LookupVariant(name string, variants template.Variants) (template.Preparer, bool, bool) {
+	name = templateBaseName(template.TypeShortcode, name)
+	s, found := t.shortcodes[name]
+	if !found {
+		return nil, false, false
+	}
+
+	sv, found := s.fromVariants(variants)
+	if !found {
+		return nil, false, false
+	}
+
+	more := len(s.variants) > 1
+
+	return sv.ts, true, more
+}
+
 // LookupVariants returns all variants of name, nil if none found.
 func (t *Shortcode) LookupVariants(name string) []template.Preparer {
 	name = templateBaseName(template.TypeShortcode, name)

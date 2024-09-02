@@ -144,12 +144,12 @@ func (s *SourceParseInfo) failMap(err error, i pageparser.Item) error {
 		return fe
 	}
 
-	pos := posFromInput("", s.Source, i.Pos())
+	pos := PosFromInput("", s.Source, i.Pos())
 
 	return herrors.NewFileErrorFromPos(err, pos)
 }
 
-func posFromInput(filename string, input []byte, offset int) text.Position {
+func PosFromInput(filename string, input []byte, offset int) text.Position {
 	if offset < 0 {
 		return text.Position{
 			Filename: filename,

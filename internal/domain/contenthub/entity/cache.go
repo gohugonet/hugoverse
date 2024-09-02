@@ -15,7 +15,8 @@ type Cache struct {
 	CachePageSources *dynacache.Partition[string, []contenthub.PageSource]
 
 	CacheContentRendered   *dynacache.Partition[string, *stale.Value[valueobject.ContentSummary]]
-	ContentTableOfContents *dynacache.Partition[string, *stale.Value[valueobject.ContentToC]]
+	CacheContentToCs       *dynacache.Partition[string, *stale.Value[valueobject.ContentToC]]
+	CacheContentShortcodes *dynacache.Partition[string, *stale.Value[map[string]valueobject.ShortcodeRenderer]]
 }
 
 func (c *Cache) GetOrCreateResource(key string, f func() (contenthub.PageSource, error)) (contenthub.PageSource, error) {

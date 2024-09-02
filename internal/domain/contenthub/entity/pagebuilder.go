@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub/valueobject"
+	"github.com/gohugonet/hugoverse/pkg/loggers"
 	"github.com/gohugonet/hugoverse/pkg/maps"
 	"github.com/gohugonet/hugoverse/pkg/parser/metadecoders"
 	"github.com/gohugonet/hugoverse/pkg/parser/pageparser"
@@ -94,12 +95,15 @@ func (b *PageBuilder) build() (contenthub.Page, error) {
 		return nil, fmt.Errorf("unknown kind %q", b.kind)
 	}
 }
+
 func (b *PageBuilder) buildOutput(p *Page) error {
 	p.Output = &Output{
 		source:   p.Source,
 		pageKind: p.Kind(),
+
+		log: loggers.NewDefault(),
 	}
-	if err := p.Output.Build(b.ConvertProvider); err != nil {
+	if err := p.Output.Build(b.ConvertProvider, b.TemplateSvc); err != nil {
 		return err
 	}
 

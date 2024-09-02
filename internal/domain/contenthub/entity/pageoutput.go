@@ -5,6 +5,7 @@ import (
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub/valueobject"
 	"github.com/gohugonet/hugoverse/internal/domain/markdown"
+	"github.com/gohugonet/hugoverse/pkg/loggers"
 	"github.com/gohugonet/hugoverse/pkg/output"
 )
 
@@ -17,6 +18,9 @@ type Output struct {
 	pageKind string
 
 	convertProvider *ContentSpec
+	templateSvc     contenthub.Template
+
+	log loggers.Logger
 }
 
 func (o *Output) getConvert() (contenthub.Converter, error) {
@@ -45,11 +49,13 @@ func (o *Output) Outputs(p *Page) ([]contenthub.PageOutput, error) {
 			}{
 				Target: target,
 				ContentProvider: &ContentProvider{
-					sourceKey: o.source.sourceKey(),
-					content:   p.Content,
-					cache:     o.source.cache,
-					f:         target.Format,
-					converter: c,
+					source:      o.source,
+					content:     p.Content,
+					cache:       o.source.cache,
+					f:           target.Format,
+					converter:   c,
+					templateSvc: o.templateSvc,
+					log:         o.log,
 				},
 			})
 	}
@@ -57,8 +63,10 @@ func (o *Output) Outputs(p *Page) ([]contenthub.PageOutput, error) {
 	return res, nil
 }
 
-func (o *Output) Build(convertProvider *ContentSpec) error {
+func (o *Output) Build(convertProvider *ContentSpec, templateSvc contenthub.Template) error {
 	o.convertProvider = convertProvider
+	o.templateSvc = templateSvc
+
 	o.setBasename()
 
 	for _, of := range o.outputFormats() {

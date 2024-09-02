@@ -1,6 +1,9 @@
 package valueobject
 
-import "github.com/gohugonet/hugoverse/internal/domain/template"
+import (
+	"context"
+	"github.com/gohugonet/hugoverse/internal/domain/template"
+)
 
 type Shortcode struct {
 	Name string
@@ -39,3 +42,36 @@ type Shortcode struct {
 func (s Shortcode) NeedsInner() bool {
 	return s.Info != nil && s.Info.ParseInfo().Inner()
 }
+
+// ShortcodeRenderer is typically used to delay rendering of inner shortcodes
+// marked with placeholders in the content.
+type ShortcodeRenderer interface {
+	RenderShortcode(context.Context) ([]byte, bool, error)
+	RenderShortcodeString(context.Context) (string, bool, error)
+}
+
+type ShortcodeRenderFunc func(context.Context) ([]byte, bool, error)
+
+func (f ShortcodeRenderFunc) RenderShortcode(ctx context.Context) ([]byte, bool, error) {
+	return f(ctx)
+}
+
+func (f ShortcodeRenderFunc) RenderShortcodeString(ctx context.Context) (string, bool, error) {
+	b, has, err := f(ctx)
+	return string(b), has, err
+}
+
+type prerenderedShortcode struct {
+	s           string
+	hasVariants bool
+}
+
+func (p prerenderedShortcode) RenderShortcode(context.Context) ([]byte, bool, error) {
+	return []byte(p.s), p.hasVariants, nil
+}
+
+func (p prerenderedShortcode) RenderShortcodeString(context.Context) (string, bool, error) {
+	return p.s, p.hasVariants, nil
+}
+
+var ZeroShortcode = prerenderedShortcode{}

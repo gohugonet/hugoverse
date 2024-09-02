@@ -31,6 +31,6 @@ type mdConverter struct {
 	ctx markdown.DocumentContext
 }
 
-func (c *mdConverter) Convert(ctx markdown.RenderContext) (result contenthub.Result, err error) {
+func (c *mdConverter) Convert(ctx markdown.RenderContext) (result markdown.Result, err error) {
 	return c.md.Render(ctx, c.ctx)
 }

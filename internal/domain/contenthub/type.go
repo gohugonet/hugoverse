@@ -87,6 +87,7 @@ type TaxonomyService interface {
 type Template interface {
 	ExecuteWithContext(ctx context.Context, tmpl template.Preparer, wr io.Writer, data any) error
 	LookupVariants(name string) []template.Preparer
+	LookupVariant(name string, variants template.Variants) (template.Preparer, bool, bool)
 }
 
 type BuildStateReseter interface {
@@ -148,12 +149,7 @@ type ProviderProvider interface {
 // Converter wraps the Convert method that converts some markup into
 // another format, e.g. Markdown to HTML.
 type Converter interface {
-	Convert(ctx markdown.RenderContext) (Result, error)
-}
-
-// Result represents the minimum returned from Convert.
-type Result interface {
-	Bytes() []byte
+	Convert(ctx markdown.RenderContext) (markdown.Result, error)
 }
 
 // ContentProvider provides the content related values for a Page.
@@ -231,7 +227,7 @@ type Page interface {
 
 	Kind() string
 	Layouts() []string
-	PageOutputs() []PageOutput
+	PageOutputs() ([]PageOutput, error)
 }
 
 type PageOutput interface {

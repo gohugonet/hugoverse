@@ -22,11 +22,6 @@ type Content struct {
 
 	//  *shortcode, pageContentReplacement or pageparser.Item
 	items []any
-
-	// Temporary storage of placeholders mapped to their content.
-	// These are shortcodes etc. Some of these will need to be replaced
-	// after any markup is rendered, so they share a common prefix.
-	contentPlaceholders map[string]shortcodeRenderer
 }
 
 func NewContent(source []byte) *Content {
@@ -57,4 +52,14 @@ func (c *Content) RawContent() string {
 	// TODO, put empty here for new page builder
 
 	return ""
+}
+
+func (c *Content) getShortCodes() []*valueobject.Shortcode {
+	var res []*valueobject.Shortcode
+	for _, item := range c.items {
+		if s, ok := item.(*valueobject.Shortcode); ok {
+			res = append(res, s)
+		}
+	}
+	return res
 }
