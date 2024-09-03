@@ -2,7 +2,9 @@ package application
 
 import (
 	"context"
+	"fmt"
 	configFact "github.com/gohugonet/hugoverse/internal/domain/config/factory"
+	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
 	contentHubFact "github.com/gohugonet/hugoverse/internal/domain/contenthub/factory"
 	"github.com/gohugonet/hugoverse/internal/domain/fs"
 	fsFact "github.com/gohugonet/hugoverse/internal/domain/fs/factory"
@@ -381,4 +383,23 @@ func TestPagesCollection(t *testing.T) {
 	if err := ch.CollectPages(exec); err != nil {
 		t.Fatalf("CollectPages returned an error: %v", err)
 	}
+
+	if err := ch.WalkPages(0, func(p contenthub.Page) error {
+		ops, err := p.PageOutputs()
+		if err != nil {
+			return err
+		}
+		for i, op := range ops {
+			c, err := op.Content()
+			if err != nil {
+				return err
+			}
+			fmt.Println(i, c)
+		}
+
+		return nil
+	}); err != nil {
+		t.Fatalf("WalkPages returned an error: %v", err)
+	}
+
 }

@@ -27,7 +27,7 @@ func (md *Markdown) Render(rctx markdown.RenderContext, dctx markdown.DocumentCo
 	}
 
 	return valueobject.Result{
-		Result:                  renderResult,
+		RenderResult:            renderResult,
 		TableOfContentsProvider: parseResult,
 	}, nil
 }
@@ -44,7 +44,7 @@ func (md *Markdown) parse(ctx markdown.RenderContext) (markdown.ResultParse, err
 	return valueobject.NewParserResult(doc, pctx.TableOfContents()), nil
 }
 
-func (md *Markdown) render(rctx markdown.RenderContext, dctx markdown.DocumentContext, doc any) (markdown.Result, error) {
+func (md *Markdown) render(rctx markdown.RenderContext, dctx markdown.DocumentContext, doc any) (markdown.RenderResult, error) {
 	n := doc.(ast.Node)
 	buf := &valueobject.BufWriter{Buffer: &bytes.Buffer{}}
 
@@ -63,6 +63,6 @@ func (md *Markdown) render(rctx markdown.RenderContext, dctx markdown.DocumentCo
 	}
 
 	return valueobject.RenderResult{
-		Result: buf,
+		RenderResult: buf,
 	}, nil
 }

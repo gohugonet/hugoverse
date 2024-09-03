@@ -83,7 +83,7 @@ func newCache() *entity.Cache {
 			dynacache.OptionsPartition{Weight: 70, ClearWhen: dynacache.ClearOnChange},
 		),
 
-		CacheContentToCs: dynacache.GetOrCreatePartition[string, *stale.Value[valueobject.ContentToC]](
+		CacheContentToRender: dynacache.GetOrCreatePartition[string, *stale.Value[[]byte]](
 			memCache,
 			"/cont/toc",
 			dynacache.OptionsPartition{Weight: 70, ClearWhen: dynacache.ClearOnChange},

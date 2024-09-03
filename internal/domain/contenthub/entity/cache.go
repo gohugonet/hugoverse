@@ -15,7 +15,7 @@ type Cache struct {
 	CachePageSources *dynacache.Partition[string, []contenthub.PageSource]
 
 	CacheContentRendered   *dynacache.Partition[string, *stale.Value[valueobject.ContentSummary]]
-	CacheContentToCs       *dynacache.Partition[string, *stale.Value[valueobject.ContentToC]]
+	CacheContentToRender   *dynacache.Partition[string, *stale.Value[[]byte]]
 	CacheContentShortcodes *dynacache.Partition[string, *stale.Value[map[string]valueobject.ShortcodeRenderer]]
 }
 

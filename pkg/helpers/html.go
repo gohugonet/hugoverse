@@ -3,6 +3,7 @@ package helpers
 import (
 	bp "github.com/gohugonet/hugoverse/pkg/bufferpool"
 	htmltemplate "github.com/gohugonet/hugoverse/pkg/template/htmltemplate"
+	"html/template"
 	"strings"
 	"unicode"
 )
@@ -43,4 +44,9 @@ func StripHTML(s string) string {
 	}
 
 	return s
+}
+
+// BytesToHTML converts bytes to type template.HTML.
+func BytesToHTML(b []byte) template.HTML {
+	return template.HTML(string(b))
 }

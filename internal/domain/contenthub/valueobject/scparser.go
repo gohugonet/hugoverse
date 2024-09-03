@@ -57,18 +57,19 @@ func (s *ShortcodeParser) ParseItem(it pageparser.Item, pt *pageparser.Iterator)
 		currShortcode.Params = s
 	}
 
-	currShortcode.Placeholder = createShortcodePlaceholder("s", s.pid, s.ordinal)
+	currShortcode.Placeholder = CreateShortcodePlaceholder("s", s.pid, s.ordinal)
 	s.ordinal++
 	s.shortcodes = append(s.shortcodes, currShortcode)
 
 	return currShortcode, nil
 }
 
-// Note - this value must not contain any markup syntax
-const shortcodePlaceholderPrefix = "HAHAHUGOSHORTCODE"
+var TocShortcodePlaceholder = CreateShortcodePlaceholder("TOC", 0, 0)
 
-func createShortcodePlaceholder(sid string, id uint64, ordinal int) string {
-	return shortcodePlaceholderPrefix + strconv.FormatUint(id, 10) + sid + strconv.Itoa(ordinal) + "HBHB"
+const ShortcodePlaceholderPrefix = "HAHAHUGOSHORTCODE"
+
+func CreateShortcodePlaceholder(sid string, id uint64, ordinal int) string {
+	return ShortcodePlaceholderPrefix + strconv.FormatUint(id, 10) + sid + strconv.Itoa(ordinal) + "HBHB"
 }
 
 // pageTokens state:

@@ -43,6 +43,10 @@ func (s Shortcode) NeedsInner() bool {
 	return s.Info != nil && s.Info.ParseInfo().Inner()
 }
 
+func (s Shortcode) InsertPlaceholder() bool {
+	return !s.DoMarkup
+}
+
 // ShortcodeRenderer is typically used to delay rendering of inner shortcodes
 // marked with placeholders in the content.
 type ShortcodeRenderer interface {
@@ -72,6 +76,10 @@ func (p prerenderedShortcode) RenderShortcode(context.Context) ([]byte, bool, er
 
 func (p prerenderedShortcode) RenderShortcodeString(context.Context) (string, bool, error) {
 	return p.s, p.hasVariants, nil
+}
+
+func NewPrerenderedShortcode(s string, hasVariants bool) ShortcodeRenderer {
+	return prerenderedShortcode{s: s, hasVariants: hasVariants}
 }
 
 var ZeroShortcode = prerenderedShortcode{}

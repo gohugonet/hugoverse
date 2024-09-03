@@ -234,6 +234,8 @@ type PageOutput interface {
 	TargetFilePath() string
 	TargetSubResourceDir() string
 	TargetPrefix() string
+
+	Content() (any, error)
 }
 
 type WalkFunc func(Page) error

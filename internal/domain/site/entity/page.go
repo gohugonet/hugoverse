@@ -75,7 +75,10 @@ func (p *Page) renderPage() error {
 
 	var targetFilenames []string
 
-	outputs := p.PageOutputs()
+	outputs, err := p.PageOutputs()
+	if err != nil {
+		return p.errorf(err, "failed to get page outputs")
+	}
 	for _, o := range outputs {
 		targetFilenames = append(targetFilenames, path.Join(o.TargetPrefix(), o.TargetFilePath()))
 	}
@@ -91,7 +94,10 @@ func (p *Page) renderResources() error {
 	for _, rs := range p.resources {
 		var targetFilenames []string
 
-		outputs := p.PageOutputs()
+		outputs, err := p.PageOutputs()
+		if err != nil {
+			return p.errorf(err, "failed to get page outputs")
+		}
 		for _, o := range outputs {
 			targetFilenames = append(targetFilenames, path.Join(o.TargetPrefix(), o.TargetSubResourceDir(), rs.TargetPath()))
 		}

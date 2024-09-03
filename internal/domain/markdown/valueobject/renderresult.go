@@ -5,5 +5,5 @@ import (
 )
 
 type RenderResult struct {
-	markdown.Result
+	markdown.RenderResult
 }

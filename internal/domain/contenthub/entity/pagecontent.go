@@ -1,6 +1,9 @@
 package entity
 
 import (
+	"bytes"
+	"context"
+	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/parser/pageparser"
 )
@@ -10,7 +13,7 @@ const (
 )
 
 var (
-	InternalSummaryDividerBaseBytes = []byte(internalSummaryDividerBase)
+	internalSummaryDividerBaseBytes = []byte(internalSummaryDividerBase)
 	InternalSummaryDividerPre       = []byte("\n\n" + internalSummaryDividerBase + "\n\n")
 )
 
@@ -25,7 +28,7 @@ type Content struct {
 }
 
 func NewContent(source []byte) *Content {
-	return &Content{rawSource: source}
+	return &Content{rawSource: source, items: make([]any, 0)}
 }
 
 func (c *Content) SetSummaryDivider() {
@@ -62,4 +65,108 @@ func (c *Content) getShortCodes() []*valueobject.Shortcode {
 		}
 	}
 	return res
+}
+
+// contentToRenderForItems returns the content to be processed by Goldmark or similar.
+func (c *Content) contentToRender(ctx context.Context, source []byte,
+	renderedShortcodes map[string]valueobject.ShortcodeRenderer) ([]byte, bool, error) {
+
+	var hasVariants bool
+	content := make([]byte, 0, len(source)+(len(source)/10))
+
+	for _, it := range c.items {
+		switch v := it.(type) {
+		case pageparser.Item:
+			content = append(content, source[v.Pos():v.Pos()+len(v.Val(source))]...)
+		case valueobject.PageContentReplacement:
+			content = append(content, v.Val...)
+		case *valueobject.Shortcode:
+			if !v.InsertPlaceholder() {
+				// Insert the rendered shortcode.
+				renderedShortcode, found := renderedShortcodes[v.Placeholder]
+				if !found {
+					// This should never happen.
+					panic(fmt.Sprintf("rendered shortcode %q not found", v.Placeholder))
+				}
+
+				b, more, err := renderedShortcode.RenderShortcode(ctx)
+				if err != nil {
+					return nil, false, fmt.Errorf("failed to render shortcode: %w", err)
+				}
+				hasVariants = hasVariants || more
+				content = append(content, []byte(b)...)
+
+			} else {
+				// Insert the placeholder so we can insert the content after
+				// markdown processing.
+				content = append(content, []byte(v.Placeholder)...)
+			}
+		default:
+			panic(fmt.Sprintf("unknown item type %T", it))
+		}
+	}
+
+	return content, hasVariants, nil
+}
+
+func splitUserDefinedSummaryAndContent(markup string, c []byte) (summary []byte, content []byte, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("summary split failed: %s", r)
+		}
+	}()
+
+	startDivider := bytes.Index(c, internalSummaryDividerBaseBytes)
+
+	if startDivider == -1 {
+		return
+	}
+
+	startTag := "p"
+	switch markup {
+	case "asciidocext":
+		startTag = "div"
+	}
+
+	// Walk back and forward to the surrounding tags.
+	start := bytes.LastIndex(c[:startDivider], []byte("<"+startTag))
+	end := bytes.Index(c[startDivider:], []byte("</"+startTag))
+
+	if start == -1 {
+		start = startDivider
+	} else {
+		start = startDivider - (startDivider - start)
+	}
+
+	if end == -1 {
+		end = startDivider + len(internalSummaryDividerBase)
+	} else {
+		end = startDivider + end + len(startTag) + 3
+	}
+
+	var addDiv bool
+
+	switch markup {
+	case "rst":
+		addDiv = true
+	}
+
+	withoutDivider := append(c[:start], bytes.Trim(c[end:], "\n")...)
+
+	if len(withoutDivider) > 0 {
+		summary = bytes.TrimSpace(withoutDivider[:start])
+	}
+
+	if addDiv {
+		// For the rst
+		summary = append(append([]byte(nil), summary...), []byte("</div>")...)
+	}
+
+	if err != nil {
+		return
+	}
+
+	content = bytes.TrimSpace(withoutDivider)
+
+	return
 }

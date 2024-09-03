@@ -1,8 +1,10 @@
 package entity
 
 import (
+	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/cache/stale"
+	"github.com/gohugonet/hugoverse/pkg/text"
 	sio "io"
 	"path/filepath"
 	"sync/atomic"
@@ -65,4 +67,17 @@ func (p *Source) readSourceAll() ([]byte, error) {
 	defer r.Close()
 
 	return sio.ReadAll(r)
+}
+
+func (p *Source) posOffset(offset int) text.Position {
+	s, err := p.contentSource()
+	if err != nil {
+		panic(fmt.Sprintf("failed to read content source for %q: %s", p.File.FileName(), err))
+		return text.Position{}
+	}
+	return p.posFromInput(s, offset)
+}
+
+func (p *Source) posFromInput(input []byte, offset int) text.Position {
+	return valueobject.PosFromInput(p.File.Filename(), input, offset)
 }

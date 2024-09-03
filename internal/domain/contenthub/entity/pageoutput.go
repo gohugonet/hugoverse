@@ -51,6 +51,7 @@ func (o *Output) Outputs(p *Page) ([]contenthub.PageOutput, error) {
 				ContentProvider: &ContentProvider{
 					source:      o.source,
 					content:     p.Content,
+					page:        p,
 					cache:       o.source.cache,
 					f:           target.Format,
 					converter:   c,

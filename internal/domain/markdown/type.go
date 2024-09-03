@@ -17,8 +17,12 @@ type Markdown interface {
 
 // Result represents the minimum returned from Convert.
 type Result interface {
-	Bytes() []byte
+	RenderResult
 	TableOfContentsProvider
+}
+
+type RenderResult interface {
+	Bytes() []byte
 }
 
 type Highlighter interface {

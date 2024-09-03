@@ -5,6 +5,6 @@ import (
 )
 
 type Result struct {
-	markdown.Result
+	markdown.RenderResult
 	markdown.TableOfContentsProvider
 }
