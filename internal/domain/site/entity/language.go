@@ -58,3 +58,15 @@ func (l *Language) isMultipleLanguage() bool {
 func (l *Language) LanguagePrefix() string {
 	return l.currentLanguage
 }
+
+func (l *Language) Lang() string {
+	return l.currentLanguage
+}
+
+func (l *Language) LanguageCode() string {
+	return l.currentLanguage
+}
+
+func (l *Language) LanguageDirection() string {
+	return "ltr"
+}

@@ -29,6 +29,9 @@ type Template struct {
 	*Shortcode
 
 	Log loggers.Logger
+
+	LayoutTemplateCache   map[string]valueobject.LayoutCacheEntry
+	layoutTemplateCacheMu sync.RWMutex
 }
 
 func (t *Template) MarkReady() error {
@@ -36,12 +39,33 @@ func (t *Template) MarkReady() error {
 }
 
 func (t *Template) LookupLayout(names []string) (template.Preparer, bool, error) {
+	cacheKey := valueobject.LayoutCacheKey{Names: names}
+	if cacheKey.IsEmpty() {
+		t.Log.Warnf("LookupLayout called with empty names")
+
+		return nil, false, nil
+	}
+
+	key := cacheKey.String()
+	t.layoutTemplateCacheMu.RLock()
+	if cacheVal, found := t.LayoutTemplateCache[key]; found {
+		t.layoutTemplateCacheMu.RUnlock()
+		return cacheVal.Templ, cacheVal.Found, cacheVal.Err
+	}
+	t.layoutTemplateCacheMu.RUnlock()
+
+	t.layoutTemplateCacheMu.Lock()
+	defer t.layoutTemplateCacheMu.Unlock()
+
 	p, found, err := t.Lookup.findStandalone(names, t.Main)
 	if err != nil {
 		return nil, false, err
 	}
 
 	if found {
+		cacheVal := valueobject.LayoutCacheEntry{Found: found, Templ: p, Err: nil}
+		t.LayoutTemplateCache[key] = cacheVal
+
 		return p, true, nil
 	}
 
@@ -57,6 +81,10 @@ func (t *Template) LookupLayout(names []string) (template.Preparer, bool, error)
 				return nil, false, err
 			}
 			t.Log.Println("LookupLayout with overlay: ", overlay.Name, " base: ", base.Name)
+
+			cacheVal := valueobject.LayoutCacheEntry{Found: found, Templ: ts.Preparer, Err: nil}
+			t.LayoutTemplateCache[key] = cacheVal
+
 			return ts.Preparer, found, nil
 		}
 	}

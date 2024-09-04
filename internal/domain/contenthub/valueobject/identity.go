@@ -20,11 +20,11 @@ func (i Identity) IdentifierBase() string {
 	return fmt.Sprintf("%d-%s", i.Id, i.Lang)
 }
 
-func (i Identity) Language() string {
+func (i Identity) PageLanguage() string {
 	return i.Lang
 }
 
-func (i Identity) LanguageIndex() int {
+func (i Identity) PageLanguageIndex() int {
 	return i.LangIdx
 }
 

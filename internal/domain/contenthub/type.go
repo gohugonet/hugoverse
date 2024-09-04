@@ -9,6 +9,7 @@ import (
 	"github.com/gohugonet/hugoverse/pkg/cache/stale"
 	"github.com/gohugonet/hugoverse/pkg/identity"
 	pio "github.com/gohugonet/hugoverse/pkg/io"
+	"github.com/gohugonet/hugoverse/pkg/maps"
 	"github.com/gohugonet/hugoverse/pkg/paths"
 	"github.com/spf13/afero"
 	goTmpl "html/template"
@@ -97,17 +98,16 @@ type BuildStateReseter interface {
 type PageIdentity interface {
 	identity.Identity
 
-	Language() string
-	LanguageIndex() int
+	PageLanguage() string
+	PageLanguageIndex() int
 }
 
 type PageSource interface {
 	PageIdentity() PageIdentity
 
 	stale.Staler
-	Language() string
-	LanguageIndex() int
 
+	Section() string
 	Path() *paths.Path
 	Opener() pio.OpenReadSeekCloser
 }
@@ -224,10 +224,19 @@ type Page interface {
 	RawContentProvider
 
 	PageSource
+	PageMeta
 
 	Kind() string
+	IsPage() bool
+
 	Layouts() []string
 	PageOutputs() ([]PageOutput, error)
+}
+
+type PageMeta interface {
+	Title() string
+	Description() string
+	Params() maps.Params
 }
 
 type PageOutput interface {
@@ -236,6 +245,7 @@ type PageOutput interface {
 	TargetPrefix() string
 
 	Content() (any, error)
+	Summary() goTmpl.HTML
 }
 
 type WalkFunc func(Page) error

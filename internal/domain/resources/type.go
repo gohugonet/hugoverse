@@ -89,11 +89,15 @@ type Resources interface {
 }
 
 type Resource interface {
+	Name() string
+
 	ReadSeekCloser() (io.ReadSeekCloser, error)
 	TargetPath() string
 
 	Content(context.Context) (any, error)
 	Data() any
+
+	ResourceType() string
 }
 
 type ResourceCopier interface {

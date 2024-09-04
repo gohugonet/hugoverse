@@ -19,7 +19,12 @@ type builder struct {
 }
 
 func newBuilder() *builder {
-	return &builder{tmpl: &entity.Template{Log: loggers.NewDefault()}}
+	return &builder{
+		tmpl: &entity.Template{
+			Log:                 loggers.NewDefault(),
+			LayoutTemplateCache: make(map[string]valueobject.LayoutCacheEntry),
+		},
+	}
 }
 
 func (b *builder) build() (*entity.Template, error) {

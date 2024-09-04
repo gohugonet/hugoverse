@@ -31,6 +31,14 @@ type Resource struct {
 	dependencyManager identity.Manager
 }
 
+func (l *Resource) Name() string {
+	return l.paths.File
+}
+
+func (l *Resource) NameNormalized() string {
+	return paths.ToSlashPreserveLeading(l.paths.TargetPath())
+}
+
 func (l *Resource) MediaType() media.Type {
 	return l.mediaType
 }

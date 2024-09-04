@@ -57,12 +57,12 @@ func (n *PageTreesNode) merge(newNode *PageTreesNode) *PageTreesNode {
 	// Create a map to track existing keys by their IDs
 	existingKeys := make(map[string]contenthub.PageIdentity)
 	for key := range n.nodes {
-		existingKeys[key.Language()] = key
+		existingKeys[key.PageLanguage()] = key
 	}
 
 	// Update or add entries from the new map
 	for newKey, newValue := range newNode.nodes {
-		if oldKey, exists := existingKeys[newKey.Language()]; exists {
+		if oldKey, exists := existingKeys[newKey.PageLanguage()]; exists {
 			// Replace the old value with the new value
 			n.nodes[oldKey] = newValue
 		} else {
@@ -77,13 +77,13 @@ func (n *PageTreesNode) mergeWithLang(newNode *PageTreesNode, languageIndex int)
 	// Create a map to track existing keys by their IDs
 	existingKeys := make(map[string]contenthub.PageIdentity)
 	for key := range n.nodes {
-		existingKeys[key.Language()] = key
+		existingKeys[key.PageLanguage()] = key
 	}
 
 	// Update or add entries from the new map
 	for newKey, newValue := range newNode.nodes {
-		if oldKey, exists := existingKeys[newKey.Language()]; exists {
-			if n.nodes[oldKey].LanguageIndex() == languageIndex {
+		if oldKey, exists := existingKeys[newKey.PageLanguage()]; exists {
+			if n.nodes[oldKey].PageIdentity().PageLanguageIndex() == languageIndex {
 				_ = n.remove(oldKey)
 			}
 		}
@@ -105,7 +105,7 @@ func (n *PageTreesNode) remove(k contenthub.PageIdentity) bool {
 
 func (n *PageTreesNode) delete(languageIndex int) bool {
 	for k, _ := range n.nodes {
-		if n.nodes[k].LanguageIndex() == languageIndex {
+		if n.nodes[k].PageIdentity().PageLanguageIndex() == languageIndex {
 			return n.remove(k)
 		}
 	}
@@ -123,7 +123,7 @@ func (n *PageTreesNode) shift(languageIndex int, exact bool) (*PageTreesNode, bo
 		if firstV == nil {
 			firstV = v
 		}
-		if n.nodes[k].LanguageIndex() == languageIndex {
+		if n.nodes[k].PageIdentity().PageLanguageIndex() == languageIndex {
 			return newPageTreesNode(v), true
 		}
 	}

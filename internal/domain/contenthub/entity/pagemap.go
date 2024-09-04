@@ -210,7 +210,7 @@ func (m *PageMap) forEachResourceInPage(ps contenthub.Page, lockType doctree.Loc
 	isBranch := ps.Kind() != valueobject.KindPage
 
 	rw := &doctree.NodeShiftTreeWalker[*PageTreesNode]{
-		Tree:     m.TreeResources.Shape(0, ps.LanguageIndex()),
+		Tree:     m.TreeResources.Shape(0, ps.PageIdentity().PageLanguageIndex()),
 		Prefix:   prefix,
 		LockType: lockType,
 		Exact:    exact,

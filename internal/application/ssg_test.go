@@ -403,3 +403,77 @@ func TestPagesCollection(t *testing.T) {
 	}
 
 }
+
+func TestSitePublish(t *testing.T) {
+	tmpDir, clean, err := testkit.MkTestSite()
+	defer clean()
+
+	if err != nil {
+		t.Fatalf("MkTestConfig returned an error: %v", err)
+	}
+
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatalf("Failed to change directory: %v", err)
+	}
+
+	config, err := configFact.LoadConfig()
+	if err != nil {
+		t.Fatalf("LoadConfig returned an error: %v", err)
+	}
+
+	mods, err := moduleFact.New(config)
+	if err != nil {
+		t.Fatalf("New returned an error: %v", err)
+	}
+
+	fsInstance, err := fsFact.New(config, mods)
+	if err != nil {
+		t.Fatalf("New returned an error: %v", err)
+	}
+
+	ch, err := contentHubFact.New(&chServices{
+		Config: config,
+		Fs:     fsInstance,
+		Module: mods,
+	})
+	if err != nil {
+		t.Fatalf("New content hub returned an error: %v", err)
+	}
+
+	ws := &resourcesWorkspaceProvider{
+		Config: config,
+		Fs:     fsInstance,
+	}
+	resources, err := rsFact.NewResources(ws)
+	if err != nil {
+		t.Fatalf("New resource returned an error: %v", err)
+	}
+
+	s := siteFact.New(&siteServices{
+		Config:     config,
+		Fs:         fsInstance,
+		ContentHub: ch,
+		Resources:  resources,
+	})
+
+	exec, err := tmplFact.New(fsInstance, &templateCustomizedFunctionsProvider{
+		Markdown:   mdFact.NewMarkdown(),
+		ContentHub: ch,
+		Site:       s,
+		Resources:  resources,
+		Config:     config,
+		Fs:         fsInstance,
+	})
+
+	if err != nil {
+		t.Fatalf("New returned an error: %v", err)
+	}
+
+	if err := ch.CollectPages(exec); err != nil {
+		t.Fatalf("CollectPages returned an error: %v", err)
+	}
+
+	if err := s.Build(exec); err != nil {
+		t.Fatalf("Build returned an error: %v", err)
+	}
+}

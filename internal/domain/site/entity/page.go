@@ -17,8 +17,8 @@ type Pages []Page
 func (p Pages) Len() int {
 	return len(p)
 }
-func (ps Pages) String() string {
-	return fmt.Sprintf("Pages(%d)", len(ps))
+func (p Pages) String() string {
+	return fmt.Sprintf("Pages(%d)", len(p))
 }
 
 type Page struct {
@@ -28,6 +28,9 @@ type Page struct {
 	publisher *Publisher
 
 	contenthub.Page
+	contenthub.PageOutput
+
+	*Site
 
 	resources []resources.Resource
 }
@@ -69,22 +72,25 @@ func (p *Page) renderPage() error {
 	renderBuffer := bp.GetBuffer()
 	defer bp.PutBuffer(renderBuffer)
 
-	if err := p.tmplSvc.ExecuteWithContext(context.Background(), tmpl, renderBuffer, p); err != nil {
-		return err
-	}
-
-	var targetFilenames []string
-
 	outputs, err := p.PageOutputs()
 	if err != nil {
 		return p.errorf(err, "failed to get page outputs")
 	}
-	for _, o := range outputs {
-		targetFilenames = append(targetFilenames, path.Join(o.TargetPrefix(), o.TargetFilePath()))
-	}
 
-	if err := p.publisher.PublishSource(renderBuffer, targetFilenames...); err != nil {
-		return p.errorf(err, "failed to publish page")
+	for _, o := range outputs {
+		p.PageOutput = o
+		if err := p.tmplSvc.ExecuteWithContext(context.Background(), tmpl, renderBuffer, p); err != nil {
+			return err
+		}
+
+		var targetFilenames []string
+		targetFilenames = append(targetFilenames, path.Join(o.TargetPrefix(), o.TargetFilePath()))
+
+		if err := p.publisher.PublishSource(renderBuffer, targetFilenames...); err != nil {
+			return p.errorf(err, "failed to publish page")
+		}
+
+		renderBuffer.Reset()
 	}
 
 	return nil
@@ -129,7 +135,7 @@ func (p *Page) errorf(err error, format string, a ...any) error {
 		// More isn't always better.
 		return err
 	}
-	args := append([]any{p.Language(), p.Path().Path()}, a...)
+	args := append([]any{p.PageIdentity().PageLanguage(), p.Path().Path()}, a...)
 	args = append(args, err)
 	format = "[%s] page %q: " + format + ": %w"
 	if err == nil {

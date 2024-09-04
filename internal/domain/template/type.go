@@ -74,5 +74,6 @@ type CustomizedFunctions interface {
 	resource.Resource
 	os.Os
 	site.Author
+	site.Meta
 	hugo.Version
 }

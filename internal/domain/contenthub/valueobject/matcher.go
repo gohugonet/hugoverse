@@ -40,7 +40,7 @@ func (m PageMatcher) Matches(p contenthub.Page) bool {
 
 	if m.Lang != "" {
 		g, err := glob.GetGlob(m.Lang)
-		if err == nil && !g.Match(p.Language()) {
+		if err == nil && !g.Match(p.PageIdentity().PageLanguage()) {
 			return false
 		}
 	}

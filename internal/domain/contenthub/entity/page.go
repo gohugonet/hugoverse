@@ -9,6 +9,7 @@ import (
 type Page struct {
 	*Source
 	*Content
+	*Meta
 
 	*Layout
 	*Output
@@ -60,12 +61,18 @@ func newPage(source *Source, content *Content) (*Page, error) {
 	p := &Page{
 		Source:  source,
 		Content: content,
-		kind:    valueobject.KindPage,
+		Meta:    &Meta{},
+
+		kind: valueobject.KindPage,
 
 		Layout: &Layout{},
 	}
 
 	return p, nil
+}
+
+func (p *Page) IsPage() bool {
+	return p.Kind() == valueobject.KindPage
 }
 
 func (p *Page) Kind() string {

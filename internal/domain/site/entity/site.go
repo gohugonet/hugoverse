@@ -8,6 +8,7 @@ import (
 	"github.com/gohugonet/hugoverse/internal/domain/site/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/herrors"
 	"github.com/gohugonet/hugoverse/pkg/loggers"
+	"github.com/gohugonet/hugoverse/pkg/maps"
 	"time"
 )
 
@@ -94,7 +95,9 @@ func (s *Site) renderPages() error {
 			resSvc:    s.ResourcesSvc,
 			tmplSvc:   s.Template,
 			publisher: s.Publisher,
-			Page:      p,
+
+			Page: p,
+			Site: s,
 		}
 
 		sources, err := s.ContentSvc.GetPageSources(sitePage.Page)
@@ -121,4 +124,9 @@ func (s *Site) renderPages() error {
 	}
 
 	return nil
+}
+
+func (s *Site) Params() maps.Params {
+	// TODO： duplicate params, remove in next major
+	return maps.Params{}
 }

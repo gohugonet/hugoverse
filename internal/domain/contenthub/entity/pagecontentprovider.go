@@ -52,7 +52,22 @@ func (c *ContentProvider) cacheKey() string {
 	return c.source.sourceKey() + "/" + c.f.Name
 }
 
+func (c *ContentProvider) Summary() goTemplate.HTML {
+	cs, err := c.ContentSummary()
+	if err != nil {
+		c.log.Errorln(err)
+		return goTemplate.HTML("")
+	}
+
+	return cs.Summary
+}
+
 func (c *ContentProvider) Content() (any, error) {
+	cs, err := c.ContentSummary()
+	return cs.Content, err
+}
+
+func (c *ContentProvider) ContentSummary() (valueobject.ContentSummary, error) {
 	v, err := c.cache.CacheContentRendered.GetOrCreate(c.cacheKey(), func(string) (*stale.Value[valueobject.ContentSummary], error) {
 		if c.content == nil {
 			return &stale.Value[valueobject.ContentSummary]{
@@ -243,7 +258,7 @@ func (c *ContentProvider) doRenderShortcode(sc *valueobject.Shortcode, parent *S
 	var hasVariants bool
 
 	tplVariants := template.Variants{
-		Language:     c.source.Language(),
+		Language:     c.source.PageLanguage(),
 		OutputFormat: c.f,
 	}
 

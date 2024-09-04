@@ -164,7 +164,7 @@ func (o *Output) buildStandalone(f output.Format) error {
 
 	pb.Sanitize()
 	target := &valueobject.Target{
-		Prefix:                o.source.Identity.Language(),
+		Prefix:                o.source.Identity.PageLanguage(),
 		FilePath:              pb.PathFile(),
 		SubResourceBaseTarget: pb.PathDir(),
 	}
@@ -200,7 +200,7 @@ func (o *Output) buildPage(f output.Format) error {
 
 	pb.Sanitize()
 	target := &valueobject.Target{
-		Prefix:                o.source.Identity.Language(),
+		Prefix:                o.source.Identity.PageLanguage(),
 		FilePath:              pb.PathFile(),
 		SubResourceBaseTarget: pb.PathDir(),
 	}
@@ -260,10 +260,4 @@ func (o *Output) defaultOutputFormats() map[string][]string {
 
 func allFormats() output.Formats {
 	return output.DefaultFormats
-}
-
-func (o *Output) Content() (any, error) {
-	// TODO, put empty here for new page builder
-
-	return nil, nil
 }
