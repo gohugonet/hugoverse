@@ -23,7 +23,7 @@ type PageTrees struct {
 	TreePagesResources doctree.WalkableTrees[*PageTreesNode]
 
 	// This tree contains all taxonomy entries, e.g "/tags/blue/page1"
-	TreeTaxonomyEntries *doctree.TreeShiftTree[contenthub.WeightedContentNode]
+	TreeTaxonomyEntries *doctree.TreeShiftTree[*WeightedTermTreeNode]
 
 	// A slice of the resource trees.
 	ResourceTrees doctree.MutableTrees
@@ -38,6 +38,26 @@ func (t *PageTrees) CreateMutableTrees() {
 	t.ResourceTrees = doctree.MutableTrees{
 		t.TreeResources,
 	}
+}
+
+type ordinalWeightPage struct {
+	ordinal int
+	weight  int
+
+	contenthub.Page
+}
+
+func (n *ordinalWeightPage) Weight() int {
+	return n.weight
+}
+
+func (n *ordinalWeightPage) Ordinal() int {
+	return n.ordinal
+}
+
+type WeightedTermTreeNode struct {
+	*PageTreesNode
+	term *ordinalWeightPage
 }
 
 type PageTreesNode struct {

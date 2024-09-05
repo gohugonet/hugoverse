@@ -35,6 +35,8 @@ type PageBuilder struct {
 
 	sc *valueobject.ShortcodeParser
 	c  *Content
+
+	Log loggers.Logger
 }
 
 func (b *PageBuilder) WithSource(source *Source) *PageBuilder {

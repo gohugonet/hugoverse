@@ -66,6 +66,10 @@ var BuiltinImages = []Type{
 	Builtin.WEBPType,
 }
 
+var BuiltinJson = []Type{
+	Builtin.JSONType,
+}
+
 var Builtin = BuiltinTypes{
 	CalendarType:   Type{Type: "text/calendar"},
 	CSSType:        Type{Type: "text/css"},

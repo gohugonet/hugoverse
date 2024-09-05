@@ -86,7 +86,7 @@ func (b *FrontMatterParser) parseTerms(fm *FrontMatter) error {
 	views := b.TaxonomySvc.Views()
 
 	for _, viewName := range views {
-		vals := types.ToStringSlicePreserveString(getParam(b.Params, viewName.Plural(), false))
+		vals := types.ToStringSlicePreserveString(GetParam(b.Params, viewName.Plural(), false))
 		if vals == nil {
 			continue
 		}
@@ -96,7 +96,11 @@ func (b *FrontMatterParser) parseTerms(fm *FrontMatter) error {
 	return nil
 }
 
-func getParam(p maps.Params, key string, stringToLower bool) any {
+func GetParamToLower(m maps.Params, key string) any {
+	return GetParam(m, key, true)
+}
+
+func GetParam(p maps.Params, key string, stringToLower bool) any {
 	v := p[strings.ToLower(key)]
 
 	if v == nil {

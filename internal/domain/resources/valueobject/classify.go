@@ -15,5 +15,11 @@ func ClassifyType(t string) string {
 		}
 	}
 
+	for _, ct := range media.BuiltinJson {
+		if t == ct.Type {
+			return "transformer"
+		}
+	}
+
 	return "general"
 }

@@ -23,11 +23,17 @@ type Site struct {
 	*valueobject.Author
 	*valueobject.Compiler
 
+	Title string
+
 	*URL
 	*Language
+	*Navigation
 
 	Log     loggers.Logger `json:"-"`
 	siteLog logg.LevelLogger
+
+	// Lazily loaded site dependencies
+	lazy *siteInit
 }
 
 func (s *Site) Build(t site.Template) error {

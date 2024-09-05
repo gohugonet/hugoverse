@@ -1,7 +1,6 @@
 package entity
 
 import (
-	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/doctree"
@@ -25,7 +24,6 @@ func (t *Taxonomy) Assemble(pages *doctree.NodeShiftTree[*PageTreesNode], pb *Pa
 		if v := pages.Get(key); v == nil {
 
 			fmi := t.FsSvc.NewFileMetaInfo(key + "/_index.md")
-			fmt.Println("686 fmi", fmi)
 			f := valueobject.NewFileInfo(fmi)
 
 			ps, err := newPageSource(f, t.Cache)

@@ -104,6 +104,7 @@ type PageIdentity interface {
 
 type PageSource interface {
 	PageIdentity() PageIdentity
+	PageFile() File
 
 	stale.Staler
 
@@ -191,10 +192,6 @@ type FileWithoutOverlap interface {
 	// The directory is relative to the content root.
 	Dir() string
 
-	// Extension is an alias to Ext().
-	// Deprecated: Use Ext instead.
-	Extension() string
-
 	// Ext gets the file extension, i.e "myblogpost.md" will return "md".
 	Ext() string
 
@@ -228,9 +225,17 @@ type Page interface {
 
 	Kind() string
 	IsPage() bool
+	IsSection() bool
 
 	Layouts() []string
 	PageOutputs() ([]PageOutput, error)
+}
+
+type OrdinalWeightPage interface {
+	Weight() int
+	Ordinal() int
+
+	Page
 }
 
 type PageMeta interface {
@@ -249,6 +254,7 @@ type PageOutput interface {
 }
 
 type WalkFunc func(Page) error
+type WalkTaxonomyFunc func(taxonomy string, term string, page OrdinalWeightPage) error
 
 // RawContentProvider provides the raw, unprocessed content of the page.
 type RawContentProvider interface {

@@ -465,6 +465,8 @@ func TestSitePublish(t *testing.T) {
 		Fs:         fsInstance,
 	})
 
+	resources.SetupTemplateClient(exec) // Expose template service to resources operations
+
 	if err != nil {
 		t.Fatalf("New returned an error: %v", err)
 	}

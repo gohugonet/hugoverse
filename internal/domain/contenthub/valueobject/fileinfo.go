@@ -1,6 +1,7 @@
 package valueobject
 
 import (
+	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
 	"github.com/gohugonet/hugoverse/internal/domain/fs"
 	"github.com/gohugonet/hugoverse/pkg/helpers"
 	"github.com/gohugonet/hugoverse/pkg/io"
@@ -43,6 +44,10 @@ func NewFileInfo(fi fs.FileMetaInfo) *File {
 	}
 
 	return f
+}
+
+func (fi *File) PageFile() contenthub.File {
+	return fi
 }
 
 func (fi *File) ShiftToResource() {

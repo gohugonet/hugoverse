@@ -39,11 +39,15 @@ func New(services contenthub.Services) (*entity.ContentHub, error) {
 				},
 				Term: &entity.Term{
 					Terms: nil,
+					FsSvc: services,
+					Cache: cache,
 				},
 				Section:    &entity.Section{FsSvc: services, Cache: cache},
 				Standalone: &entity.Standalone{FsSvc: services, Cache: cache},
 
 				ConvertProvider: cs,
+
+				Log: log,
 			},
 
 			Cache: cache,
@@ -125,7 +129,7 @@ func newPageTree() *entity.PageTrees {
 		TreeResources: doctree.New(
 			treeConfig,
 		),
-		TreeTaxonomyEntries: doctree.NewTreeShiftTree[contenthub.WeightedContentNode](
+		TreeTaxonomyEntries: doctree.NewTreeShiftTree[*entity.WeightedTermTreeNode](
 			doctree.DimensionLanguage.Index(), 2), // TODO: get this from config
 	}
 

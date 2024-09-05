@@ -75,6 +75,10 @@ func (p *Page) IsPage() bool {
 	return p.Kind() == valueobject.KindPage
 }
 
+func (p *Page) IsSection() bool {
+	return p.Kind() == valueobject.KindSection
+}
+
 func (p *Page) Kind() string {
 	return p.kind
 }

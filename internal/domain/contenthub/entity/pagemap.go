@@ -113,7 +113,7 @@ func (m *PageMap) Assemble() error {
 }
 
 func (m *PageMap) assembleTerms() error {
-	if err := m.PageBuilder.Term.Assemble(m.TreePages, m.PageBuilder); err != nil {
+	if err := m.PageBuilder.Term.Assemble(m.TreePages, m.TreeTaxonomyEntries, m.PageBuilder); err != nil {
 		return err
 	}
 

@@ -8,7 +8,7 @@ import (
 )
 
 func New(services site.Services) *entity.Site {
-	return &entity.Site{
+	s := &entity.Site{
 		ContentSvc:   services,
 		ResourcesSvc: services,
 
@@ -16,6 +16,7 @@ func New(services site.Services) *entity.Site {
 
 		Publisher: &entity.Publisher{Fs: services.Publish()},
 
+		Title:    "Hugoverse",                                              // TODO: Make configurable
 		Author:   valueobject.NewAuthor("Hugoverse", "support@gohugo.net"), // TODO: Make configurable
 		Compiler: valueobject.NewVersion("0.0.0"),                          // TODO: Make configurable
 
@@ -26,7 +27,12 @@ func New(services site.Services) *entity.Site {
 		Language: &entity.Language{
 			LangSvc: services,
 		},
+		Navigation: &entity.Navigation{},
 
 		Log: loggers.NewDefault(),
 	}
+
+	s.PrepareLazyLoads()
+
+	return s
 }
