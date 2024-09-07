@@ -191,7 +191,6 @@ func (t *scssTransformation) Transform(ctx *valueobject.ResourceTransformationCt
 	}
 
 	out := res.CSS
-	t.log.Printf("toCSS get css: %s", out)
 
 	_, err = io.WriteString(ctx.Target.To, out)
 	if err != nil {

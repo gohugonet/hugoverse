@@ -177,6 +177,12 @@ func (cl *ConfigLoader) decodeConfig(p config.Provider, target *entity.Config) e
 	}
 	target.Security.SecurityConfig = sec
 
+	svc, err := valueobject.DecodeServiceConfig(p)
+	if err != nil {
+		return err
+	}
+	target.Service.ServiceConfig = svc
+
 	img, err := valueobject.DecodeImagingConfig(p)
 	if err != nil {
 		return err

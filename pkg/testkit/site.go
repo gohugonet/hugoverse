@@ -27,7 +27,9 @@ func MkTestSite() (string, func(), error) {
 %s
 -- content/post/ddd/_index.md --
 %s
-`, configContent, goModContent, post1Content, post2Content, post1Content, post2Content, blog1Content, blog2Content, post1Content)
+-- content/docs/_index.md --
+%s
+`, configContent, goModContent, post1Content, post2Content, post1Content, post2Content, blog1Content, blog2Content, post1Content, post1Content)
 
 	prepareFS(tempDir, files)
 	return tempDir, clean, nil

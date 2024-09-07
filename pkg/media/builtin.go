@@ -51,6 +51,10 @@ type BuiltinTypes struct {
 	OctetType Type
 }
 
+var BuiltinJs = []Type{
+	Builtin.JavascriptType,
+}
+
 var BuiltinCss = []Type{
 	Builtin.CSSType,
 	Builtin.SCSSType,

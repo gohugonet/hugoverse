@@ -73,7 +73,6 @@ type CustomizedFunctions interface {
 	strings.Title
 	resource.Resource
 	os.Os
-	site.Author
-	site.Meta
+	site.Service
 	hugo.Version
 }

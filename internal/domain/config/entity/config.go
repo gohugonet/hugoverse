@@ -15,6 +15,7 @@ type Config struct {
 	Caches
 	Security
 	Module
+	Service
 	*Language
 
 	Imaging

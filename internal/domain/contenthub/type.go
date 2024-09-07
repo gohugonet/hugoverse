@@ -216,6 +216,8 @@ type FileWithoutOverlap interface {
 	FileInfo() fs.FileMetaInfo
 }
 
+type Pages []Page
+
 // Page is the core interface in Hugo.
 type Page interface {
 	RawContentProvider
@@ -229,6 +231,8 @@ type Page interface {
 
 	Layouts() []string
 	PageOutputs() ([]PageOutput, error)
+
+	Pages() Pages
 }
 
 type OrdinalWeightPage interface {

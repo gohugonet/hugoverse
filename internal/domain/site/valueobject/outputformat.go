@@ -1,9 +1,23 @@
 package valueobject
 
-import "github.com/gohugonet/hugoverse/pkg/output"
+import (
+	"github.com/gohugonet/hugoverse/pkg/output"
+	"strings"
+)
 
 // OutputFormats holds a list of the relevant output formats for a given page.
 type OutputFormats []OutputFormat
+
+// Get gets a OutputFormat given its name, i.e. json, html etc.
+// It returns nil if none found.
+func (o OutputFormats) Get(name string) *OutputFormat {
+	for _, f := range o {
+		if strings.EqualFold(f.Format.Name, name) {
+			return &f
+		}
+	}
+	return nil
+}
 
 // OutputFormat links to a representation of a resource.
 type OutputFormat struct {

@@ -2,6 +2,7 @@ package entity
 
 import (
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
+	"github.com/gohugonet/hugoverse/internal/domain/site/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/maps"
 	"time"
 )
@@ -36,4 +37,26 @@ func (p *Page) ExpiryDate() time.Time {
 
 func (p *Page) File() contenthub.File {
 	return p.Page.PageFile()
+}
+
+func (p *Page) Translations() []string {
+	// TODO
+	return make([]string, 0)
+}
+
+func (p *Page) OutputFormats() valueobject.OutputFormats {
+	// TODO
+	return make(valueobject.OutputFormats, 0)
+}
+
+func (p *Page) Sites() *sites {
+	return &sites{site: p.Site}
+}
+
+type sites struct {
+	site *Site
+}
+
+func (s *sites) First() *Site {
+	return s.site
 }

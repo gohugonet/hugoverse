@@ -30,6 +30,21 @@ func (l *Language) setup() error {
 	return nil
 }
 
+func (l *Language) Languages() []Language {
+	var langs []Language
+
+	for _, lang := range l.LangSvc.LanguageKeys() {
+		langs = append(langs, Language{
+			LangSvc:         l.LangSvc,
+			currentLocation: l.currentLocation,
+			currentLanguage: lang,
+			collator:        l.collator,
+		})
+	}
+
+	return langs
+}
+
 func (l *Language) Collator() *collate.Collator {
 	if l.collator == nil {
 		tag, err := language.Parse(l.currentLanguage)
@@ -60,6 +75,10 @@ func (l *Language) LanguagePrefix() string {
 }
 
 func (l *Language) Lang() string {
+	return l.currentLanguage
+}
+
+func (l *Language) LanguageName() string {
 	return l.currentLanguage
 }
 

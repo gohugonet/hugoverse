@@ -52,13 +52,16 @@ func (ns *Namespace) Translate(ctx context.Context, id any, args ...any) (string
 		templateData = args[0]
 	}
 
-	_, err := cast.ToStringE(id)
+	sid, err := cast.ToStringE(id)
 	if err != nil {
 		return "", nil
 	}
 
 	// TODO, make it more extensible with real translator
-	return templateData.(string), nil
+	// missing i18n, and translation provider
+	fmt.Printf("TODO: Translate: %s, %v\n", sid, templateData)
+
+	return sid, nil
 }
 
 // FormatNumber formats number with the given precision for the current language.

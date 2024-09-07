@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"github.com/bep/logg"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
+	"github.com/gohugonet/hugoverse/internal/domain/contenthub/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/loggers"
+	"github.com/gohugonet/hugoverse/pkg/paths"
+	"github.com/gohugonet/hugoverse/pkg/paths/files"
 	goTmpl "html/template"
 	"time"
 )
@@ -92,4 +95,21 @@ func (ch *ContentHub) GetPageSources(page contenthub.Page) ([]contenthub.PageSou
 	}
 
 	return v, nil
+}
+
+func (ch *ContentHub) GetPageFromPath(path string) (contenthub.Page, error) {
+	p := paths.Parse(files.ComponentFolderContent, path)
+	n := ch.PageMap.TreePages.Get(p.Base()) // TODO, shape?
+
+	if n != nil {
+		ps, found := n.getPage()
+		if !found {
+			return valueobject.NilPage, nil
+		}
+
+		return ps, nil
+	}
+
+	fmt.Println("????? GetPageFromPath", n, p.Base(), path)
+	return nil, nil
 }

@@ -8,7 +8,6 @@ import (
 	"github.com/gohugonet/hugoverse/internal/domain/site/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/herrors"
 	"github.com/gohugonet/hugoverse/pkg/loggers"
-	"github.com/gohugonet/hugoverse/pkg/maps"
 	"time"
 )
 
@@ -28,6 +27,8 @@ type Site struct {
 	*URL
 	*Language
 	*Navigation
+
+	home *Page
 
 	Log     loggers.Logger `json:"-"`
 	siteLog logg.LevelLogger
@@ -115,6 +116,10 @@ func (s *Site) renderPages() error {
 			return err
 		}
 
+		if s.ContentSvc.PageHome() == sitePage.Page {
+			s.home = sitePage
+		}
+
 		render.pages <- sitePage
 
 		return nil
@@ -130,9 +135,4 @@ func (s *Site) renderPages() error {
 	}
 
 	return nil
-}
-
-func (s *Site) Params() maps.Params {
-	// TODO： duplicate params, remove in next major
-	return maps.Params{}
 }

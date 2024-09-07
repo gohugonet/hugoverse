@@ -23,6 +23,10 @@ type PageMap struct {
 	Log loggers.Logger
 }
 
+func (m *PageMap) PageHome() contenthub.Page {
+	return m.PageBuilder.Section.home
+}
+
 func (m *PageMap) InsertResourceNode(key string, node *PageTreesNode) {
 	tree := m.TreeResources
 
