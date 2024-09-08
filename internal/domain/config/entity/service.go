@@ -17,3 +17,11 @@ func (s Service) GoogleAnalyticsID() string {
 func (s Service) IsGoogleAnalyticsRespectDoNotTrack() bool {
 	return s.GoogleAnalytics.RespectDoNotTrack
 }
+
+func (s Service) IsDisqusEnabled() bool {
+	return !s.Disqus.Disable
+}
+
+func (s Service) DisqusShortname() string {
+	return s.Disqus.Shortname
+}

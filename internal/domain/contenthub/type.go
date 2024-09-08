@@ -255,6 +255,7 @@ type PageOutput interface {
 
 	Content() (any, error)
 	Summary() goTmpl.HTML
+	TableOfContents() goTmpl.HTML
 }
 
 type WalkFunc func(Page) error

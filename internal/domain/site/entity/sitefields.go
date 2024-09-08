@@ -2,6 +2,7 @@ package entity
 
 import (
 	"fmt"
+	"github.com/gohugonet/hugoverse/internal/domain/site/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/maps"
 	"path/filepath"
 	"strings"
@@ -43,4 +44,8 @@ func (s *Site) GetPage(ref ...string) (*Page, error) {
 		Page: p,
 		Site: s,
 	}, err
+}
+
+func (s *Site) GitInfo() valueobject.GitInfo {
+	return valueobject.GitInfo{}
 }

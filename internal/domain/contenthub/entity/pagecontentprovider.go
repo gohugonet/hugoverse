@@ -62,6 +62,16 @@ func (c *ContentProvider) Summary() goTemplate.HTML {
 	return cs.Summary
 }
 
+func (c *ContentProvider) TableOfContents() goTemplate.HTML {
+	cs, err := c.ContentSummary()
+	if err != nil {
+		c.log.Errorln(err)
+		return goTemplate.HTML("")
+	}
+
+	return cs.TableOfContentsHTML
+}
+
 func (c *ContentProvider) Content() (any, error) {
 	cs, err := c.ContentSummary()
 	return cs.Content, err

@@ -6,6 +6,7 @@ type Service interface {
 	Author
 	Meta
 	GoogleAnalytics
+	Disqus
 }
 
 type Author interface {
@@ -21,4 +22,9 @@ type GoogleAnalytics interface {
 	IsGoogleAnalyticsEnabled() bool
 	GoogleAnalyticsID() string
 	IsGoogleAnalyticsRespectDoNotTrack() bool
+}
+
+type Disqus interface {
+	IsDisqusEnabled() bool
+	DisqusShortname() string
 }
