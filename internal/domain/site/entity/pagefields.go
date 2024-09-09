@@ -60,3 +60,7 @@ type sites struct {
 func (s *sites) First() *Site {
 	return s.site
 }
+
+func (p *Page) Pages() contenthub.Pages {
+	return nil //TODO
+}

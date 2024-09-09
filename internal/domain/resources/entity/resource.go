@@ -2,6 +2,7 @@ package entity
 
 import (
 	"context"
+	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/resources"
 	"github.com/gohugonet/hugoverse/internal/domain/resources/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/cache/stale"
@@ -9,6 +10,7 @@ import (
 	pio "github.com/gohugonet/hugoverse/pkg/io"
 	"github.com/gohugonet/hugoverse/pkg/media"
 	"github.com/gohugonet/hugoverse/pkg/paths"
+	"io"
 )
 
 var (
@@ -29,6 +31,9 @@ type Resource struct {
 
 	data              map[string]any
 	dependencyManager identity.Manager
+
+	publisher *Publisher
+	valueobject.PublishOnce
 }
 
 func (l *Resource) Name() string {
@@ -48,14 +53,41 @@ func (l *Resource) ResourceType() string {
 }
 
 func (l *Resource) RelPermalink() string {
-	// TODO: use config BaseURL
+	l.publish()
 	return paths.PathEscape(l.paths.TargetLink())
 }
 
 func (l *Resource) Permalink() string {
-	// TODO: use config BaseURL
+	l.publish()
 	return paths.PathEscape(l.paths.TargetPath())
 }
+
+func (l *Resource) publish() {
+	l.PublisherInit.Do(func() {
+		publicw, err := l.publisher.OpenPublishFileForWriting(l.paths.TargetPath())
+		if err != nil {
+			fmt.Println("publish", l.paths.TargetPath(), err)
+			return
+		}
+		defer publicw.Close()
+
+		r, err := l.ReadSeekCloser()
+		if err != nil {
+			fmt.Println("publish", l.paths.TargetPath(), err)
+			return
+		}
+		defer r.Close()
+
+		_, err = io.Copy(publicw, r)
+		if err != nil {
+			fmt.Println("publish", l.paths.TargetPath(), err)
+			return
+		}
+
+		fmt.Println("publish", l.paths.TargetPath())
+	})
+}
+
 func (l *Resource) TargetPath() string {
 	return l.paths.TargetPath()
 }
@@ -107,7 +139,7 @@ func (l *Resource) clone() *Resource {
 
 func (l *Resource) Key() string {
 	// TODO, use config BaseURL
-	return l.RelPermalink()
+	return paths.PathEscape(l.paths.TargetLink())
 }
 
 func (l *Resource) DependencyManager() identity.Manager {

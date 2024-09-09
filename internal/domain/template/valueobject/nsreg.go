@@ -23,6 +23,7 @@ func RegisterNamespaces() {
 	registerDiagram()
 	registerReflect()
 	registerMath()
+	registerEncoding()
 }
 
 func RegisterCallbackNamespaces(cb func(ctx context.Context, name string, data any) (tmpl string, res any, err error)) {

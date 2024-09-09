@@ -2,13 +2,10 @@ package entity
 
 import (
 	"github.com/gohugonet/hugoverse/pkg/constants"
-	"sync"
 )
 
 type resourceTransformations struct {
-	transformationsInit sync.Once
-	transformationsErr  error
-	transformations     []ResourceTransformation
+	transformations []ResourceTransformation
 }
 
 // hasTransformationPermalinkHash reports whether any of the transformations

@@ -143,6 +143,9 @@ func (rs *resourceBuilder) buildResource() (resources.Resource, error) {
 
 		data:              make(map[string]any),
 		dependencyManager: identity.NewManager("resource"),
+
+		publisher:   rs.publisher,
+		PublishOnce: valueobject.PublishOnce{},
 	}
 
 	switch valueobject.ClassifyType(rs.mediaType.Type) {

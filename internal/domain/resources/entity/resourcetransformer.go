@@ -35,22 +35,23 @@ func (r *ResourceTransformer) TransformWithContext(ctx context.Context, t ...Res
 		transformations: append([]ResourceTransformation{}, t...),
 	}
 
-	r.startTransform()
-	return r, nil
-}
+	res, err := r.getOrTransform()
 
-func (r *ResourceTransformer) startTransform() {
-	r.transformationsInit.Do(func() {
-		if len(r.transformations) == 0 {
-			// Nothing to do.
-			return
-		}
+	if err != nil {
+		return nil, err
+	}
 
-		r.transformationsErr = r.getOrTransform()
-		if r.transformationsErr != nil {
-			_ = fmt.Errorf("transformation failed: %s", r.transformationsErr)
-		}
-	})
+	if res == nil {
+		return nil, errors.New("resource is nil")
+	}
+
+	return &ResourceTransformer{
+		Resource:                *res,
+		publisher:               r.publisher,
+		mediaSvc:                r.mediaSvc,
+		TransformationCache:     r.TransformationCache,
+		resourceTransformations: &resourceTransformations{},
+	}, nil
 }
 
 func (r *ResourceTransformer) TransformationKey() string {
@@ -61,27 +62,20 @@ func (r *ResourceTransformer) TransformationKey() string {
 	return r.TransformationCache.CleanKey(r.Resource.Key()) + "_" + helpers.MD5String(key)
 }
 
-func (r *ResourceTransformer) getOrTransform() error {
+func (r *ResourceTransformer) getOrTransform() (*Resource, error) {
 	key := r.TransformationKey()
-	res, err := r.TransformationCache.CacheResourceTransformation.GetOrCreate(
-		key, func(string) (*Resource, error) {
-			res, err := r.getFromFile(key)
-			if err != nil {
-				return nil, err
-			}
+	return r.TransformationCache.CacheResourceTransformation.GetOrCreate(key, func(string) (*Resource, error) {
+		res, err := r.getFromFile(key)
+		if err != nil {
+			return nil, err
+		}
 
-			if res != nil {
-				return res, nil
-			}
+		if res != nil {
+			return res, nil
+		}
 
-			return r.transform(key)
-		})
-	if err != nil {
-		return err
-	}
-
-	r.Resource = *res
-	return nil
+		return r.transform(key)
+	})
 }
 
 func (r *ResourceTransformer) getFromFile(key string) (*Resource, error) {
@@ -170,12 +164,14 @@ func (r *ResourceTransformer) transform(key string) (*Resource, error) {
 	updates.data = tctx.Data
 	updates.paths = valueobject.NewResourcePaths(tctx.Source.InPath)
 
+	fmt.Println("transform", updates.paths.TargetPath())
+
 	var publishwriters []io.WriteCloser
-	publicw, err := r.publisher.OpenPublishFileForWriting(updates.paths.TargetPath())
-	if err != nil {
-		return nil, err
-	}
-	publishwriters = append(publishwriters, publicw)
+	//publicw, err := r.publisher.OpenPublishFileForWriting(updates.paths.TargetPath())
+	//if err != nil {
+	//	return nil, err
+	//}
+	//publishwriters = append(publishwriters, publicw)
 
 	// Also write it to the cache
 	metaBytes, err := updates.meta().Marshal()

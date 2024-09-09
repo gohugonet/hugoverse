@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/resources"
 	"github.com/gohugonet/hugoverse/internal/domain/resources/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/cache/dynacache"
@@ -124,6 +125,8 @@ func (c *Cache) WriteMeta(key string, metaRaw []byte) (filecache.ItemInfo, io.Wr
 	}
 
 	fi, fc, err := c.Caches.AssetsCache().WriteCloser(filenameContent)
+
+	fmt.Println("write meta", key, err)
 
 	return fi, fc, err
 }

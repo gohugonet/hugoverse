@@ -405,8 +405,8 @@ func TestPagesCollection(t *testing.T) {
 }
 
 func TestSitePublish(t *testing.T) {
-	tmpDir, clean, err := testkit.MkTestSite()
-	defer clean()
+	tmpDir, _, err := testkit.MkTestSite()
+	//defer clean()
 
 	if err != nil {
 		t.Fatalf("MkTestConfig returned an error: %v", err)
