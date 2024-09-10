@@ -7,6 +7,8 @@ const (
 	LayoutList    = "list.html"
 	LayoutIndex   = "index.html"
 
+	InternalFolder = "_internal"
+
 	DefaultFolder   = "_default"
 	DefaultIndex    = "_default/index.html"
 	DefaultList     = DefaultFolder + "/" + LayoutList
@@ -21,10 +23,13 @@ const (
 
 	TermTerm = "term/term.html"
 	TermList = "taxonomy" + "/" + LayoutList
+
+	Sitemap                = "sitemap.xml"
+	DefaultSitemap         = DefaultFolder + "/" + "sitemap.xml"
+	InternalDefaultSitemap = InternalFolder + "/" + DefaultFolder + "/" + "sitemap.xml"
 )
 
-type Layout struct {
-}
+type Layout struct{}
 
 func (l *Layout) home() []string {
 	return []string{
@@ -39,6 +44,8 @@ func (l *Layout) section(section string) []string {
 		fmt.Sprintf("%s/%s", section, LayoutSection),
 		fmt.Sprintf("%s/%s", section, LayoutList),
 		DefaultSection,
+		DefaultIndex,
+		DefaultList,
 	}
 }
 
@@ -67,8 +74,16 @@ func (l *Layout) term() []string {
 	}
 }
 
-func (l *Layout) standalone(name string) []string {
+func (l *Layout) standalone404() []string {
 	return []string{
-		fmt.Sprintf("%s.html", name),
+		"404.html",
+	}
+}
+
+func (l *Layout) standaloneSitemap() []string {
+	return []string{
+		Sitemap,
+		DefaultSitemap,
+		InternalDefaultSitemap,
 	}
 }

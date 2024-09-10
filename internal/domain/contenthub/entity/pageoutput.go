@@ -19,6 +19,7 @@ type Output struct {
 
 	convertProvider *ContentSpec
 	templateSvc     contenthub.Template
+	mediaSvc        contenthub.MediaService
 
 	log loggers.Logger
 }
@@ -64,9 +65,11 @@ func (o *Output) Outputs(p *Page) ([]contenthub.PageOutput, error) {
 	return res, nil
 }
 
-func (o *Output) Build(convertProvider *ContentSpec, templateSvc contenthub.Template) error {
+func (o *Output) Build(convertProvider *ContentSpec,
+	templateSvc contenthub.Template, mediaSvc contenthub.MediaService) error {
 	o.convertProvider = convertProvider
 	o.templateSvc = templateSvc
+	o.mediaSvc = mediaSvc
 
 	o.setBasename()
 
@@ -228,18 +231,31 @@ func (o *Output) outputFormats() output.Formats {
 	var outputFormats output.Formats
 	switch o.pageKind {
 	case valueobject.KindStatus404:
-		outputFormats = output.Formats{output.HTTPStatusHTMLFormat}
+		outputFormats = output.Formats{o.setupFormat(output.HTTPStatusHTMLFormat)}
 	case valueobject.KindSitemap:
-		outputFormats = output.Formats{output.SitemapFormat}
+		outputFormats = output.Formats{o.setupFormat(output.SitemapFormat)}
 	default:
 		d := o.defaultOutputFormats()
 		for _, v := range d[o.pageKind] {
 			f, _ := allFormats().GetByName(v)
-			outputFormats = append(outputFormats, f)
+			outputFormats = append(outputFormats, o.setupFormat(f))
 		}
 	}
 
 	return outputFormats
+}
+
+func (o *Output) setupFormat(f output.Format) output.Format {
+	types := o.mediaSvc.MediaTypes()
+	t, found := types.GetByType(f.MediaType.Type)
+
+	if !found {
+		return f
+	}
+
+	out := f
+	out.MediaType = t
+	return out
 }
 
 func (o *Output) defaultOutputFormats() map[string][]string {

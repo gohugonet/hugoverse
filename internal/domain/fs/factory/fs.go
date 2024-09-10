@@ -36,6 +36,11 @@ func New(dir fs.Dir, mods module.Modules) (*entity.Fs, error) {
 	f.Content = newComponentFs(files.ComponentFolderContent, collector.OverlayMountsContent)
 	f.Work = valueobject.NewReadOnlyFs(collector.OverlayFull)
 
+	// Create static filesystem(s)
+	ms := make(map[string]*valueobject.ComponentFs)
+	ms[""] = newComponentFs(files.ComponentFolderStatic, collector.OverlayMountsStatic)
+	f.Static = ms
+
 	return f, nil
 }
 

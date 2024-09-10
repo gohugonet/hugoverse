@@ -10,6 +10,7 @@ import (
 	"github.com/gohugonet/hugoverse/pkg/identity"
 	pio "github.com/gohugonet/hugoverse/pkg/io"
 	"github.com/gohugonet/hugoverse/pkg/maps"
+	"github.com/gohugonet/hugoverse/pkg/media"
 	"github.com/gohugonet/hugoverse/pkg/paths"
 	"github.com/spf13/afero"
 	goTmpl "html/template"
@@ -53,12 +54,15 @@ const (
 	KindSection = "section"
 )
 
-var AllKindsInPages = []string{KindPage, KindHome, KindSection}
-
 type Services interface {
 	LangService
 	FsService
 	TaxonomyService
+	MediaService
+}
+
+type MediaService interface {
+	MediaTypes() media.Types
 }
 
 type FsService interface {

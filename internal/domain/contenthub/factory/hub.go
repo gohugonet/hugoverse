@@ -30,6 +30,7 @@ func New(services contenthub.Services) (*entity.ContentHub, error) {
 			PageBuilder: &entity.PageBuilder{
 				LangSvc:     services,
 				TaxonomySvc: services,
+				MediaSvc:    services,
 				TemplateSvc: nil, // TODO, set when used
 
 				Taxonomy: &entity.Taxonomy{

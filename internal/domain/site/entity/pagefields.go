@@ -64,3 +64,7 @@ func (s *sites) First() *Site {
 func (p *Page) Pages() contenthub.Pages {
 	return nil //TODO
 }
+
+func (p *Page) Data() map[string]any {
+	return map[string]any{} //TODO for sitemap
+}

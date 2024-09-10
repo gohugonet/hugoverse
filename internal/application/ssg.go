@@ -36,6 +36,9 @@ func GenerateStaticSite() error {
 		return err
 	}
 
+	staticSvc := newStatic(fs.Static, fs.PublishDirStatic())
+	go staticSvc.copyStatic()
+
 	ch, err := contentHubFact.New(&chServices{
 		Config: c,
 		Fs:     fs,

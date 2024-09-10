@@ -24,6 +24,12 @@ type Fs struct {
 	// The work folder (may be a composite of project and theme components).
 	Work afero.Fs
 
+	// When in multihost we have one static filesystem per language. The sync
+	// static files is currently done outside of the Hugo build (where there is
+	// a concept of a site per language).
+	// When in non-multihost mode there will be one entry in this map with a blank key.
+	Static map[string]*valueobject.ComponentFs
+
 	// Writable filesystem on top the project's resources directory,
 	// with any sub module's resource fs layered below.
 	ResourcesCache afero.Fs

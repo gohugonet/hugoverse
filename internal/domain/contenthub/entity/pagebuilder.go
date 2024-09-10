@@ -14,6 +14,7 @@ type PageBuilder struct {
 	LangSvc     contenthub.LangService
 	TaxonomySvc contenthub.TaxonomyService
 	TemplateSvc contenthub.Template
+	MediaSvc    contenthub.MediaService
 
 	Taxonomy   *Taxonomy
 	Term       *Term
@@ -49,6 +50,7 @@ func (b *PageBuilder) WithSource(source *Source) *PageBuilder {
 
 func (b *PageBuilder) reset() {
 	b.c = nil
+	b.kind = ""
 }
 
 func (b *PageBuilder) Build() (contenthub.Page, error) {
@@ -86,13 +88,17 @@ func (b *PageBuilder) build() (contenthub.Page, error) {
 	case valueobject.KindHome:
 		return b.buildHome()
 	case valueobject.KindSection:
-		return b.buildPage()
+		return b.buildSection()
 	case valueobject.KindPage:
 		return b.buildPage()
 	case valueobject.KindTaxonomy:
 		return b.buildTaxonomy()
 	case valueobject.KindTerm:
 		return b.buildTerm()
+	case valueobject.KindStatus404:
+		return b.build404()
+	case valueobject.KindSitemap:
+		return b.buildSitemap()
 	default:
 		return nil, fmt.Errorf("unknown kind %q", b.kind)
 	}
@@ -105,7 +111,7 @@ func (b *PageBuilder) buildOutput(p *Page) error {
 
 		log: loggers.NewDefault(),
 	}
-	if err := p.Output.Build(b.ConvertProvider, b.TemplateSvc); err != nil {
+	if err := p.Output.Build(b.ConvertProvider, b.TemplateSvc, b.MediaSvc); err != nil {
 		return err
 	}
 
@@ -124,19 +130,34 @@ func (b *PageBuilder) buildPage() (*Page, error) {
 	return p, nil
 }
 
-func (b *PageBuilder) buildHome() (*Page, error) {
+func (b *PageBuilder) buildPageWithKind(kind string) (*Page, error) {
 	p, err := newPage(b.source, b.c)
 	if err != nil {
 		return nil, err
 	}
 
-	p.kind = valueobject.KindHome
-
+	p.kind = kind
 	if err := b.buildOutput(p); err != nil {
 		return nil, err
 	}
 
-	return p, err
+	return p, nil
+}
+
+func (b *PageBuilder) buildHome() (*Page, error) {
+	return b.buildPageWithKind(valueobject.KindHome)
+}
+
+func (b *PageBuilder) buildSection() (*Page, error) {
+	return b.buildPageWithKind(valueobject.KindSection)
+}
+
+func (b *PageBuilder) build404() (*Page, error) {
+	return b.buildPageWithKind(valueobject.KindStatus404)
+}
+
+func (b *PageBuilder) buildSitemap() (*Page, error) {
+	return b.buildPageWithKind(valueobject.KindSitemap)
 }
 
 func (b *PageBuilder) buildTaxonomy() (*TaxonomyPage, error) {
@@ -219,10 +240,10 @@ func (b *PageBuilder) parseKind() error {
 
 	if kind == "" {
 		kind = valueobject.KindPage
-		base := path.Base()
+		base := path.BaseNoLeadingSlash()
 
 		switch base {
-		case PageHomeBase:
+		case PageHomeBase, "":
 			kind = valueobject.KindHome
 		case StandalonePage404Base:
 			kind = valueobject.KindStatus404

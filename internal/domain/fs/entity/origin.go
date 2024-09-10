@@ -1,6 +1,9 @@
 package entity
 
-import "github.com/spf13/afero"
+import (
+	"github.com/gohugonet/hugoverse/internal/domain/fs/valueobject"
+	"github.com/spf13/afero"
+)
 
 type OriginFs struct {
 	// Source is Hugo's source file system.
@@ -43,6 +46,10 @@ func (f *OriginFs) PublishFs() afero.Fs {
 
 func (f *OriginFs) Working() afero.Fs {
 	return f.WorkingDirReadOnly
+}
+
+func (f *OriginFs) PublishDirStatic() afero.Fs {
+	return valueobject.NewHashingFs(f.PublishDir, valueobject.NewFileChangeDetector())
 }
 
 func getWorkingDirFsReadOnly(base afero.Fs, workingDir string) afero.Fs {

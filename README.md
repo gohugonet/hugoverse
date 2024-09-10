@@ -12,3 +12,5 @@ Hugo headless CMS server
 - [ ] .Site.Pages
 - [ ] Inline shortcode
 - [ ] Git info
+- [ ] Sitemap
+- [ ] Multiple sites

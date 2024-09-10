@@ -3,7 +3,6 @@ package entity
 import (
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub/valueobject"
-	"github.com/gohugonet/hugoverse/pkg/output"
 )
 
 type Page struct {
@@ -37,9 +36,9 @@ func (p *Page) Layouts() []string {
 	case valueobject.KindTerm:
 		return p.Layout.term()
 	case valueobject.KindStatus404:
-		return p.Layout.standalone(output.HTTPStatusHTMLFormat.BaseName)
+		return p.Layout.standalone404()
 	case valueobject.KindSitemap:
-		return p.Layout.standalone(output.SitemapFormat.BaseName)
+		return p.Layout.standaloneSitemap()
 	default:
 		return nil
 	}
