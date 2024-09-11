@@ -17,8 +17,32 @@ import (
 	siteAgr "github.com/gohugonet/hugoverse/internal/domain/site/entity"
 	siteFact "github.com/gohugonet/hugoverse/internal/domain/site/factory"
 	tmplFact "github.com/gohugonet/hugoverse/internal/domain/template/factory"
+	"github.com/gohugonet/hugoverse/pkg/testkit"
+	"github.com/spf13/afero"
+	"os"
 	"sort"
 )
+
+var publishDirFs afero.Fs
+
+func ServeGenerateStaticSite() (afero.Fs, error) {
+	tmpDir, _, err := testkit.MkTestSite()
+	//defer clean()
+
+	if err != nil {
+		return nil, err
+	}
+
+	if err := os.Chdir(tmpDir); err != nil {
+		return nil, err
+	}
+
+	if err := GenerateStaticSite(); err != nil {
+		return nil, err
+	}
+
+	return publishDirFs, nil
+}
 
 func GenerateStaticSite() error {
 	c, err := configFact.LoadConfig()
@@ -35,6 +59,8 @@ func GenerateStaticSite() error {
 	if err != nil {
 		return err
 	}
+
+	publishDirFs = fs.PublishDirStatic()
 
 	staticSvc := newStatic(fs.Static, fs.PublishDirStatic())
 	go staticSvc.copyStatic()

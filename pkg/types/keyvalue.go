@@ -19,3 +19,9 @@ func (k KeyValues) KeyString() string {
 func (k KeyValues) String() string {
 	return fmt.Sprintf("%v: %v", k.Key, k.Values)
 }
+
+// KeyValueStr is a string tuple.
+type KeyValueStr struct {
+	Key   string
+	Value string
+}

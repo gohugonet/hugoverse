@@ -14,3 +14,4 @@ Hugo headless CMS server
 - [ ] Git info
 - [ ] Sitemap
 - [ ] Multiple sites
+- [ ] I18N

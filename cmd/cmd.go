@@ -67,6 +67,14 @@ func New() error {
 			if err := openCmd.Run(); err != nil {
 				return err
 			}
+		case "static":
+			staticCmd, err := cli.NewStaticCmd(topLevel)
+			if err != nil {
+				return err
+			}
+			if err := staticCmd.Run(); err != nil {
+				return err
+			}
 
 		default:
 			topLevel.Usage()
