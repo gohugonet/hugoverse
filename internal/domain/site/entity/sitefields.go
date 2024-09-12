@@ -10,8 +10,7 @@ import (
 )
 
 func (s *Site) Params() maps.Params {
-	// TODO： duplicate params, remove in next major
-	return maps.Params{}
+	return s.ConfigSvc.ConfigParams()
 }
 
 func (s *Site) Home() *Page {
@@ -40,6 +39,7 @@ func (s *Site) GetPage(ref ...string) (*Page, error) {
 	return &Page{
 		resSvc:    s.ResourcesSvc,
 		tmplSvc:   s.Template,
+		langSvc:   s.LanguageSvc,
 		publisher: s.Publisher,
 
 		Page: p,

@@ -40,7 +40,7 @@ func (t *Term) Assemble(pages *doctree.NodeShiftTree[*PageTreesNode],
 				w := valueobject.GetParamToLower(ps.Params(), viewName.Plural()+"_weight")
 				weight, err := cast.ToIntE(w)
 				if err != nil {
-					pb.Log.Warnf("Unable to convert taxonomy weight %#v to int for %q", w, ps.Path().Path())
+					pb.Log.Warnf("Unable to convert taxonomy weight %#v to int for %q", w, ps.Paths().Path())
 					// weight will equal zero, so let the flow continue
 				}
 

@@ -78,6 +78,7 @@ type LangService interface {
 	IsLanguageValid(lang string) bool
 	GetSourceLang(source string) (string, bool)
 	GetLanguageIndex(lang string) (int, error)
+	DefaultLanguage() string
 }
 
 type Taxonomy interface {
@@ -113,7 +114,7 @@ type PageSource interface {
 	stale.Staler
 
 	Section() string
-	Path() *paths.Path
+	Paths() *paths.Path
 	Opener() pio.OpenReadSeekCloser
 }
 
@@ -176,7 +177,7 @@ type File interface {
 
 // Temporary to solve duplicate/deprecated names in page.Page
 type fileOverlap interface {
-	// Path gets the relative path including file name and extension.
+	// Paths gets the relative path including file name and extension.
 	// The directory is relative to the content root.
 	RelPath() string
 

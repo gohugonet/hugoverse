@@ -32,6 +32,7 @@ func New(services contenthub.Services) (*entity.ContentHub, error) {
 				TaxonomySvc: services,
 				MediaSvc:    services,
 				TemplateSvc: nil, // TODO, set when used
+				PageMapper:  nil,
 
 				Taxonomy: &entity.Taxonomy{
 					Views: services.Views(),
@@ -60,6 +61,8 @@ func New(services contenthub.Services) (*entity.ContentHub, error) {
 		Log: log,
 	}
 
+	ch.PageBuilder.PageMapper = ch.PageMap
+
 	return ch, nil
 }
 
@@ -67,6 +70,14 @@ func newCache() *entity.Cache {
 	memCache := dynacache.New(dynacache.Options{Running: true, Log: loggers.NewDefault()})
 
 	return &entity.Cache{
+		CachePages1: dynacache.GetOrCreatePartition[string, contenthub.Pages](
+			memCache, "/pag1",
+			dynacache.OptionsPartition{Weight: 10, ClearWhen: dynacache.ClearOnRebuild},
+		),
+		CachePages2: dynacache.GetOrCreatePartition[string, contenthub.Pages](
+			memCache, "/pag2",
+			dynacache.OptionsPartition{Weight: 10, ClearWhen: dynacache.ClearOnRebuild},
+		),
 		CacheContentSource: dynacache.GetOrCreatePartition[string, *stale.Value[[]byte]](
 			memCache, "/cont/src",
 			dynacache.OptionsPartition{Weight: 70, ClearWhen: dynacache.ClearOnChange},

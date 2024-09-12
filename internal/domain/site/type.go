@@ -20,9 +20,15 @@ type Services interface {
 	LanguageService
 	FsService
 	URLService
+	ConfigService
+}
+
+type ConfigService interface {
+	ConfigParams() map[string]any
 }
 
 type LanguageService interface {
+	DefaultLanguage() string
 	LanguageKeys() []string
 	GetLanguageIndex(lang string) (int, error)
 }
@@ -33,6 +39,7 @@ type ContentService interface {
 	GetPageFromPath(path string) (contenthub.Page, error)
 	WalkTaxonomies(langIndex int, walker contenthub.WalkTaxonomyFunc) error
 	PageHome() contenthub.Page
+	GlobalPages() contenthub.Pages
 }
 
 type ResourceService interface {

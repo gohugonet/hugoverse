@@ -33,7 +33,7 @@ func (f *FileManager) sort() {
 			return fimi.IsDir()
 		}
 
-		pii, pij := f.files[i].Path(), f.files[j].Path()
+		pii, pij := f.files[i].Paths(), f.files[j].Paths()
 		if pii != nil {
 			// Pull bundles to the top.
 			if fi.IsBundle() != fj.IsBundle() {

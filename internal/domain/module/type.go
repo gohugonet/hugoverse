@@ -58,7 +58,7 @@ type Workspace interface {
 	WorkingDir() string
 	ThemesDir() string
 
-	DefaultLanguageKey() string
+	DefaultLanguage() string
 	OtherLanguageKeys() []string
 	GetRelDir(name string, langKey string) (dir string, err error)
 }

@@ -24,6 +24,7 @@ func (p Pages) String() string {
 type Page struct {
 	resSvc  site.ResourceService
 	tmplSvc site.Template
+	langSvc site.LanguageService
 
 	publisher *Publisher
 
@@ -37,7 +38,7 @@ type Page struct {
 
 func (p *Page) processResources(pageSources []contenthub.PageSource) error {
 	for _, source := range pageSources {
-		rs, err := p.resSvc.GetResourceWithOpener(source.Path().Path(), source.Opener())
+		rs, err := p.resSvc.GetResourceWithOpener(source.Paths().Path(), source.Opener())
 		if err != nil {
 			return err
 		}
@@ -66,7 +67,7 @@ func (p *Page) renderPage() error {
 		return err
 	}
 	if !found {
-		return fmt.Errorf("failed to find layout: %s, for page %s", layouts, p.Path().Path())
+		return fmt.Errorf("failed to find layout: %s, for page %s", layouts, p.Paths().Path())
 	}
 
 	renderBuffer := bp.GetBuffer()
@@ -80,11 +81,20 @@ func (p *Page) renderPage() error {
 	for _, o := range outputs {
 		p.PageOutput = o
 		if err := p.tmplSvc.ExecuteWithContext(context.Background(), tmpl, renderBuffer, p); err != nil {
+			p.Log.Errorf("failed to execute template: %s", err)
 			return err
 		}
 
 		var targetFilenames []string
-		targetFilenames = append(targetFilenames, path.Join(o.TargetPrefix(), o.TargetFilePath()))
+
+		prefix := o.TargetPrefix()
+		if p.Site.currentLanguage == prefix && prefix == p.LanguageSvc.DefaultLanguage() {
+			prefix = ""
+		} else {
+			prefix = p.Site.currentLanguage
+		}
+
+		targetFilenames = append(targetFilenames, path.Join(prefix, o.TargetFilePath()))
 
 		if err := p.publisher.PublishSource(renderBuffer, targetFilenames...); err != nil {
 			return p.errorf(err, "failed to publish page")
@@ -135,7 +145,7 @@ func (p *Page) errorf(err error, format string, a ...any) error {
 		// More isn't always better.
 		return err
 	}
-	args := append([]any{p.PageIdentity().PageLanguage(), p.Path().Path()}, a...)
+	args := append([]any{p.PageIdentity().PageLanguage(), p.Paths().Path()}, a...)
 	args = append(args, err)
 	format = "[%s] page %q: " + format + ": %w"
 	if err == nil {

@@ -164,6 +164,7 @@ func (cl *ConfigLoader) decodeConfig(p config.Provider, target *entity.Config) e
 	}
 	target.Root.RootConfig = r
 	target.Root.RootConfig.BaseDirs = cl.BaseDirs
+	target.Root.RootParams = maps.CleanConfigStringMap(p.GetStringMap("params"))
 
 	cs, err := valueobject.DecodeCachesConfig(cl.SourceDescriptor.Fs(), p, cl.BaseDirs)
 	if err != nil {

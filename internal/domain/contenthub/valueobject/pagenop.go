@@ -79,7 +79,7 @@ func (p *nopPage) IsStale() bool {
 	panic("implement me")
 }
 
-func (p *nopPage) Path() *paths.Path {
+func (p *nopPage) Paths() *paths.Path {
 	//TODO implement me
 	panic("implement me")
 }

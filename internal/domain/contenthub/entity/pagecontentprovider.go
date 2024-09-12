@@ -279,7 +279,7 @@ func (c *ContentProvider) doRenderShortcode(sc *valueobject.Shortcode, parent *S
 		var found, more bool
 		tmpl, found, more = c.templateSvc.LookupVariant(sc.Name, tplVariants)
 		if !found {
-			c.log.Errorf("Unable to locate template for shortcode %q in page %q", sc.Name, c.source.File.Path().Path())
+			c.log.Errorf("Unable to locate template for shortcode %q in page %q", sc.Name, c.source.File.Paths().Path())
 			return valueobject.ZeroShortcode, nil
 		}
 		hasVariants = hasVariants || more
@@ -311,7 +311,7 @@ func (c *ContentProvider) doRenderShortcode(sc *valueobject.Shortcode, parent *S
 				inner += ss
 			default:
 				c.log.Errorf("Illegal state on shortcode rendering of %q in page %q. Illegal type in inner data: %s ",
-					sc.Name, c.source.File.Path().Path(), reflect.TypeOf(innerData))
+					sc.Name, c.source.File.Paths().Path(), reflect.TypeOf(innerData))
 				return valueobject.ZeroShortcode, nil
 			}
 		}

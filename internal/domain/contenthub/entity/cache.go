@@ -8,6 +8,9 @@ import (
 )
 
 type Cache struct {
+	CachePages1 *dynacache.Partition[string, contenthub.Pages]
+	CachePages2 *dynacache.Partition[string, contenthub.Pages]
+
 	// Cache for content sources.
 	CacheContentSource *dynacache.Partition[string, *stale.Value[[]byte]]
 

@@ -13,7 +13,8 @@ type Page struct {
 	*Layout
 	*Output
 
-	kind string
+	kind    string
+	pageMap *PageMap
 }
 
 func (p *Page) PageOutputs() ([]contenthub.PageOutput, error) {
@@ -60,7 +61,7 @@ func newPage(source *Source, content *Content) (*Page, error) {
 	p := &Page{
 		Source:  source,
 		Content: content,
-		Meta:    &Meta{},
+		Meta:    &Meta{List: Always},
 
 		kind: valueobject.KindPage,
 

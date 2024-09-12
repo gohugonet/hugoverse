@@ -2,7 +2,6 @@ package entity
 
 import (
 	"context"
-	"fmt"
 	"github.com/gohugonet/hugoverse/pkg/hreflect"
 	"github.com/gohugonet/hugoverse/pkg/maps"
 	texttemplate "github.com/gohugonet/hugoverse/pkg/template/texttemplate"
@@ -19,7 +18,6 @@ type GoTemplateCallback struct {
 }
 
 func (t *GoTemplateCallback) BeforeExec(ctx context.Context, tmpl texttemplate.Preparer) {
-	fmt.Println("BeforeExec", ctx, tmpl)
 }
 
 func (t *GoTemplateCallback) GetFunc(ctx context.Context, tmpl texttemplate.Preparer, name string) (fn reflect.Value, firstArg reflect.Value, found bool) {

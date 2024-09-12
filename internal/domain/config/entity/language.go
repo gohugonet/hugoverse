@@ -19,7 +19,7 @@ func (l *Language) Languages() []valueobject.LanguageConfig {
 	return maps.Values(l.Configs)
 }
 
-func (l *Language) DefaultLanguageKey() string {
+func (l *Language) DefaultLanguage() string {
 	return l.Default
 }
 

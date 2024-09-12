@@ -15,6 +15,7 @@ type PageBuilder struct {
 	TaxonomySvc contenthub.TaxonomyService
 	TemplateSvc contenthub.Template
 	MediaSvc    contenthub.MediaService
+	PageMapper  *PageMap
 
 	Taxonomy   *Taxonomy
 	Term       *Term
@@ -80,6 +81,10 @@ func (b *PageBuilder) KindBuild() (contenthub.Page, error) {
 		return nil, err
 	}
 
+	if err := b.parseLanguageByDefault(); err != nil {
+		return nil, err
+	}
+
 	return b.build()
 }
 
@@ -123,6 +128,8 @@ func (b *PageBuilder) buildPage() (*Page, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	p.pageMap = b.PageMapper
 	if err := b.buildOutput(p); err != nil {
 		return nil, err
 	}
@@ -136,7 +143,11 @@ func (b *PageBuilder) buildPageWithKind(kind string) (*Page, error) {
 		return nil, err
 	}
 
+	p.pageMap = b.PageMapper
 	p.kind = kind
+	if p.kind == valueobject.KindSitemap || p.kind == valueobject.KindStatus404 {
+		p.Meta.List = Never
+	}
 	if err := b.buildOutput(p); err != nil {
 		return nil, err
 	}
@@ -161,7 +172,7 @@ func (b *PageBuilder) buildSitemap() (*Page, error) {
 }
 
 func (b *PageBuilder) buildTaxonomy() (*TaxonomyPage, error) {
-	singular := b.Taxonomy.getTaxonomy(b.source.File.Path().Path()).Singular()
+	singular := b.Taxonomy.getTaxonomy(b.source.File.Paths().Path()).Singular()
 	tp, err := newTaxonomy(b.source, b.c, singular)
 	if err != nil {
 		return nil, err
@@ -175,7 +186,7 @@ func (b *PageBuilder) buildTaxonomy() (*TaxonomyPage, error) {
 }
 
 func (b *PageBuilder) buildTerm() (*TermPage, error) {
-	p := b.source.File.Path()
+	p := b.source.File.Paths()
 	singular := b.Taxonomy.getTaxonomy(p.Path()).Singular()
 	term := p.Unnormalized().BaseNameNoIdentifier()
 
@@ -231,7 +242,7 @@ func (b *PageBuilder) parseTerms() error {
 }
 
 func (b *PageBuilder) parseKind() error {
-	path := b.source.File.Path()
+	path := b.source.File.Paths()
 
 	kind := ""
 	if b.fm != nil {
@@ -269,6 +280,18 @@ func (b *PageBuilder) parseKind() error {
 
 	b.kind = kind
 
+	return nil
+}
+
+func (b *PageBuilder) parseLanguageByDefault() error {
+	dl := b.LangSvc.DefaultLanguage()
+	idx, err := b.LangSvc.GetLanguageIndex(dl)
+	if err != nil {
+		return fmt.Errorf("failed to get language index for %q: %s", dl, err)
+	}
+
+	b.source.Identity.Lang = dl
+	b.source.Identity.LangIdx = idx
 	return nil
 }
 

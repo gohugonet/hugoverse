@@ -71,6 +71,9 @@ func (l *Language) isMultipleLanguage() bool {
 }
 
 func (l *Language) LanguagePrefix() string {
+	if l.currentLanguage == l.LangSvc.DefaultLanguage() {
+		return ""
+	}
 	return l.currentLanguage
 }
 

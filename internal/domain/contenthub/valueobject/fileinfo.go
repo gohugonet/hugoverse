@@ -59,7 +59,7 @@ func (fi *File) ShiftToResource() {
 // Filename returns a file's absolute path and filename on disk.
 func (fi *File) Filename() string { return fi.FileMetaInfo.FileName() }
 
-// RelPath Path gets the relative path including file name and extension.  The directory
+// RelPath Paths gets the relative path including file name and extension.  The directory
 // is relative to the content root.
 func (fi *File) RelPath() string { return filepath.Join(fi.p().Dir()[1:], fi.p().Name()) }
 
@@ -144,6 +144,10 @@ func (fi *File) p() *paths.Path {
 	return fi.path
 }
 
-func (fi *File) Path() *paths.Path {
+func (fi *File) Paths() *paths.Path {
 	return fi.p()
+}
+
+func (fi *File) Path() string {
+	return fi.p().Path()
 }

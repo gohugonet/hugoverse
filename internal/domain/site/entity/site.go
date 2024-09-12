@@ -12,8 +12,10 @@ import (
 )
 
 type Site struct {
+	ConfigSvc    site.ConfigService
 	ContentSvc   site.ContentService
 	ResourcesSvc site.ResourceService
+	LanguageSvc  site.LanguageService
 
 	Publisher *Publisher
 
@@ -101,6 +103,7 @@ func (s *Site) renderPages() error {
 		sitePage := &Page{
 			resSvc:    s.ResourcesSvc,
 			tmplSvc:   s.Template,
+			langSvc:   s.LanguageSvc,
 			publisher: s.Publisher,
 
 			Page: p,

@@ -9,6 +9,7 @@ import (
 
 type Root struct {
 	valueobject.RootConfig
+	RootParams map[string]any
 }
 
 func (r Root) DefaultTheme() string {
@@ -34,4 +35,8 @@ func (r Root) CompiledTimeout() (time.Duration, error) {
 
 func (r Root) BaseUrl() string {
 	return r.RootConfig.BaseURL
+}
+
+func (r Root) ConfigParams() map[string]any {
+	return r.RootParams
 }

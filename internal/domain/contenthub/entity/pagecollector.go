@@ -147,7 +147,7 @@ func (c *pagesCollector) collectDirDir(path string, root fs.FileMetaInfo) error 
 }
 
 func (c *pagesCollector) handleBundleLeaf(dir fs.FileMetaInfo, bundle *valueobject.File, inPath string, readdir []fs.FileMetaInfo) error {
-	bundlePath := bundle.Path()
+	bundlePath := bundle.Paths()
 
 	walk := func(path string, info fs.FileMetaInfo) error {
 		if info.IsDir() {
@@ -160,7 +160,7 @@ func (c *pagesCollector) handleBundleLeaf(dir fs.FileMetaInfo, bundle *valueobje
 			// Everything inside a leaf bundle is a Resource,
 			// even the content pages.
 			// Note that we do allow index.md as page resources, but not in the bundle root.
-			if !f.IsLeafBundle() || f.Path().Dir() != bundlePath.Dir() {
+			if !f.IsLeafBundle() || f.Paths().Dir() != bundlePath.Dir() {
 				f.ShiftToResource()
 			}
 		}

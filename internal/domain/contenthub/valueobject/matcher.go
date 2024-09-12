@@ -48,7 +48,7 @@ func (m PageMatcher) Matches(p contenthub.Page) bool {
 	if m.Path != "" {
 		g, err := glob.GetGlob(m.Path)
 		// TODO(bep) RelPath() vs filepath vs leading slash.
-		p := strings.ToLower(filepath.ToSlash(p.Path().Path()))
+		p := strings.ToLower(filepath.ToSlash(p.Paths().Path()))
 		if !(strings.HasPrefix(p, "/")) {
 			p = "/" + p
 		}

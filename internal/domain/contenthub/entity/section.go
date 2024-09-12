@@ -2,7 +2,6 @@ package entity
 
 import (
 	"context"
-	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/doctree"
@@ -61,7 +60,7 @@ func (s *Section) Assemble(pages *doctree.NodeShiftTree[*PageTreesNode], pb *Pag
 				return false, nil
 			}
 
-			p := ps.Path()
+			p := ps.Paths()
 			section := p.Section()
 
 			if s.isSectionExist(section) {
@@ -79,7 +78,7 @@ func (s *Section) Assemble(pages *doctree.NodeShiftTree[*PageTreesNode], pb *Pag
 				return false, err
 			}
 
-			sectionBase := sectionSource.Path().Base()
+			sectionBase := sectionSource.Paths().Base()
 			nn := w.Tree.Get(sectionBase)
 
 			if nn == nil {
@@ -109,9 +108,7 @@ func (s *Section) Assemble(pages *doctree.NodeShiftTree[*PageTreesNode], pb *Pag
 			return err
 		}
 
-		fmt.Println("456 home", s.home, s.home.Path().Base())
-
-		w.Tree.InsertWithLock(s.home.Path().Base(), newPageTreesNode(s.home))
+		w.Tree.InsertWithLock(s.home.Paths().Base(), newPageTreesNode(s.home))
 	}
 
 	return nil
@@ -119,7 +116,6 @@ func (s *Section) Assemble(pages *doctree.NodeShiftTree[*PageTreesNode], pb *Pag
 
 func (s *Section) CreateHome(pb *PageBuilder) error {
 	fmi := s.FsSvc.NewFileMetaInfo("/_index.md")
-	fmt.Println("616 fmi", fmi)
 	f := valueobject.NewFileInfo(fmi)
 
 	homeSource, err := newPageSource(f, s.Cache)

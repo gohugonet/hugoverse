@@ -30,7 +30,7 @@ func (o *Output) getConvert() (contenthub.Converter, error) {
 	return cp.New(markdown.DocumentContext{
 		Document:     nil,
 		DocumentID:   o.source.File.UniqueID(),
-		DocumentName: o.source.File.Path().Path(),
+		DocumentName: o.source.File.Paths().Path(),
 		Filename:     o.source.File.FileName(),
 	})
 }
@@ -108,7 +108,7 @@ func (o *Output) buildSection(f output.Format) error {
 	defer valueobject.PutPagePathBuilder(pb)
 
 	pb.FullSuffix = f.MediaType.FirstSuffix.FullSuffix
-	pb.Add(o.source.Path().Dir())
+	pb.Add(o.source.Paths().Dir())
 	pb.Add(f.BaseName + pb.FullSuffix)
 	if pb.IsHtmlIndex() {
 		pb.LinkUpperOffset = 1
@@ -116,7 +116,7 @@ func (o *Output) buildSection(f output.Format) error {
 
 	pb.Sanitize()
 	target := &valueobject.Target{
-		Prefix:                "",
+		Prefix:                o.source.Identity.PageLanguage(),
 		FilePath:              pb.PathFile(),
 		SubResourceBaseTarget: pb.PathDir(),
 
@@ -139,7 +139,7 @@ func (o *Output) buildHome(f output.Format) error {
 
 	pb.Sanitize()
 	target := &valueobject.Target{
-		Prefix:                "",
+		Prefix:                o.source.Identity.PageLanguage(),
 		FilePath:              pb.PathFile(),
 		SubResourceBaseTarget: pb.PathDir(),
 	}
@@ -157,7 +157,7 @@ func (o *Output) buildStandalone(f output.Format) error {
 	pb.BaseNameSameAsType = !o.source.IsBundle() && o.baseName != "" && o.baseName == f.BaseName
 	pb.NoSubResources = true
 
-	if dir := o.source.Path().Dir(); dir != "" {
+	if dir := o.source.Paths().Dir(); dir != "" {
 		pb.Add(dir)
 	}
 	if o.baseName != "" {
@@ -184,7 +184,7 @@ func (o *Output) buildPage(f output.Format) error {
 	pb.IsUgly = f.Ugly // default false
 	pb.BaseNameSameAsType = !o.source.IsBundle() && o.baseName != "" && o.baseName == f.BaseName
 
-	if dir := o.source.Path().ContainerDir(); dir != "" {
+	if dir := o.source.Paths().ContainerDir(); dir != "" {
 		pb.Add(dir)
 	}
 
@@ -216,11 +216,11 @@ func (o *Output) buildPage(f output.Format) error {
 func (o *Output) setBasename() {
 	switch o.pageKind {
 	case valueobject.KindStatus404:
-		o.baseName = output.HTTPStatusHTMLFormat.BaseName
+		o.baseName = output.Page404Format.BaseName
 	case valueobject.KindSitemap:
 		o.baseName = output.SitemapFormat.BaseName
 	default:
-		o.baseName = o.source.Path().BaseNameNoIdentifier()
+		o.baseName = o.source.Paths().BaseNameNoIdentifier()
 		if o.baseName == "" {
 			o.baseName = "index"
 		}

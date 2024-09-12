@@ -88,7 +88,7 @@ func (m *Module) collect() error {
 }
 
 func (m *Module) applyProjMounts() error {
-	defaultLangKey := m.DirService.DefaultLanguageKey()
+	defaultLangKey := m.DirService.DefaultLanguage()
 	for _, component := range module.ComponentFolders {
 		dir, err := m.DirService.GetRelDir(component, defaultLangKey)
 		if err != nil {

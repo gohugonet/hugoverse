@@ -182,6 +182,14 @@ var (
 		Rel:       "sitemap",
 	}
 
+	Page404Format = Format{
+		Name:      "404",
+		MediaType: media.Builtin.HTMLType,
+		BaseName:  "404",
+		Ugly:      true,
+		Rel:       "404",
+	}
+
 	SitemapIndexFormat = Format{
 		Name:      "sitemapindex",
 		MediaType: media.Builtin.XMLType,

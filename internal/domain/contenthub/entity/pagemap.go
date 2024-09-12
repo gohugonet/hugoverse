@@ -6,6 +6,7 @@ import (
 	"github.com/bep/logg"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub/valueobject"
+	"github.com/gohugonet/hugoverse/pkg/cache/dynacache"
 	"github.com/gohugonet/hugoverse/pkg/doctree"
 	"github.com/gohugonet/hugoverse/pkg/loggers"
 	"github.com/gohugonet/hugoverse/pkg/paths"
@@ -46,7 +47,7 @@ func (m *PageMap) AddFi(f *valueobject.File) error {
 		return err
 	}
 
-	key := ps.Path().Base()
+	key := ps.Paths().Base()
 
 	switch ps.BundleType {
 	case valueobject.BundleTypeFile:
@@ -90,7 +91,7 @@ func (m *PageMap) AddFi(f *valueobject.File) error {
 			return err
 		}
 
-		m.TreePages.InsertWithLock(ps.Path().Base(), newPageTreesNode(p))
+		m.TreePages.InsertWithLock(ps.Paths().Base(), newPageTreesNode(p))
 
 	}
 	return nil
@@ -206,7 +207,7 @@ func (m *PageMap) getResourcesForPage(ps contenthub.Page) ([]contenthub.PageSour
 func (m *PageMap) forEachResourceInPage(ps contenthub.Page, lockType doctree.LockType, exact bool,
 	handle func(resourceKey string, n *PageTreesNode, match doctree.DimensionFlag) (bool, error)) error {
 
-	keyPage := ps.Path().Path()
+	keyPage := ps.Paths().Path()
 	if keyPage == "/" {
 		keyPage = ""
 	}
@@ -233,4 +234,120 @@ func (m *PageMap) forEachResourceInPage(ps contenthub.Page, lockType doctree.Loc
 	}
 
 	return rw.Walk(context.Background())
+}
+
+func (m *PageMap) getPagesInSection(q pageMapQueryPagesInSection) contenthub.Pages {
+	cacheKey := q.Key()
+
+	pages, err := m.getOrCreatePagesFromCache(nil, cacheKey, func(string) (contenthub.Pages, error) {
+		prefix := paths.AddTrailingSlash(q.Path)
+
+		var (
+			pas         contenthub.Pages
+			otherBranch string
+		)
+
+		include := q.Include
+		if include == nil {
+			include = pagePredicates.ShouldListLocal
+		}
+
+		w := &doctree.NodeShiftTreeWalker[*PageTreesNode]{
+			Tree:   m.TreePages,
+			Prefix: prefix,
+		}
+
+		w.Handle = func(key string, n *PageTreesNode, match doctree.DimensionFlag) (bool, error) {
+			if q.Recursive {
+				p, found := n.getPage()
+				if found && include(p.(*Page)) {
+					pas = append(pas, p)
+				}
+
+				return false, nil
+			}
+
+			p, found := n.getPage()
+			if found && include(p.(*Page)) {
+				pas = append(pas, p)
+			}
+
+			if !p.IsPage() {
+				currentBranch := key + "/"
+				if otherBranch == "" || otherBranch != currentBranch {
+					w.SkipPrefix(currentBranch)
+				}
+				otherBranch = currentBranch
+			}
+			return false, nil
+		}
+
+		err := w.Walk(context.Background())
+
+		if err == nil {
+			if q.IncludeSelf {
+				if n := m.TreePages.Get(q.Path); n != nil {
+					p, found := n.getPage()
+					if found && include(p.(*Page)) {
+						pas = append(pas, p)
+					}
+				}
+			}
+			valueobject.SortByDefault(pas)
+		}
+
+		return pas, err
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	return pages
+}
+
+func (m *PageMap) getOrCreatePagesFromCache(
+	cache *dynacache.Partition[string, contenthub.Pages],
+	key string, create func(string) (contenthub.Pages, error),
+) (contenthub.Pages, error) {
+
+	if cache == nil {
+		cache = m.Cache.CachePages1
+	}
+	return cache.GetOrCreate(key, create)
+}
+
+func (m *PageMap) getPagesWithTerm(q pageMapQueryPagesBelowPath) contenthub.Pages {
+	key := q.Key()
+
+	v, err := m.Cache.CachePages1.GetOrCreate(key, func(string) (contenthub.Pages, error) {
+		var pas contenthub.Pages
+		include := q.Include
+		if include == nil {
+			include = pagePredicates.ShouldListLocal
+		}
+
+		err := m.TreeTaxonomyEntries.WalkPrefix(
+			doctree.LockTypeNone,
+			paths.AddTrailingSlash(q.Path),
+			func(s string, n *WeightedTermTreeNode) (bool, error) {
+				if include(n.term.Page.(*Page)) {
+					pas = append(pas, n.term)
+				}
+
+				return false, nil
+			},
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		valueobject.SortByDefault(pas)
+
+		return pas, nil
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	return v
 }

@@ -62,7 +62,12 @@ func (s *sites) First() *Site {
 }
 
 func (p *Page) Pages() contenthub.Pages {
-	return nil //TODO
+	ps := p.Page.Pages()
+	if ps == nil {
+		return p.ContentSvc.GlobalPages()
+	}
+	
+	return nil
 }
 
 func (p *Page) Data() map[string]any {

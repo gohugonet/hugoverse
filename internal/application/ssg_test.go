@@ -49,7 +49,7 @@ func TestLoadConfig(t *testing.T) {
 		t.Errorf("Expected database.user to be 'https://hugo.notes.sunwei.xyz/', but got '%s'", got)
 	}
 
-	if got := config.Language.DefaultLanguageKey(); got != "zh" {
+	if got := config.Language.DefaultLanguage(); got != "zh" {
 		t.Errorf("Expected database.user to be 'zh', but got '%s'", got)
 	}
 }

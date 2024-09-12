@@ -9,8 +9,10 @@ import (
 
 func New(services site.Services) *entity.Site {
 	s := &entity.Site{
+		ConfigSvc:    services,
 		ContentSvc:   services,
 		ResourcesSvc: services,
+		LanguageSvc:  services,
 
 		Template: nil,
 
