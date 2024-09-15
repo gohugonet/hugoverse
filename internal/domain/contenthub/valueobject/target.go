@@ -33,6 +33,10 @@ func (t *Target) TargetPrefix() string {
 	return t.Prefix
 }
 
+func (t *Target) TargetFormat() output.Format {
+	return t.Format
+}
+
 // PagePathBuilder When adding state here, remember to update putPagePathBuilder.
 type PagePathBuilder struct {
 	els []string

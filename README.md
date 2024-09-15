@@ -1,17 +1,22 @@
-# hugoverse
+# Hugoverse
+
 Hugo headless CMS server
 
 ## Prerequisite
 
 - Install Dart Sass
 
-## TODO
+## TODO for PoC of book theme
 
 - [x] Template
-- [ ] .Page.Pages
-- [ ] .Site.Pages
-- [ ] Inline shortcode
+- [x] .Page.Pages
+- [x] .Site.Pages
+- [ ] Language Code and Name
 - [ ] Git info
-- [ ] Sitemap
-- [ ] Multiple sites
 - [ ] I18N
+- [ ] Output Format: connect page layouts and page outputs, should separate the config info service and business logic
+
+## Next
+
+- [ ] Sitemap
+- [ ] Inline shortcode

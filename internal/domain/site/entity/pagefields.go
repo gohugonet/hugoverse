@@ -12,6 +12,7 @@ func (p *Page) Section() string {
 }
 
 func (p *Page) Params() maps.Params {
+	//fmt.Println("params lalala", p.RelPermalink())
 	return p.Page.Params()
 }
 
@@ -61,15 +62,55 @@ func (s *sites) First() *Site {
 	return s.site
 }
 
-func (p *Page) Pages() contenthub.Pages {
+func (p *Page) Pages() []*Page {
 	ps := p.Page.Pages()
 	if ps == nil {
-		return p.ContentSvc.GlobalPages()
+		return make([]*Page, 0)
 	}
-	
-	return nil
+
+	var pages []*Page
+	for _, cp := range ps {
+		np := p.clone()
+
+		np.Page = cp
+		np.PageOutput = p.getPageOutput(cp)
+
+		pages = append(pages, np)
+	}
+
+	return pages
+}
+
+func (p *Page) getPageOutput(chp contenthub.Page) contenthub.PageOutput {
+	pos, err := chp.PageOutputs()
+	if err != nil {
+		p.Log.Errorln("getPageOutput", err)
+		panic(err)
+	}
+
+	for _, po := range pos {
+		if po.TargetFormat().MediaType == p.PageOutput.TargetFormat().MediaType {
+			return po
+		}
+	}
+
+	p.Log.Errorln("getPageOutput", "no page output")
+	panic("no page output")
 }
 
 func (p *Page) Data() map[string]any {
 	return map[string]any{} //TODO for sitemap
+}
+
+func (p *Page) Content() (any, error) {
+	return p.PageOutput.Content()
+}
+
+func (p *Page) IsAncestor(other any) bool {
+	op, ok := other.(*Page)
+	if !ok {
+		return false
+	}
+
+	return p.Page.IsAncestor(op.Page)
 }

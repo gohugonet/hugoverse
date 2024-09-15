@@ -11,6 +11,7 @@ import (
 	pio "github.com/gohugonet/hugoverse/pkg/io"
 	"github.com/gohugonet/hugoverse/pkg/maps"
 	"github.com/gohugonet/hugoverse/pkg/media"
+	"github.com/gohugonet/hugoverse/pkg/output"
 	"github.com/gohugonet/hugoverse/pkg/paths"
 	"github.com/spf13/afero"
 	goTmpl "html/template"
@@ -115,6 +116,7 @@ type PageSource interface {
 
 	Section() string
 	Paths() *paths.Path
+	Path() string
 	Opener() pio.OpenReadSeekCloser
 }
 
@@ -233,6 +235,7 @@ type Page interface {
 	Kind() string
 	IsPage() bool
 	IsSection() bool
+	IsAncestor(other Page) bool
 
 	Layouts() []string
 	PageOutputs() ([]PageOutput, error)
@@ -257,6 +260,7 @@ type PageOutput interface {
 	TargetFilePath() string
 	TargetSubResourceDir() string
 	TargetPrefix() string
+	TargetFormat() output.Format
 
 	Content() (any, error)
 	Summary() goTmpl.HTML

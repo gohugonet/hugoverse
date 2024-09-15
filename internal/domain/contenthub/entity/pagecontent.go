@@ -52,9 +52,7 @@ func (c *Content) AddItems(item pageparser.Item) {
 }
 
 func (c *Content) RawContent() string {
-	// TODO, put empty here for new page builder
-
-	return ""
+	return string(c.rawSource)
 }
 
 func (c *Content) getShortCodes() []*valueobject.Shortcode {

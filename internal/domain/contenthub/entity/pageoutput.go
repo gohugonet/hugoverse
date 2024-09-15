@@ -142,6 +142,8 @@ func (o *Output) buildHome(f output.Format) error {
 		Prefix:                o.source.Identity.PageLanguage(),
 		FilePath:              pb.PathFile(),
 		SubResourceBaseTarget: pb.PathDir(),
+
+		Format: f,
 	}
 	o.targets = append(o.targets, target)
 
@@ -170,6 +172,8 @@ func (o *Output) buildStandalone(f output.Format) error {
 		Prefix:                o.source.Identity.PageLanguage(),
 		FilePath:              pb.PathFile(),
 		SubResourceBaseTarget: pb.PathDir(),
+
+		Format: f,
 	}
 
 	o.targets = append(o.targets, target)
@@ -206,6 +210,8 @@ func (o *Output) buildPage(f output.Format) error {
 		Prefix:                o.source.Identity.PageLanguage(),
 		FilePath:              pb.PathFile(),
 		SubResourceBaseTarget: pb.PathDir(),
+
+		Format: f,
 	}
 
 	o.targets = append(o.targets, target)

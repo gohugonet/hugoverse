@@ -3,6 +3,8 @@ package entity
 import (
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub/valueobject"
+	"github.com/gohugonet/hugoverse/pkg/paths"
+	"strings"
 )
 
 func (p *Page) Pages() contenthub.Pages {
@@ -12,7 +14,7 @@ func (p *Page) Pages() contenthub.Pages {
 		return p.pageMap.getPagesInSection(
 			pageMapQueryPagesInSection{
 				pageMapQueryPagesBelowPath: pageMapQueryPagesBelowPath{
-					Path:    p.Path(),
+					Path:    p.Paths().Base(),
 					KeyPart: "page-section",
 					Include: pagePredicates.ShouldListLocal.And(
 						pagePredicates.KindPage.Or(pagePredicates.KindSection),
@@ -42,4 +44,12 @@ func (p *Page) Pages() contenthub.Pages {
 	}
 
 	return nil
+}
+
+func (p *Page) IsAncestor(other contenthub.Page) bool {
+	if other.Path() == p.Path() {
+		return false
+	}
+
+	return strings.HasPrefix(other.Path(), paths.AddTrailingSlash(p.Path()))
 }

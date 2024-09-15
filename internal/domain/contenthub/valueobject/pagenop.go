@@ -83,6 +83,10 @@ func (p *nopPage) Paths() *paths.Path {
 	//TODO implement me
 	panic("implement me")
 }
+func (p *nopPage) Path() string {
+	//TODO implement me
+	panic("implement me")
+}
 
 func (p *nopPage) Opener() pio.OpenReadSeekCloser {
 	//TODO implement me
@@ -95,6 +99,11 @@ func (p *nopPage) Layouts() []string {
 }
 
 func (p *nopPage) PageOutputs() ([]contenthub.PageOutput, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (p *nopPage) IsAncestor(other contenthub.Page) bool {
 	//TODO implement me
 	panic("implement me")
 }

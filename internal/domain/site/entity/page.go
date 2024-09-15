@@ -153,3 +153,9 @@ func (p *Page) errorf(err error, format string, a ...any) error {
 	}
 	return fmt.Errorf(format, args...)
 }
+
+func (p *Page) clone() *Page {
+	np := *p
+
+	return &np
+}

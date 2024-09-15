@@ -268,7 +268,9 @@ func (m *PageMap) getPagesInSection(q pageMapQueryPagesInSection) contenthub.Pag
 			}
 
 			p, found := n.getPage()
+			fmt.Println("getPagesInSection", prefix, key, p.Path())
 			if found && include(p.(*Page)) {
+				fmt.Println("getPagesInSection found", p.Path())
 				pas = append(pas, p)
 			}
 

@@ -35,6 +35,17 @@ func (s *Site) GetPage(ref ...string) (*Page, error) {
 	}
 
 	p, err := s.ContentSvc.GetPageFromPath(key)
+	if err != nil {
+		return nil, err
+	}
+	pos, err := p.PageOutputs()
+	if err != nil {
+		return nil, err
+	}
+	if len(pos) != 1 {
+		return nil, fmt.Errorf("expected 1 page output, got %d", len(pos))
+	}
+	po := pos[0] // TODO, check for multiple outputs
 
 	return &Page{
 		resSvc:    s.ResourcesSvc,
@@ -42,8 +53,9 @@ func (s *Site) GetPage(ref ...string) (*Page, error) {
 		langSvc:   s.LanguageSvc,
 		publisher: s.Publisher,
 
-		Page: p,
-		Site: s,
+		Page:       p,
+		PageOutput: po,
+		Site:       s,
 	}, err
 }
 
