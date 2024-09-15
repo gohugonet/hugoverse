@@ -17,6 +17,8 @@ type Site struct {
 	ResourcesSvc site.ResourceService
 	LanguageSvc  site.LanguageService
 
+	GitSvc *valueobject.GitMap
+
 	Publisher *Publisher
 
 	Template site.Template
@@ -105,6 +107,7 @@ func (s *Site) renderPages() error {
 			tmplSvc:   s.Template,
 			langSvc:   s.LanguageSvc,
 			publisher: s.Publisher,
+			git:       s.GitSvc,
 
 			Page: p,
 			Site: s,

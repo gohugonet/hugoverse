@@ -3,7 +3,6 @@ package entity
 import (
 	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
-	"github.com/gohugonet/hugoverse/internal/domain/site/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/maps"
 	"path/filepath"
 	"strings"
@@ -52,15 +51,12 @@ func (s *Site) GetPage(ref ...string) (*Page, error) {
 		tmplSvc:   s.Template,
 		langSvc:   s.LanguageSvc,
 		publisher: s.Publisher,
+		git:       s.GitSvc,
 
 		Page:       p,
 		PageOutput: po,
 		Site:       s,
 	}, err
-}
-
-func (s *Site) GitInfo() valueobject.GitInfo {
-	return valueobject.GitInfo{}
 }
 
 func (s *Site) Pages() contenthub.Pages {

@@ -6,6 +6,7 @@ import (
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
 	"github.com/gohugonet/hugoverse/internal/domain/resources"
 	"github.com/gohugonet/hugoverse/internal/domain/site"
+	"github.com/gohugonet/hugoverse/internal/domain/site/valueobject"
 	bp "github.com/gohugonet/hugoverse/pkg/bufferpool"
 	"github.com/gohugonet/hugoverse/pkg/herrors"
 	"path"
@@ -27,6 +28,7 @@ type Page struct {
 	langSvc site.LanguageService
 
 	publisher *Publisher
+	git       *valueobject.GitMap
 
 	contenthub.Page
 	contenthub.PageOutput

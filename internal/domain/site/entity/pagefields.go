@@ -114,3 +114,11 @@ func (p *Page) IsAncestor(other any) bool {
 
 	return p.Page.IsAncestor(op.Page)
 }
+
+func (p *Page) GitInfo() valueobject.GitInfo {
+	if p.git == nil {
+		return valueobject.GitInfo{}
+	}
+
+	return p.git.GetInfo(p.Page.PageFile().Filename())
+}

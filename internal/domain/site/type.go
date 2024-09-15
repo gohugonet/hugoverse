@@ -48,6 +48,7 @@ type ResourceService interface {
 
 type FsService interface {
 	Publish() afero.Fs
+	WorkingDir() string
 }
 
 type URLService interface {
