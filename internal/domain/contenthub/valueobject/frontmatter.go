@@ -15,9 +15,10 @@ import (
 type FrontMatter struct {
 	*Cascade
 
-	Path string
-	Lang string
-	Kind string
+	Path  string
+	Lang  string
+	Kind  string
+	Title string
 
 	Terms map[string][]string
 }
@@ -45,7 +46,18 @@ func (b *FrontMatterParser) Parse() (*FrontMatter, error) {
 		return nil, err
 	}
 
+	if err := b.parseTitle(fm); err != nil {
+		return nil, err
+	}
+
 	return fm, nil
+}
+
+func (b *FrontMatterParser) parseTitle(fm *FrontMatter) error {
+	if v, found := b.Params["title"]; found {
+		fm.Title = cast.ToString(v)
+	}
+	return nil
 }
 
 func (b *FrontMatterParser) parseCascade(fm *FrontMatter) error {

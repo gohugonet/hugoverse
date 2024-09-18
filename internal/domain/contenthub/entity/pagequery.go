@@ -48,10 +48,12 @@ type pageMapQueryPagesInSection struct {
 
 	Recursive   bool
 	IncludeSelf bool
+	Index       int
 }
 
 func (q pageMapQueryPagesInSection) Key() string {
-	return "gagesInSection" + "/" + q.pageMapQueryPagesBelowPath.Key() + "/" + strconv.FormatBool(q.Recursive) + "/" + strconv.FormatBool(q.IncludeSelf)
+	return "gagesInSection" + "/" + q.pageMapQueryPagesBelowPath.Key() + "/" + strconv.FormatBool(q.Recursive) +
+		"/" + strconv.Itoa(q.Index) + "/" + strconv.FormatBool(q.IncludeSelf)
 }
 
 type pageMapQueryPagesBelowPath struct {

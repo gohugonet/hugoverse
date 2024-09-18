@@ -15,6 +15,21 @@ Put pen and ink on the design and implementation of the source code.
 
 `
 
+const post1ContentEn = `
+---
+title: Home Introduction
+---
+
+# Hugo Source Code Reading en
+
+> Our source code reading series, the reading method used is intensive reading.
+Because they are all excellent open source projects.
+
+There are many excellent materials about Hugo on the Internet, and the advantages and history of Hugo will not be repeated here.
+Put pen and ink on the design and implementation of the source code.
+
+`
+
 const post2Content = `
 ---
 title: "源码实现"

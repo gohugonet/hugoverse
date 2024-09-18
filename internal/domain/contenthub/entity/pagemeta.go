@@ -21,10 +21,6 @@ func (m *Meta) Params() maps.Params {
 	return maps.Params{}
 }
 
-func (m *Meta) Title() string {
-	return ""
-}
-
 func (m *Meta) shouldList(global bool) bool {
 	switch m.List {
 	case Always:

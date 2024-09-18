@@ -87,32 +87,7 @@ func (s *Site) RelURL(in string) string {
 
 	u := s.URL.trimBaseUrlRoot(in)
 
-	if s.isMultipleLanguage() {
-		prefix := s.Language.LanguagePrefix()
-		if prefix != "" {
-			hasPrefix := false
-			// avoid adding language prefix if already present
-			in2 := in
-			if strings.HasPrefix(in, "/") {
-				in2 = in[1:]
-			}
-			if in2 == prefix {
-				hasPrefix = true
-			} else {
-				hasPrefix = strings.HasPrefix(in2, prefix+"/")
-			}
-
-			if !hasPrefix {
-				hadSlash := strings.HasSuffix(u, "/")
-
-				u = path.Join(prefix, u)
-
-				if hadSlash {
-					u += "/"
-				}
-			}
-		}
-	}
+	// For resources only, no need to add language prefix
 
 	u = s.URL.addContextRoot(u)
 	u = s.URL.handleRootSuffix(in, u)

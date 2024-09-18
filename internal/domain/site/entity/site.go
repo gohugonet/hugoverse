@@ -122,7 +122,7 @@ func (s *Site) renderPages() error {
 			return err
 		}
 
-		if s.ContentSvc.PageHome() == sitePage.Page {
+		if sitePage.Page.IsHome() {
 			s.home = sitePage
 		}
 

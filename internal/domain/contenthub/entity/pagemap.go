@@ -24,10 +24,6 @@ type PageMap struct {
 	Log loggers.Logger
 }
 
-func (m *PageMap) PageHome() contenthub.Page {
-	return m.PageBuilder.Section.home
-}
-
 func (m *PageMap) InsertResourceNode(key string, node *PageTreesNode) {
 	tree := m.TreeResources
 
@@ -236,8 +232,9 @@ func (m *PageMap) forEachResourceInPage(ps contenthub.Page, lockType doctree.Loc
 	return rw.Walk(context.Background())
 }
 
-func (m *PageMap) getPagesInSection(q pageMapQueryPagesInSection) contenthub.Pages {
+func (m *PageMap) getPagesInSection(langIndex int, q pageMapQueryPagesInSection) contenthub.Pages {
 	cacheKey := q.Key()
+	tree := m.TreePages.Shape(0, langIndex)
 
 	pages, err := m.getOrCreatePagesFromCache(nil, cacheKey, func(string) (contenthub.Pages, error) {
 		prefix := paths.AddTrailingSlash(q.Path)
@@ -253,7 +250,7 @@ func (m *PageMap) getPagesInSection(q pageMapQueryPagesInSection) contenthub.Pag
 		}
 
 		w := &doctree.NodeShiftTreeWalker[*PageTreesNode]{
-			Tree:   m.TreePages,
+			Tree:   tree,
 			Prefix: prefix,
 		}
 
@@ -268,9 +265,7 @@ func (m *PageMap) getPagesInSection(q pageMapQueryPagesInSection) contenthub.Pag
 			}
 
 			p, found := n.getPage()
-			fmt.Println("getPagesInSection", prefix, key, p.Path())
 			if found && include(p.(*Page)) {
-				fmt.Println("getPagesInSection found", p.Path())
 				pas = append(pas, p)
 			}
 
@@ -288,7 +283,7 @@ func (m *PageMap) getPagesInSection(q pageMapQueryPagesInSection) contenthub.Pag
 
 		if err == nil {
 			if q.IncludeSelf {
-				if n := m.TreePages.Get(q.Path); n != nil {
+				if n := tree.Get(q.Path); n != nil {
 					p, found := n.getPage()
 					if found && include(p.(*Page)) {
 						pas = append(pas, p)

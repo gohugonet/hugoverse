@@ -110,12 +110,12 @@ func (ch *ContentHub) GetPageFromPath(path string) (contenthub.Page, error) {
 		return ps, nil
 	}
 
-	fmt.Println("????? GetPageFromPath", n, p.Base(), path)
 	return nil, nil
 }
 
 func (ch *ContentHub) GlobalPages() contenthub.Pages {
 	return ch.PageMap.getPagesInSection(
+		0,
 		pageMapQueryPagesInSection{
 			pageMapQueryPagesBelowPath: pageMapQueryPagesBelowPath{
 				Path:    "",

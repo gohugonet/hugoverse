@@ -40,3 +40,7 @@ func (r Root) BaseUrl() string {
 func (r Root) ConfigParams() map[string]any {
 	return r.RootParams
 }
+
+func (r Root) SiteTitle() string {
+	return r.RootConfig.Title
+}

@@ -93,3 +93,13 @@ func (l *Language) GetLanguageIndex(lang string) (int, error) {
 	}
 	return -1, errors.New("language not found in indices")
 }
+
+func (l *Language) GetLanguageName(lang string) string {
+	for c, v := range l.Configs {
+		if c == lang {
+			return v.Name()
+		}
+	}
+
+	return ""
+}

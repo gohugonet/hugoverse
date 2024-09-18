@@ -40,11 +40,6 @@ func (p *Page) File() contenthub.File {
 	return p.Page.PageFile()
 }
 
-func (p *Page) Translations() []string {
-	// TODO
-	return make([]string, 0)
-}
-
 func (p *Page) OutputFormats() valueobject.OutputFormats {
 	// TODO
 	return make(valueobject.OutputFormats, 0)
@@ -63,11 +58,19 @@ func (s *sites) First() *Site {
 }
 
 func (p *Page) Pages() []*Page {
-	ps := p.Page.Pages()
+	ps := p.Page.Pages(p.Site.Language.CurrentLanguageIndex())
 	if ps == nil {
 		return make([]*Page, 0)
 	}
 
+	return p.sitePages(ps)
+}
+
+func (p *Page) Translations() []*Page {
+	return p.sitePages(p.Page.Translations())
+}
+
+func (p *Page) sitePages(ps contenthub.Pages) []*Page {
 	var pages []*Page
 	for _, cp := range ps {
 		np := p.clone()
@@ -121,4 +124,21 @@ func (p *Page) GitInfo() valueobject.GitInfo {
 	}
 
 	return p.git.GetInfo(p.Page.PageFile().Filename())
+}
+
+func (p *Page) Title() string {
+	return p.Page.Title()
+}
+
+func (p *Page) Language() struct {
+	Lang         string
+	LanguageName string
+} {
+	return struct {
+		Lang         string
+		LanguageName string
+	}{
+		Lang:         p.PageIdentity().PageLanguage(),
+		LanguageName: p.Site.Language.LangSvc.GetLanguageName(p.PageIdentity().PageLanguage()),
+	}
 }

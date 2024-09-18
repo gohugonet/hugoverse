@@ -11,12 +11,13 @@ Hugo headless CMS server
 - [x] Template
 - [x] .Page.Pages
 - [x] .Site.Pages
-- [ ] Language Code and Name
-- [ ] Git info
-- [ ] I18N
-- [ ] Output Format: connect page layouts and page outputs, should separate the config info service and business logic
+- [ ] Multiple Language
+- [x] Git info
 
 ## Next
 
+- [ ] I18N
+- [ ] Blog
 - [ ] Sitemap
 - [ ] Inline shortcode
+- [ ] Output Format: connect page layouts and page outputs, should separate the config info service and business logic

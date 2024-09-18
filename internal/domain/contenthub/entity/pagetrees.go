@@ -162,6 +162,14 @@ func (n *PageTreesNode) getPage() (contenthub.Page, bool) {
 	return nil, false
 }
 
+func (n *PageTreesNode) getPages() []contenthub.Page {
+	pages := make([]contenthub.Page, 0, len(n.nodes))
+	for _, v := range n.nodes {
+		pages = append(pages, v.(contenthub.Page))
+	}
+	return pages
+}
+
 func (n *PageTreesNode) getResource() (contenthub.PageSource, bool) {
 	for _, v := range n.nodes {
 		return v.(contenthub.PageSource), true

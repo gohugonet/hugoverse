@@ -14,7 +14,17 @@ var (
 // PageNop implements Page, but does nothing.
 type nopPage int
 
-func (p *nopPage) Pages() contenthub.Pages {
+func (p *nopPage) IsHome() bool {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (p *nopPage) Translations() contenthub.Pages {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (p *nopPage) Pages(langIndex int) contenthub.Pages {
 	//TODO implement me
 	panic("implement me")
 }
@@ -104,6 +114,11 @@ func (p *nopPage) PageOutputs() ([]contenthub.PageOutput, error) {
 }
 
 func (p *nopPage) IsAncestor(other contenthub.Page) bool {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (p *nopPage) Eq(other contenthub.Page) bool {
 	//TODO implement me
 	panic("implement me")
 }

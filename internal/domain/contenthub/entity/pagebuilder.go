@@ -85,6 +85,8 @@ func (b *PageBuilder) KindBuild() (contenthub.Page, error) {
 		return nil, err
 	}
 
+	b.fm = &valueobject.FrontMatter{}
+
 	return b.build()
 }
 
@@ -129,6 +131,7 @@ func (b *PageBuilder) buildPage() (*Page, error) {
 		return nil, err
 	}
 
+	p.title = b.fm.Title
 	p.pageMap = b.PageMapper
 	if err := b.buildOutput(p); err != nil {
 		return nil, err
@@ -143,6 +146,7 @@ func (b *PageBuilder) buildPageWithKind(kind string) (*Page, error) {
 		return nil, err
 	}
 
+	p.title = b.fm.Title
 	p.pageMap = b.PageMapper
 	p.kind = kind
 	if p.kind == valueobject.KindSitemap || p.kind == valueobject.KindStatus404 {

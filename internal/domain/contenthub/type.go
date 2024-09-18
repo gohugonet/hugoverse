@@ -232,15 +232,19 @@ type Page interface {
 	PageSource
 	PageMeta
 
+	Title() string
 	Kind() string
+	IsHome() bool
 	IsPage() bool
 	IsSection() bool
 	IsAncestor(other Page) bool
+	Eq(other Page) bool
 
 	Layouts() []string
 	PageOutputs() ([]PageOutput, error)
 
-	Pages() Pages
+	Pages(langIndex int) Pages
+	Translations() Pages
 }
 
 type OrdinalWeightPage interface {
@@ -251,7 +255,6 @@ type OrdinalWeightPage interface {
 }
 
 type PageMeta interface {
-	Title() string
 	Description() string
 	Params() maps.Params
 }

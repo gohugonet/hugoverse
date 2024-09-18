@@ -20,8 +20,8 @@ func MkTestConfig() (string, func(), error) {
 }
 
 const configContent = `
-baseURL = 'https://hugo.notes.sunwei.xyz/'
-title = 'Deep Dive into Hugo: Becoming an Expert in the Static Site Generator Domain'
+baseURL = 'http://localhost:1315/'
+title = 'Deep Dive into Hugo'
 theme = "github.com/sunwei/hugo-book"
 defaultContentLanguage = "zh"
 googleAnalytics = "G-STPKPBQR5Y"

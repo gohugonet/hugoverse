@@ -29,7 +29,7 @@ func New(services site.Services) *entity.Site {
 
 		Publisher: &entity.Publisher{Fs: services.Publish()},
 
-		Title:    "Hugoverse",                                              // TODO: Make configurable
+		Title:    services.SiteTitle(),
 		Author:   valueobject.NewAuthor("Hugoverse", "support@gohugo.net"), // TODO: Make configurable
 		Compiler: valueobject.NewVersion("0.0.0"),                          // TODO: Make configurable
 

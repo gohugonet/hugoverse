@@ -1,13 +1,28 @@
 package entity
 
 import (
+	"fmt"
 	"github.com/gohugonet/hugoverse/pkg/paths"
+	"path"
 )
 
 func (p *Page) Permalink() string {
-	return p.BaseURL.WithPathNoTrailingSlash + paths.PathEscape(p.PageOutput.TargetFilePath())
+	if p.PageIdentity().PageLanguage() == p.langSvc.DefaultLanguage() {
+		return p.BaseURL.WithPathNoTrailingSlash + paths.PathEscape(p.PageOutput.TargetFilePath())
+	}
+
+	return p.BaseURL.WithPath + paths.PathEscape(
+		path.Join(p.PageOutput.TargetPrefix(), p.PageOutput.TargetFilePath()))
 }
 
 func (p *Page) RelPermalink() string {
-	return p.BaseURL.BasePathNoTrailingSlash + paths.PathEscape(p.PageOutput.TargetFilePath())
+	if p.PageIdentity().PageLanguage() == p.langSvc.DefaultLanguage() {
+		return p.BaseURL.WithPathNoTrailingSlash + paths.PathEscape(p.PageOutput.TargetFilePath())
+	}
+
+	fmt.Println("RelPermalink 222", p.BaseURL.WithPath+paths.PathEscape(
+		path.Join(p.PageOutput.TargetPrefix(), p.PageOutput.TargetFilePath())))
+
+	return p.BaseURL.WithPath + paths.PathEscape(
+		path.Join(p.PageOutput.TargetPrefix(), p.PageOutput.TargetFilePath()))
 }

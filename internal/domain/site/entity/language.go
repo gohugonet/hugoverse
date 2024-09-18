@@ -82,7 +82,7 @@ func (l *Language) Lang() string {
 }
 
 func (l *Language) LanguageName() string {
-	return l.currentLanguage
+	return l.LangSvc.GetLanguageName(l.currentLanguage)
 }
 
 func (l *Language) LanguageCode() string {

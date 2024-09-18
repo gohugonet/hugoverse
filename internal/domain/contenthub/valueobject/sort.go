@@ -11,6 +11,11 @@ func SortByDefault(pages contenthub.Pages) {
 	pageBy(lessPageTitle).Sort(pages)
 }
 
+func SortByLanguage(pages contenthub.Pages) {
+	// TODO
+	pageBy(lessPageTitle).Sort(pages)
+}
+
 // pageBy is a closure used in the Sort.Less method.
 type pageBy func(p1, p2 contenthub.Page) bool
 

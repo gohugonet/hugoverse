@@ -13,6 +13,7 @@ type Page struct {
 	*Layout
 	*Output
 
+	title   string
 	kind    string
 	pageMap *PageMap
 }
@@ -71,6 +72,10 @@ func newPage(source *Source, content *Content) (*Page, error) {
 	return p, nil
 }
 
+func (p *Page) IsHome() bool {
+	return p.Kind() == valueobject.KindHome
+}
+
 func (p *Page) IsPage() bool {
 	return p.Kind() == valueobject.KindPage
 }
@@ -85,6 +90,10 @@ func (p *Page) Kind() string {
 
 func (p *Page) IsBundled() bool {
 	return p.File.BundleType.IsContentResource()
+}
+
+func (p *Page) Eq(other contenthub.Page) bool {
+	return p.Source.Identity.IdentifierBase() == other.PageIdentity().IdentifierBase()
 }
 
 func (p *Page) isStandalone() bool {
