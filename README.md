@@ -11,7 +11,7 @@ Hugo headless CMS server
 - [x] Template
 - [x] .Page.Pages
 - [x] .Site.Pages
-- [ ] Multiple Language
+- [x] Multiple Language
 - [x] Git info
 
 ## Next
@@ -21,3 +21,4 @@ Hugo headless CMS server
 - [ ] Sitemap
 - [ ] Inline shortcode
 - [ ] Output Format: connect page layouts and page outputs, should separate the config info service and business logic
+- [ ] API Authorization token

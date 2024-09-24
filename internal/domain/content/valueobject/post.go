@@ -7,33 +7,20 @@ import (
 	"net/http"
 )
 
-type Song struct {
+type Post struct {
 	Item
 
-	Student    string `json:"student"`
-	Title      string `json:"title"`
-	Artist     string `json:"artist"`
-	Rating     int    `json:"rating"`
-	Opinion    string `json:"opinion"`
-	SpotifyURL string `json:"spotify_url"`
-	Assets     string `json:"assets"`
+	Title   string   `json:"title"`
+	Content string   `json:"content"`
+	Author  string   `json:"author"`
+	Params  string   `json:"params"`
+	Assets  []string `json:"assets"`
 }
 
 // MarshalEditor writes a buffer of html to edit a Song within the CMS
 // and implements editor.Editable
-func (s *Song) MarshalEditor() ([]byte, error) {
+func (s *Post) MarshalEditor() ([]byte, error) {
 	view, err := editor.Form(s,
-		// Take note that the first argument to these Input-like functions
-		// is the string version of each Song field, and must follow
-		// this pattern for auto-decoding and auto-encoding reasons:
-		editor.Field{
-			View: editor.RefSelect("Student", s, map[string]string{
-				"label": "Student",
-			},
-				"Student",
-				`{{ .name }} `,
-			),
-		},
 		editor.Field{
 			View: editor.Input("Title", s, map[string]string{
 				"label":       "Title",
@@ -42,34 +29,29 @@ func (s *Song) MarshalEditor() ([]byte, error) {
 			}),
 		},
 		editor.Field{
-			View: editor.Input("Artist", s, map[string]string{
-				"label":       "Artist",
-				"type":        "text",
-				"placeholder": "Enter the Artist here",
+			View: editor.Textarea("Content", s, map[string]string{
+				"label":       "Content",
+				"type":        "textarea",
+				"placeholder": "Enter the Content in markdown here",
 			}),
 		},
 		editor.Field{
-			View: editor.Input("Rating", s, map[string]string{
-				"label":       "Rating",
-				"type":        "text",
-				"placeholder": "Enter the Rating here",
+			View: editor.RefSelect("Author", s, map[string]string{
+				"label": "Author",
+			},
+				"Author",
+				`{{ printf "%s %s" .first_name .last_name }} `,
+			),
+		},
+		editor.Field{
+			View: editor.Textarea("Params", s, map[string]string{
+				"label":       "Params",
+				"type":        "textarea",
+				"placeholder": "Enter the params here in yaml format",
 			}),
 		},
 		editor.Field{
-			View: editor.Richtext("Opinion", s, map[string]string{
-				"label":       "Opinion",
-				"placeholder": "Enter the Opinion here",
-			}),
-		},
-		editor.Field{
-			View: editor.Input("SpotifyURL", s, map[string]string{
-				"label":       "SpotifyURL",
-				"type":        "text",
-				"placeholder": "Enter the SpotifyURL here",
-			}),
-		},
-		editor.Field{
-			View: editor.File("Assets", s, map[string]string{
+			View: editor.FileRepeater("Assets", s, map[string]string{
 				"label":       "Assets",
 				"placeholder": "Upload the Assets here",
 			}),
@@ -77,26 +59,24 @@ func (s *Song) MarshalEditor() ([]byte, error) {
 	)
 
 	if err != nil {
-		return nil, fmt.Errorf("Failed to render Song editor view: %s", err.Error())
+		return nil, fmt.Errorf("failed to render Song editor view: %s", err.Error())
 	}
 
 	return view, nil
 }
 
 // String defines the display name of a Song in the CMS list-view
-func (s *Song) String() string { return s.Title }
+func (s *Post) String() string { return s.Title }
 
 // Create implements api.Createable, and allows external POST requests from clients
 // to add content as long as the request contains the json tag names of the Song
 // struct fields, and is multipart encoded
-func (s *Song) Create(res http.ResponseWriter, req *http.Request) error {
+func (s *Post) Create(res http.ResponseWriter, req *http.Request) error {
 	// do form data validation for required fields
 	required := []string{
 		"title",
-		"artist",
-		"rating",
-		"opinion",
-		"spotify_url",
+		"content",
+		"author",
 	}
 
 	for _, r := range required {
@@ -112,7 +92,7 @@ func (s *Song) Create(res http.ResponseWriter, req *http.Request) error {
 // BeforeAPICreate is only called if the Song type implements api.Createable
 // It is called before Create, and returning an error will cancel the request
 // causing the system to reject the data sent in the POST
-func (s *Song) BeforeAPICreate(res http.ResponseWriter, req *http.Request) error {
+func (s *Post) BeforeAPICreate(res http.ResponseWriter, req *http.Request) error {
 	// do initial user authentication here on the request, checking for a
 	// token or cookie, or that certain form fields are set and valid
 
@@ -131,7 +111,7 @@ func (s *Song) BeforeAPICreate(res http.ResponseWriter, req *http.Request) error
 // notifications, etc. after the data is saved to the database, etc.
 // The request has a context containing the databse 'target' affected by the
 // request. Ex. Song__pending:3 or Song:8 depending if Song implements api.Trustable
-func (s *Song) AfterAPICreate(res http.ResponseWriter, req *http.Request) error {
+func (s *Post) AfterAPICreate(res http.ResponseWriter, req *http.Request) error {
 	addr := req.RemoteAddr
 	log.Println("Song sent by:", addr, "titled:", req.PostFormValue("title"))
 
@@ -143,7 +123,7 @@ func (s *Song) AfterAPICreate(res http.ResponseWriter, req *http.Request) error 
 // is approved, it is waiting in the Pending bucket, and can only be approved in
 // the CMS if the Mergeable interface is satisfied. If not, you will not see this
 // content show up in the CMS.
-func (s *Song) Approve(res http.ResponseWriter, req *http.Request) error {
+func (s *Post) Approve(res http.ResponseWriter, req *http.Request) error {
 	return nil
 }
 
@@ -159,7 +139,7 @@ func (s *Song) Approve(res http.ResponseWriter, req *http.Request) error {
 // when using AutoApprove, because content will immediately be available through
 // your public content API. If the Trustable interface is satisfied, the AfterApprove
 // method is bypassed. The
-func (s *Song) AutoApprove(res http.ResponseWriter, req *http.Request) error {
+func (s *Post) AutoApprove(res http.ResponseWriter, req *http.Request) error {
 	// Use AutoApprove to check for trust-specific headers or whitelisted IPs,
 	// etc. Remember, you will not be able to Approve or Reject content that
 	// is auto-approved. You could add a field to Song, i.e.
@@ -170,10 +150,10 @@ func (s *Song) AutoApprove(res http.ResponseWriter, req *http.Request) error {
 	return nil
 }
 
-func (s *Song) IndexContent() bool {
+func (s *Post) IndexContent() bool {
 	return true
 }
 
-func (s *Song) Push(http.ResponseWriter, *http.Request) ([]string, error) {
-	return []string{"student"}, nil
+func (s *Post) Push(http.ResponseWriter, *http.Request) ([]string, error) {
+	return []string{"author"}, nil
 }
