@@ -16,6 +16,7 @@ type Site struct {
 	Theme       string `json:"theme"`
 	Params      string `json:"params"`
 	Owner       int    `json:"owner"`
+	WorkingDir  string `json:"working_dir"`
 }
 
 // MarshalEditor writes a buffer of html to edit a Song within the CMS
@@ -65,10 +66,17 @@ func (s *Site) MarshalEditor() ([]byte, error) {
 				"placeholder": "Enter the owner user id here",
 			}),
 		},
+		editor.Field{
+			View: editor.Input("WorkingDir", s, map[string]string{
+				"label":       "WorkingDir",
+				"type":        "text",
+				"placeholder": "Enter the project dir here",
+			}),
+		},
 	)
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to render Author editor view: %s", err.Error())
+		return nil, fmt.Errorf("failed to render Site editor view: %s", err.Error())
 	}
 
 	return view, nil

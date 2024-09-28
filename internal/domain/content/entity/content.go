@@ -4,21 +4,40 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/gofrs/uuid"
 	"github.com/gohugonet/hugoverse/internal/domain/content"
 	"github.com/gohugonet/hugoverse/internal/domain/content/repository"
 	"github.com/gohugonet/hugoverse/internal/domain/content/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/form"
+	"github.com/gohugonet/hugoverse/pkg/loggers"
 	"github.com/gorilla/schema"
 	"log"
 	"net/url"
 	"sort"
-	"strconv"
 )
+
+type contentSvc interface {
+	newContent(contentType string, ci any) (string, error)
+	search(contentType string, query string) ([][]byte, error)
+}
 
 type Content struct {
 	Types map[string]content.Creator
 	Repo  repository.Repository
+
+	*Search
+	*Hugo
+
+	Log loggers.Logger
+}
+
+func (c *Content) count(contentType string) {
+	all := c.Repo.AllContent(contentType)
+
+	fmt.Println("all: ", contentType, len(all))
+}
+
+func (c *Content) LoadHugoProject() error {
+	return c.Hugo.LoadProject(c)
 }
 
 func (c *Content) AllContentTypeNames() []string {
@@ -64,12 +83,23 @@ func (c *Content) DeleteContent(contentType, id, status string) error {
 		return err
 	}
 
+	ns := GetNamespace(contentType, status)
 	if err := c.Repo.DeleteContent(
-		GetNamespace(contentType, status),
+		ns,
 		id,
 		cti.(content.Sluggable).ItemSlug()); err != nil {
 		return err
 	}
+
+	go func() {
+		// delete indexed data from search index
+		if isPublicNamespace(ns) {
+			err = c.Search.DeleteIndex(ns)
+			if err != nil {
+				log.Println("[search] DeleteIndex Error:", err)
+			}
+		}
+	}()
 
 	if err := c.SortContent(contentType); err != nil {
 		return err
@@ -112,6 +142,19 @@ func (c *Content) UpdateContent(contentType string, data url.Values) error {
 		return errors.New("invalid content type")
 	}
 	status := cis.ItemStatus()
+
+	if cii, ok := ci.(content.Identifiable); ok {
+		go func() {
+			// update data in search index
+			if err := c.Search.UpdateIndex(
+				GetNamespace(contentType, string(cis.ItemStatus())),
+				fmt.Sprintf("%d", cii.ItemID()), b); err != nil {
+
+				log.Println("[search] UpdateIndex Error:", err)
+			}
+		}()
+	}
+
 	if status == content.Public {
 		go func() {
 			err := c.SortContent(contentType)
@@ -141,6 +184,10 @@ func (c *Content) SortContent(contentType string) error {
 	// decode each (json) into type to then sort
 	for i := range all {
 		j := all[i]
+		if j == nil {
+			log.Println("Error decoding json while sorting", contentType, ": nil")
+			continue
+		}
 
 		post := t()
 		err := json.Unmarshal(j, &post)
@@ -181,87 +228,6 @@ func (c *Content) SortContent(contentType string) error {
 	}
 
 	return nil
-}
-
-func (c *Content) NewContent(contentType string, data url.Values) (string, error) {
-	t, ok := c.GetContentCreator(contentType)
-	if !ok {
-		return "", errors.New("invalid content type")
-	}
-	ci := t()
-
-	d, err := form.Convert(data)
-	if err != nil {
-		return "", err
-	}
-	// Decode Content
-	dec := schema.NewDecoder()
-	dec.SetAliasTag("json")     // allows simpler struct tagging when creating a content type
-	dec.IgnoreUnknownKeys(true) // will skip over form values submitted, but not in struct
-	err = dec.Decode(ci, d)
-	if err != nil {
-		return "", err
-	}
-
-	cii, ok := ci.(content.Identifiable)
-	if ok {
-		uid, err := uuid.NewV4()
-		if err != nil {
-			return "", err
-		}
-		cii.SetUniqueID(uid)
-
-		id, err := c.Repo.NextContentId(contentType)
-		if err != nil {
-			return "", err
-		}
-		cii.SetItemID(int(id))
-	} else {
-		return "", errors.New("content type does not implement Identifiable")
-	}
-
-	slug, err := Slug(cii)
-	if err != nil {
-		return "", err
-	}
-
-	slug, err = c.Repo.CheckSlugForDuplicate(slug)
-	if err != nil {
-		return "", err
-	}
-
-	ciSlug, ok := ci.(content.Sluggable)
-	if ok {
-		ciSlug.SetSlug(slug)
-	} else {
-		return "", errors.New("content type does not implement Sluggable")
-	}
-
-	cis, ok := ci.(content.Statusable)
-	if ok {
-		if cis.ItemStatus() == "" {
-			cis.SetItemStatus(content.Public)
-		}
-	} else {
-		return "", errors.New("content type does not implement Statusable")
-	}
-
-	b, err := c.Marshal(ci)
-	if err != nil {
-		return "", err
-	}
-
-	if err := c.Repo.NewContent(ci, b); err != nil {
-		return "", err
-	}
-
-	if cis.ItemStatus() == content.Public {
-		if err := c.SortContent(contentType); err != nil {
-			return "", err
-		}
-	}
-
-	return strconv.FormatInt(int64(cii.ItemID()), 10), nil
 }
 
 func (c *Content) Marshal(content any) ([]byte, error) {

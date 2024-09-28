@@ -10,7 +10,6 @@ import (
 	"github.com/gohugonet/hugoverse/internal/interfaces/api/database"
 	"github.com/gohugonet/hugoverse/internal/interfaces/api/handler"
 	"github.com/gohugonet/hugoverse/internal/interfaces/api/record"
-	"github.com/gohugonet/hugoverse/internal/interfaces/api/search"
 	"github.com/gohugonet/hugoverse/internal/interfaces/api/tls"
 	"github.com/gohugonet/hugoverse/pkg/log"
 	"net/http"
@@ -64,8 +63,8 @@ func NewServer(options ...func(s *Server) error) (*Server, error) {
 		HttpsPort:    443,
 		DevHttpsPort: 10443,
 
-		db:     database.New(dataDir()),
-		record: record.New(dataDir()),
+		db:     database.New(application.DataDir()),
+		record: record.New(application.DataDir()),
 		auth:   &auth.Auth{},
 	}
 	for _, o := range options {
@@ -92,11 +91,10 @@ func NewServer(options ...func(s *Server) error) (*Server, error) {
 	s.cors = cors.New(s.Log, s.adminApp, s.cache)
 
 	s.record.Start()
-	search.Setup(contentApp.AllContentTypes(), searchDir())
 
-	s.tls = tls.NewTls(s, s.adminApp, tlsDir())
+	s.tls = tls.NewTls(s, s.adminApp, application.TLSDir())
 
-	s.handler = handler.New(s.Log, uploadDir(), s.db, contentApp, s.adminApp)
+	s.handler = handler.New(s.Log, application.UploadDir(), s.db, contentApp, s.adminApp)
 
 	s.registerHandler()
 

@@ -6,13 +6,20 @@ Hugo headless CMS server
 
 - Install Dart Sass
 
-## TODO for PoC of book theme
+## PoC
 
-- [x] Template
-- [x] .Page.Pages
-- [x] .Site.Pages
-- [x] Multiple Language
-- [x] Git info
+- [x] DDD Ponzu to expose API
+- [x] DDD Hugo to get content info
+- [x] DDD Hugo to build site
+- [x] Load Hugo project from file system
+- [ ] Manage Post through API
+- [ ] Deploy Site through API
+
+## MVP
+
+- [ ] CLI JWT token
+- [ ] Test Coverage
+
 
 ## Next
 

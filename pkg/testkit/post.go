@@ -1,5 +1,93 @@
 package testkit
 
+const homeContent = `
+---
+title: Home Page Chinese
+---
+
+## Hugo源码阅读
+
+你好，欢迎来到 Hugo 的源码阅读
+
+`
+
+const homeContentEn = `
+---
+title: Home Page English
+---
+
+## Hugo Source Code Reading
+
+Welcome to the Hugo source code reading series.
+
+`
+
+const docsContent = `
+---
+title: Docs Section _index Chinese
+---
+
+## Hugo docs 源码阅读 
+
+你好，欢迎来到 Hugo 的源码阅读
+
+`
+
+const docsContentEn = `
+---
+title: Docs Section _index English
+---
+
+## Hugo docs Source Code Reading
+
+Welcome to the Hugo source code reading series.
+
+`
+
+const docsApiContent = `
+---
+title: Docs Section api Chinese
+---
+
+## Hugo docs api 源码阅读 
+
+你好，欢迎来到 Hugo 的源码阅读
+
+`
+
+const docsApiContentEn = `
+---
+title: Docs Section api English
+---
+
+## Hugo docs api Source Code Reading
+
+Welcome to the Hugo source code reading series.
+
+`
+
+const docsApiBookContent = `
+---
+title: Docs Section api book Chinese
+---
+
+## Hugo docs api book 源码阅读 
+
+你好，欢迎来到 Hugo 的源码阅读
+
+`
+
+const docsApiBookContentEn = `
+---
+title: Docs Section api book English
+---
+
+## Hugo api book Source Code Reading
+
+Welcome to the Hugo source code reading series.
+
+`
+
 const post1Content = `
 ---
 title: Home Introduction

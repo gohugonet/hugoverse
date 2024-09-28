@@ -5,12 +5,15 @@ import (
 	"github.com/gohugonet/hugoverse/internal/domain/content/entity"
 	"github.com/gohugonet/hugoverse/internal/domain/content/repository"
 	"github.com/gohugonet/hugoverse/internal/domain/content/valueobject"
+	"github.com/gohugonet/hugoverse/pkg/loggers"
 )
 
-func NewContent(repo repository.Repository) content.Content {
+func NewContent(repo repository.Repository, searchDir string) *entity.Content {
 	c := &entity.Content{
 		Types: make(map[string]content.Creator),
 		Repo:  repo,
+
+		Log: loggers.NewDefault(),
 	}
 
 	c.Types["Author"] = func() interface{} { return new(valueobject.Author) }
@@ -21,5 +24,27 @@ func NewContent(repo repository.Repository) content.Content {
 	c.Types["SiteLanguage"] = func() interface{} { return new(valueobject.SiteLanguage) }
 	c.Types["SitePost"] = func() interface{} { return new(valueobject.SitePost) }
 
+	c.Search = newSearch(c, searchDir)
+
 	return c
+}
+
+func newSearch(c *entity.Content, searchDir string) *entity.Search {
+	s := &entity.Search{}
+	s.Setup(c.AllContentTypes(), searchDir)
+	return s
+}
+
+func NewContentWithServices(repo repository.Repository, searchDir string, services content.Services) *entity.Content {
+	c := NewContent(repo, searchDir)
+	c.Hugo = &entity.Hugo{
+		Services: services,
+		Log:      c.Log,
+	}
+
+	return c
+}
+
+func NewItem() (*valueobject.Item, error) {
+	return valueobject.NewItem()
 }

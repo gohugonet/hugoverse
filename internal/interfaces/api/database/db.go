@@ -5,9 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/content"
-	"github.com/gohugonet/hugoverse/internal/interfaces/api/search"
 	"github.com/gohugonet/hugoverse/pkg/db"
-	"log"
 	"strconv"
 )
 
@@ -94,13 +92,6 @@ func (d *Database) PutContent(ci any, data []byte) error {
 		}); err != nil {
 		return err
 	}
-
-	go func() {
-		// update data in search index
-		if err := search.UpdateIndex(ns, fmt.Sprintf("%d", id), data); err != nil {
-			log.Println("[search] UpdateIndex Error:", err)
-		}
-	}()
 
 	return nil
 }

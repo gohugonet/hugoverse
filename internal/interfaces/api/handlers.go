@@ -1,6 +1,7 @@
 package api
 
 import (
+	"github.com/gohugonet/hugoverse/internal/application"
 	"net/http"
 )
 
@@ -43,7 +44,7 @@ func (s *Server) registerAdminHandler() {
 		http.StripPrefix("/admin/static",
 			http.FileServer(restrict(http.Dir(staticDir))))))
 
-	uploadsDir := uploadDir()
+	uploadsDir := application.UploadDir()
 	s.mux.Handle("/api/uploads/", s.record.Collect(s.cors.Handle(s.cache.Control(
 		http.StripPrefix("/api/uploads/",
 			http.FileServer(restrict(http.Dir(uploadsDir))))))))

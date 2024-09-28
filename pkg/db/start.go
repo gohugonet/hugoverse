@@ -29,7 +29,7 @@ func Start(dataDir string, contentTypes []string) {
 	systemDb := filepath.Join(dataDir, "system.db")
 	store, err = bolt.Open(systemDb, 0666, nil)
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatalln("Couldn't open db.", err)
 	}
 
 	err = store.Update(func(tx *bolt.Tx) error {

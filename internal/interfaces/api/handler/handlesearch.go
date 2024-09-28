@@ -3,6 +3,7 @@ package handler
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"github.com/gohugonet/hugoverse/internal/interfaces/api/search"
 	"github.com/gohugonet/hugoverse/pkg/db"
 	"github.com/gohugonet/hugoverse/pkg/editor"
@@ -68,8 +69,8 @@ func (s *Handler) SearchContentHandler(res http.ResponseWriter, req *http.Reques
 	}
 
 	// execute search for query provided, if no index for type send 404
-	indices, err := search.TypeQuery(t, q, count, offset)
-	if err == search.ErrNoIndex {
+	indices, err := s.contentApp.Search.TypeQuery(t, q, count, offset)
+	if errors.Is(err, search.ErrNoIndex) {
 		s.log.Errorf("Index for type %s not found", t)
 		res.WriteHeader(http.StatusNotFound)
 		return
@@ -81,7 +82,7 @@ func (s *Handler) SearchContentHandler(res http.ResponseWriter, req *http.Reques
 	}
 
 	// respond with json formatted results
-	bb, err := s.contentApp.GetContents(ConvertToIdentifiers(indices))
+	bb, err := s.contentApp.GetContents(indices)
 	if err != nil {
 		s.log.Errorf("Error getting content: %v", err)
 		res.WriteHeader(http.StatusInternalServerError)

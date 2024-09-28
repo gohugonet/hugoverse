@@ -48,3 +48,39 @@ func MkTestSite() (string, func(), error) {
 	prepareFS(tempDir, files)
 	return tempDir, clean, nil
 }
+
+func MkBookSite() (string, func(), error) {
+	tempDir, clean, err := MkTestTempDir(testOs, "go-hugoverse-temp-dir")
+	if err != nil {
+		return "", clean, err
+	}
+
+	files := fmt.Sprintf(`
+-- config.toml --
+%s
+-- go.mod --
+%s
+-- content/_index.md --
+%s
+-- content/docs/_index.md --
+%s
+-- content/docs/api/_index.md --
+%s
+-- content/docs/api/book/index.md --
+%s
+-- content.en/_index.md --
+%s
+-- content.en/docs/_index.md --
+%s
+-- content.en/docs/api/_index.md --
+%s
+-- content.en/docs/api/book/index.md --
+%s
+`, configContent, goModContent,
+		homeContent, docsContent, docsApiContent, docsApiBookContent,
+		homeContentEn, docsContentEn, docsApiContentEn, docsApiBookContentEn,
+	)
+
+	prepareFS(tempDir, files)
+	return tempDir, clean, nil
+}

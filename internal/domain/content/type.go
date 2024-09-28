@@ -4,8 +4,8 @@ import (
 	"errors"
 	"github.com/blevesearch/bleve/mapping"
 	"github.com/gofrs/uuid"
+	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
 	"net/http"
-	"net/url"
 )
 
 type Creator func() interface{}
@@ -15,20 +15,28 @@ type Identifier interface {
 	ContentType() string
 }
 
-type Content interface {
-	AllContentTypeNames() []string
-	AllContentTypes() map[string]Creator
-	NormalizeString(s string) (string, error)
-	GetContentCreator(string) (Creator, bool)
+type Services interface {
+	SiteService
+	CHService
+}
 
-	GetContents([]Identifier) ([][]byte, error)
+type SiteService interface {
+	SiteTitle() string
+	BaseUrl() string
+	ConfigParams() map[string]any
+	DefaultTheme() string
+	WorkingDir() string
 
-	//GetContent Todo, convert to identifier
+	LanguageKeys() []string
+	DefaultLanguage() string
+	GetLanguageName(lang string) string
+	GetLanguageIndex(lang string) (int, error)
+	GetLanguageFolder(lang string) string
+}
 
-	GetContent(contentType, id, status string) ([]byte, error)
-	DeleteContent(contentType, id, status string) error
-	NewContent(contentType string, data url.Values) (string, error)
-	UpdateContent(contentType string, data url.Values) error
+type CHService interface {
+	WalkPages(langIndex int, walker contenthub.WalkFunc) error
+	GetPageSources(page contenthub.Page) ([]contenthub.PageSource, error)
 }
 
 type Status string

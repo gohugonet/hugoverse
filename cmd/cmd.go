@@ -75,6 +75,14 @@ func New() error {
 			if err := staticCmd.Run(); err != nil {
 				return err
 			}
+		case "load":
+			loadCmd, err := cli.NewLoadCmd(topLevel)
+			if err != nil {
+				return err
+			}
+			if err := loadCmd.Run(); err != nil {
+				return err
+			}
 
 		default:
 			topLevel.Usage()

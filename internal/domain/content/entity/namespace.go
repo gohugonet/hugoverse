@@ -3,6 +3,7 @@ package entity
 import (
 	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/content"
+	"strings"
 )
 
 func GetNamespace(contentType, status string) string {
@@ -11,4 +12,8 @@ func GetNamespace(contentType, status string) string {
 		ns = fmt.Sprintf("%s__%s", contentType, status)
 	}
 	return ns
+}
+
+func isPublicNamespace(ns string) bool {
+	return !strings.Contains(ns, "__")
 }

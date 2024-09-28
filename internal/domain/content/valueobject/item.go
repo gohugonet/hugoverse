@@ -6,6 +6,9 @@ import (
 	"github.com/blevesearch/bleve/mapping"
 	"github.com/gofrs/uuid"
 	"github.com/gohugonet/hugoverse/internal/domain/content"
+	"github.com/gohugonet/hugoverse/pkg/timestamp"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 	"net/http"
 )
 
@@ -18,6 +21,32 @@ type Item struct {
 	Slug      string         `json:"slug"`
 	Timestamp int64          `json:"timestamp"`
 	Updated   int64          `json:"updated"`
+}
+
+func NewItem() (*Item, error) {
+	uid, err := uuid.NewV4()
+	if err != nil {
+		return nil, err
+	}
+
+	nowMillis := timestamp.CurrentTimeMillis()
+
+	return &Item{
+		UUID:      uid,
+		ID:        -1,
+		Slug:      "",
+		Timestamp: nowMillis,
+		Updated:   nowMillis,
+	}, nil
+}
+
+func NewItemWithNamespace(namespace string) (*Item, error) {
+	i, err := NewItem()
+	if err != nil {
+		return nil, err
+	}
+	i.Namespace = namespace
+	return i, nil
 }
 
 // Time partially implements the Sortable interface
@@ -229,4 +258,17 @@ func (i *Item) SearchMapping() (*mapping.IndexMappingImpl, error) {
 // partially implements search.Searchable
 func (i *Item) IndexContent() bool {
 	return false
+}
+
+func (i *Item) QueryString() string {
+	return fmt.Sprintf("/api/content?type=%s&id=%d", capitalizeFirstLetter(i.Namespace), i.ID)
+}
+
+func capitalizeFirstLetter(s string) string {
+	if len(s) == 0 {
+		return s
+	}
+
+	caser := cases.Title(language.English)
+	return caser.String(s[:1]) + s[1:]
 }

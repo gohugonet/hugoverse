@@ -34,6 +34,20 @@ func (ch *ContentHub) RenderString(ctx context.Context, args ...any) (goTmpl.HTM
 	return "", nil
 }
 
+func (ch *ContentHub) ProcessPages(exec contenthub.Template) error {
+	ch.pagesLog = ch.Log.InfoCommand("ContentHub.ProcessPages")
+	defer loggers.TimeTrackf(ch.pagesLog, time.Now(), nil, "")
+
+	ch.TemplateExecutor = exec
+	ch.PageMap.PageBuilder.TemplateSvc = exec
+
+	if err := ch.process(); err != nil {
+		return fmt.Errorf("process: %w", err)
+	}
+
+	return nil
+}
+
 func (ch *ContentHub) CollectPages(exec contenthub.Template) error {
 	ch.pagesLog = ch.Log.InfoCommand("ContentHub.CollectPages")
 	defer loggers.TimeTrackf(ch.pagesLog, time.Now(), nil, "")

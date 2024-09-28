@@ -103,3 +103,13 @@ func (l *Language) GetLanguageName(lang string) string {
 
 	return ""
 }
+
+func (l *Language) GetLanguageFolder(lang string) string {
+	for c, v := range l.RootConfigs {
+		if c == lang {
+			return v.ContentDir
+		}
+	}
+
+	return ""
+}

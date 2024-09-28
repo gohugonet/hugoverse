@@ -2,6 +2,7 @@ package handler
 
 import (
 	"github.com/gohugonet/hugoverse/internal/application"
+	"github.com/gohugonet/hugoverse/internal/domain/content/entity"
 	"github.com/gohugonet/hugoverse/internal/interfaces/api/admin"
 	"github.com/gohugonet/hugoverse/internal/interfaces/api/auth"
 	"github.com/gohugonet/hugoverse/internal/interfaces/api/database"
@@ -15,7 +16,7 @@ type Handler struct {
 	uploadDir string
 
 	db         *database.Database
-	contentApp *application.ContentServer
+	contentApp *entity.Content
 	adminApp   *application.AdminServer
 	adminView  *admin.View
 
@@ -23,7 +24,7 @@ type Handler struct {
 }
 
 func New(log log.Logger, uploadDir string, db *database.Database,
-	contentApp *application.ContentServer, adminApp *application.AdminServer) *Handler {
+	contentApp *entity.Content, adminApp *application.AdminServer) *Handler {
 
 	adminView := admin.NewView(adminApp.Name(), contentApp.AllContentTypes())
 

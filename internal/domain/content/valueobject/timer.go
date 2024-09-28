@@ -45,6 +45,7 @@ func EnoughTime(key string, cb func(key string) error) bool {
 		<-enoughTimer.C
 		lastInvocationAfterTimer, _ := lastInvocation(key)
 		if !lastInvocationAfterTimer.After(lastInvocationBeforeTimer) {
+			log.Println("Time to trigger sort", key)
 			if err := cb(key); err != nil {
 				log.Println("Error while updating db with sorted", key, err)
 				return
