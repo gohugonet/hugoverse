@@ -7,13 +7,18 @@ import (
 	"github.com/gohugonet/hugoverse/internal/domain/content/valueobject"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
 	"github.com/gohugonet/hugoverse/pkg/loggers"
+	"github.com/gohugonet/hugoverse/pkg/timestamp"
+	"github.com/spf13/afero"
 	"gopkg.in/yaml.v3"
 	"path"
+	"path/filepath"
 	"strconv"
+	"time"
 )
 
 type Hugo struct {
 	Services content.Services
+	Fs       afero.Fs
 
 	contentSvc contentSvc
 
@@ -69,8 +74,10 @@ func (h *Hugo) loadPosts() error {
 				Item:    *i,
 				Title:   p.Title(),
 				Author:  authorQueryStr,
-				Content: p.RawContent(),
+				Content: p.PureContent(),
 			} // TODO, page assets
+			post.Item.Updated = timestamp.TimeMillis(p.PageFile().FileInfo().ModTime())
+
 			id, err := h.contentSvc.newContent("Post", post)
 			if err != nil {
 				return err
@@ -251,4 +258,56 @@ func mapToYAML(data map[string]any) (string, error) {
 		return "", err
 	}
 	return string(yamlData), nil
+}
+
+func (h *Hugo) syncPostToFilesystem(s *valueobject.Site, p *valueobject.Post, sp *valueobject.SitePost) error {
+	absPath := filepath.Join(s.WorkingDir, sp.Path)
+
+	// Check if the file exists
+	exists, err := afero.Exists(h.Fs, absPath)
+	if err != nil {
+		return err
+	}
+
+	// If the file does not exist or needs to be updated
+	if !exists || h.needsUpdate(absPath, p.Updated) {
+		if err := h.writeFileAndUpdateTime(absPath, []byte(p.FullContent()), p.UpdateTime()); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// needsUpdate checks if the file at absPath needs to be updated based on the provided timestamp.
+func (h *Hugo) needsUpdate(absPath string, updated int64) bool {
+	fileInfo, err := h.Fs.Stat(absPath)
+	if err != nil {
+		return true // If we can't stat the file, assume it needs an update
+	}
+	return timestamp.TimeMillis(fileInfo.ModTime()) < updated
+}
+
+// writeFileAndUpdateTime writes the content to the file and updates its modification time.
+func (h *Hugo) writeFileAndUpdateTime(absPath string, content []byte, ut time.Time) error {
+	if err := h.writeFile(absPath, content); err != nil {
+		return err
+	}
+	if err := h.Fs.Chtimes(absPath, ut, ut); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (h *Hugo) writeFile(filename string, data []byte) error {
+	err := h.Fs.MkdirAll(filepath.Dir(filename), 0777)
+	if err != nil {
+		fmt.Println(err)
+	}
+	err = afero.WriteFile(h.Fs, filename, data, 0666)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	return nil
 }

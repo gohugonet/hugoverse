@@ -15,6 +15,9 @@ func (s *Server) registerContentHandler() {
 
 	s.mux.HandleFunc("/api/search", s.record.Collect(
 		s.cors.Handle(s.comp.Gzip(s.handler.SearchContentHandler))))
+
+	s.mux.HandleFunc("/api/build", s.record.Collect(
+		s.cors.Handle(s.comp.Gzip(s.handler.BuildContentHandler))))
 }
 
 func (s *Server) registerAdminHandler() {

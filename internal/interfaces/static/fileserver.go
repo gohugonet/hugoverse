@@ -59,6 +59,7 @@ func (s *FileServer) Serve() error {
 		return nil
 	})
 
+	s.log.Println("Serving static files on: ", s.portListener.bathPath())
 	s.log.Println("Press Ctrl+C to stop")
 
 	err = func() error {

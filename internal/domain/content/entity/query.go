@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"encoding/json"
 	"errors"
 	"github.com/gohugonet/hugoverse/internal/interfaces/api/search"
 )
@@ -26,4 +27,24 @@ func (c *Content) search(contentType string, query string) ([][]byte, error) {
 	}
 
 	return bb, nil
+}
+
+func (c *Content) getContent(contentType, id string) (any, error) {
+	bs, err := c.GetContent(contentType, id, "")
+	if err != nil {
+		return nil, err
+	}
+
+	t, ok := c.GetContentCreator(contentType)
+	if !ok {
+		return "", errors.New("invalid content type")
+	}
+	ci := t()
+
+	err = json.Unmarshal(bs, ci)
+	if err != nil {
+		return "", err
+	}
+
+	return ci, nil
 }

@@ -51,6 +51,10 @@ type Hideable interface {
 	Hide(http.ResponseWriter, *http.Request) error
 }
 
+type Buildable interface {
+	Build() bool
+}
+
 // Pushable lets a user define which values of certain struct fields are
 // 'pushed' down to  a client via HTTP/2 Server Push. All items in the slice
 // should be the json tag names of the struct fields to which they correspond.
@@ -181,15 +185,22 @@ Add this to the file which defines %[1]s{} in the 'content' package:
 
 	func init() {			
 		item.Types["%[1]s"] = func() interface{} { return new(%[1]s) }
-	}		
-				
+	}
+`
 
+	typeNotSupportedForBuilding = `Error:
+There is no building feature supported for %[1]s
+
+Site only supported at the moment.
 `
 )
 
 var (
 	// ErrTypeNotRegistered means content type isn't registered (not found in Types map)
 	ErrTypeNotRegistered = errors.New(typeNotRegistered)
+
+	// ErrTypeNotSupportedForBuilding means content type isn't supported for building
+	ErrTypeNotSupportedForBuilding = errors.New(typeNotSupportedForBuilding)
 
 	// ErrAllowHiddenItem should be used as an error to tell a caller of Hideable#Hide
 	// that this type is hidden, but should be shown in a particular case, i.e.

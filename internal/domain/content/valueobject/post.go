@@ -157,3 +157,11 @@ func (s *Post) IndexContent() bool {
 func (s *Post) Push(http.ResponseWriter, *http.Request) ([]string, error) {
 	return []string{"author"}, nil
 }
+
+func (s *Post) FrontMatter() string {
+	return fmt.Sprintf("---\ntitle: %s\n---", s.Title)
+}
+
+func (s *Post) FullContent() string {
+	return s.FrontMatter() + "\n" + s.Content
+}

@@ -277,6 +277,7 @@ type WalkTaxonomyFunc func(taxonomy string, term string, page OrdinalWeightPage)
 type RawContentProvider interface {
 	// RawContent returns the raw, unprocessed content of the page excluding any front matter.
 	RawContent() string
+	PureContent() string
 }
 
 // PageWithoutContent is the Page without any of the content methods.

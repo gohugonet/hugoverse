@@ -14,6 +14,11 @@ var (
 // PageNop implements Page, but does nothing.
 type nopPage int
 
+func (p *nopPage) PureContent() string {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (p *nopPage) IsHome() bool {
 	//TODO implement me
 	panic("implement me")

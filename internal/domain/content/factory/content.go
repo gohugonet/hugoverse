@@ -6,14 +6,22 @@ import (
 	"github.com/gohugonet/hugoverse/internal/domain/content/repository"
 	"github.com/gohugonet/hugoverse/internal/domain/content/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/loggers"
+	"github.com/spf13/afero"
 )
 
 func NewContent(repo repository.Repository, searchDir string) *entity.Content {
+	log := loggers.NewDefault()
+
 	c := &entity.Content{
 		Types: make(map[string]content.Creator),
 		Repo:  repo,
 
-		Log: loggers.NewDefault(),
+		Hugo: &entity.Hugo{
+			Fs:  afero.NewOsFs(),
+			Log: log,
+		},
+
+		Log: log,
 	}
 
 	c.Types["Author"] = func() interface{} { return new(valueobject.Author) }
@@ -37,10 +45,7 @@ func newSearch(c *entity.Content, searchDir string) *entity.Search {
 
 func NewContentWithServices(repo repository.Repository, searchDir string, services content.Services) *entity.Content {
 	c := NewContent(repo, searchDir)
-	c.Hugo = &entity.Hugo{
-		Services: services,
-		Log:      c.Log,
-	}
+	c.Hugo.Services = services
 
 	return c
 }

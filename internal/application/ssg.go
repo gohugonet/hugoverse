@@ -1,6 +1,7 @@
 package application
 
 import (
+	"errors"
 	configAgr "github.com/gohugonet/hugoverse/internal/domain/config/entity"
 	configFact "github.com/gohugonet/hugoverse/internal/domain/config/factory"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
@@ -17,7 +18,6 @@ import (
 	siteAgr "github.com/gohugonet/hugoverse/internal/domain/site/entity"
 	siteFact "github.com/gohugonet/hugoverse/internal/domain/site/factory"
 	tmplFact "github.com/gohugonet/hugoverse/internal/domain/template/factory"
-	"github.com/gohugonet/hugoverse/pkg/testkit"
 	"github.com/spf13/afero"
 	"os"
 	"sort"
@@ -26,22 +26,29 @@ import (
 var publishDirFs afero.Fs
 
 func ServeGenerateStaticSite() (afero.Fs, error) {
-	tmpDir, _, err := testkit.MkTestSite()
-	//defer clean()
-
-	if err != nil {
-		return nil, err
-	}
-
-	if err := os.Chdir(tmpDir); err != nil {
-		return nil, err
-	}
-
 	if err := GenerateStaticSite(); err != nil {
 		return nil, err
 	}
 
 	return publishDirFs, nil
+}
+
+func GenerateStaticSiteWithTarget(target string) error {
+	info, err := os.Stat(target)
+
+	if os.IsNotExist(err) {
+		return errors.New("file not exist")
+	}
+
+	if !info.IsDir() {
+		return errors.New("target is not a directory")
+	}
+
+	if err := os.Chdir(target); err != nil {
+		return err
+	}
+
+	return GenerateStaticSite()
 }
 
 func GenerateStaticSite() error {

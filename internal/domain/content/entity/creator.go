@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/gofrs/uuid"
 	"github.com/gohugonet/hugoverse/internal/domain/content"
+	"github.com/gohugonet/hugoverse/internal/domain/content/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/form"
 	"github.com/gorilla/schema"
 	"log"
@@ -32,9 +33,6 @@ func (c *Content) NewContent(contentType string, data url.Values) (string, error
 		return "", err
 	}
 
-	// TODO， need to sync content to file system
-	// in hugo project way
-	// check changes: file system existing check? hash?
 	return c.newContent(contentType, ci)
 }
 
@@ -111,5 +109,52 @@ func (c *Content) newContent(contentType string, ci any) (string, error) {
 		}
 	}()
 
+	if contentType == "SitePost" {
+		go c.syncCheck(ci.(*valueobject.SitePost))
+	}
+
 	return strconv.FormatInt(id, 10), nil
+}
+
+func (c *Content) syncCheck(sp *valueobject.SitePost) {
+	siteId, err := valueobject.GetIdFromQueryString(sp.Site)
+	if err != nil {
+		c.Log.Println("syncCheck error: ", err)
+		return
+	}
+
+	postId, err := valueobject.GetIdFromQueryString(sp.Post)
+	if err != nil {
+		c.Log.Println("syncCheck error: ", err)
+		return
+	}
+
+	s, err := c.getContent("Site", siteId)
+	if err != nil {
+		c.Log.Println("syncCheck error: ", err)
+		return
+	}
+
+	p, err := c.getContent("Post", postId)
+	if err != nil {
+		c.Log.Println("syncCheck error: ", err)
+		return
+	}
+
+	site, ok := s.(*valueobject.Site)
+	if !ok {
+		c.Log.Println("syncCheck error: ", err)
+		return
+	}
+
+	post, ok := p.(*valueobject.Post)
+	if !ok {
+		c.Log.Println("syncCheck error: ", err)
+		return
+	}
+
+	if err := c.Hugo.syncPostToFilesystem(site, post, sp); err != nil {
+		c.Log.Println("syncCheck error: ", err)
+		return
+	}
 }

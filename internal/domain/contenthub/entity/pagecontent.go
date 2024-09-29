@@ -55,6 +55,25 @@ func (c *Content) RawContent() string {
 	return string(c.rawSource)
 }
 
+func (c *Content) PureContent() string {
+	content := make([]byte, 0, len(c.rawSource)+(len(c.rawSource)/10))
+
+	for _, it := range c.items {
+		switch v := it.(type) {
+		case pageparser.Item:
+			content = append(content, c.rawSource[v.Pos():v.Pos()+len(v.Val(c.rawSource))]...)
+		case valueobject.PageContentReplacement:
+			content = append(content, v.Val...)
+		case *valueobject.Shortcode:
+			content = append(content, c.rawSource[v.Pos:v.Length]...)
+		default:
+			panic(fmt.Sprintf("unknown item type %T", v))
+		}
+	}
+
+	return string(content)
+}
+
 func (c *Content) getShortCodes() []*valueobject.Shortcode {
 	var res []*valueobject.Shortcode
 	for _, item := range c.items {

@@ -1,7 +1,9 @@
 package valueobject
 
 import (
+	"errors"
 	"fmt"
+	"net/url"
 	"strings"
 )
 
@@ -39,4 +41,20 @@ func NewIndex(ns, id string) *Index {
 		ns: ns,
 		id: id,
 	}
+}
+
+func GetIdFromQueryString(queryString string) (string, error) {
+	// Parse the query string
+	values, err := url.ParseQuery(queryString)
+	if err != nil {
+		return "", fmt.Errorf("failed to parse query string: %v", err)
+	}
+
+	// Extract the 'id' parameter
+	id := values.Get("id")
+	if id == "" {
+		return "", errors.New("id parameter not found")
+	}
+
+	return id, nil
 }

@@ -170,3 +170,7 @@ func (s *Site) AutoApprove(res http.ResponseWriter, req *http.Request) error {
 func (s *Site) IndexContent() bool {
 	return true
 }
+
+func (s *Site) Build() bool {
+	return true
+}

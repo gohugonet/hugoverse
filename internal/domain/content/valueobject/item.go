@@ -10,6 +10,7 @@ import (
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 	"net/http"
+	"time"
 )
 
 // Item should only be embedded into content type structs.
@@ -271,4 +272,13 @@ func capitalizeFirstLetter(s string) string {
 
 	caser := cases.Title(language.English)
 	return caser.String(s[:1]) + s[1:]
+}
+
+func (i *Item) UpdateTime() time.Time {
+	t, err := timestamp.ConvertInt64ToTime(i.Updated)
+	if err != nil {
+		fmt.Printf("Error converting timestamp: %s", err)
+		return time.Now()
+	}
+	return t
 }

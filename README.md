@@ -12,13 +12,15 @@ Hugo headless CMS server
 - [x] DDD Hugo to get content info
 - [x] DDD Hugo to build site
 - [x] Load Hugo project from file system
-- [ ] Manage Post through API
+- [x] Manage Post through API
+- [x] Build Site through API
 - [ ] Deploy Site through API
 
 ## MVP
 
 - [ ] CLI JWT token
 - [ ] Test Coverage
+- [ ] Log
 
 
 ## Next

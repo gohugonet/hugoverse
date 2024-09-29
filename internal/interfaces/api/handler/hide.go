@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"errors"
 	"github.com/gohugonet/hugoverse/internal/domain/content"
 	"net/http"
 )
@@ -9,7 +10,7 @@ func hide(res http.ResponseWriter, req *http.Request, it interface{}) bool {
 	// check if should be hidden
 	if h, ok := it.(content.Hideable); ok {
 		err := h.Hide(res, req)
-		if err == content.ErrAllowHiddenItem {
+		if errors.Is(err, content.ErrAllowHiddenItem) {
 			return false
 		}
 
