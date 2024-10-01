@@ -55,6 +55,10 @@ type Buildable interface {
 	Build() bool
 }
 
+type Deployable interface {
+	Deploy() bool
+}
+
 // Pushable lets a user define which values of certain struct fields are
 // 'pushed' down to  a client via HTTP/2 Server Push. All items in the slice
 // should be the json tag names of the struct fields to which they correspond.

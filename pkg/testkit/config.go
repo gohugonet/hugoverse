@@ -20,7 +20,7 @@ func MkTestConfig() (string, func(), error) {
 }
 
 const configContent = `
-baseURL = 'http://localhost:1315/'
+baseURL = '/'
 title = 'Deep Dive into Hugo'
 theme = "github.com/sunwei/hugo-book"
 defaultContentLanguage = "zh"

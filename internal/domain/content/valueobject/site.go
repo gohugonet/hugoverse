@@ -174,3 +174,7 @@ func (s *Site) IndexContent() bool {
 func (s *Site) Build() bool {
 	return true
 }
+
+func (s *Site) Deploy() bool {
+	return true
+}

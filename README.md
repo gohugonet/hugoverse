@@ -14,7 +14,7 @@ Hugo headless CMS server
 - [x] Load Hugo project from file system
 - [x] Manage Post through API
 - [x] Build Site through API
-- [ ] Deploy Site through API
+- [x] Deploy Site through API
 
 ## MVP
 

@@ -18,6 +18,8 @@ func (s *Server) registerContentHandler() {
 
 	s.mux.HandleFunc("/api/build", s.record.Collect(
 		s.cors.Handle(s.comp.Gzip(s.handler.BuildContentHandler))))
+	s.mux.HandleFunc("/api/deploy", s.record.Collect(
+		s.cors.Handle(s.comp.Gzip(s.handler.DeployContentHandler))))
 }
 
 func (s *Server) registerAdminHandler() {
