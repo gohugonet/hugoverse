@@ -13,7 +13,7 @@ import (
 	"path"
 )
 
-const accessToken = "nfp_begmCvXLH6ibK9kEMyxreMvcRpVJz2B8c0d3"
+const accessToken = "nfp_AV9PCfK1QkGKeCSMJDokFN4167auccQq420d"
 const siteID = "8f4e867c-b981-4959-8054-86c3f1f321e1"
 
 type netlifyConfig struct {
