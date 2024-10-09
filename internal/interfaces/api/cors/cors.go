@@ -2,7 +2,7 @@ package cors
 
 import (
 	"github.com/gohugonet/hugoverse/internal/interfaces/api/cache"
-	"github.com/gohugonet/hugoverse/pkg/log"
+	"github.com/gohugonet/hugoverse/pkg/loggers"
 	"net/http"
 	"net/url"
 )
@@ -14,11 +14,11 @@ type Controller interface {
 
 type Cors struct {
 	adminApp Controller
-	log      log.Logger
+	log      loggers.Logger
 	cache    *cache.Cache
 }
 
-func New(log log.Logger, adminApp Controller, cache *cache.Cache) *Cors {
+func New(log loggers.Logger, adminApp Controller, cache *cache.Cache) *Cors {
 	return &Cors{
 		adminApp: adminApp,
 		log:      log,

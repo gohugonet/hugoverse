@@ -28,9 +28,9 @@ func All(item Item) ([][]byte, error) {
 	return items, nil
 }
 
-func Get(item Item) ([]byte, error) {
+func (s *Store) Get(item Item) ([]byte, error) {
 	val := &bytes.Buffer{}
-	err := store.View(func(tx *bolt.Tx) error {
+	err := s.db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(item.Bucket()))
 		if b == nil {
 			return bolt.ErrBucketNotFound
@@ -56,8 +56,8 @@ func Get(item Item) ([]byte, error) {
 	return val.Bytes(), nil
 }
 
-func Set(item Item) error {
-	err := store.Update(func(tx *bolt.Tx) error {
+func (s *Store) Set(item Item) error {
+	err := s.db.Update(func(tx *bolt.Tx) error {
 		bucket, err := tx.CreateBucketIfNotExists([]byte(item.Bucket()))
 		if err != nil {
 			return err
@@ -77,8 +77,8 @@ func Set(item Item) error {
 	return nil
 }
 
-func Delete(item Item) error {
-	err := store.Update(func(tx *bolt.Tx) error {
+func (s *Store) Delete(item Item) error {
+	err := s.db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(item.Bucket()))
 		if b == nil {
 			return bolt.ErrBucketNotFound

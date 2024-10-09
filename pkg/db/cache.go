@@ -1,6 +1,9 @@
 package db
 
 import (
+	"fmt"
+	"os"
+	"path"
 	"sync"
 	"time"
 )
@@ -31,7 +34,12 @@ func OpenUserStore(userID string, dataDir string, contentTypes []string) (*Store
 		return cachedDB.Store, nil
 	}
 
-	db, err := NewStore(dataDir, contentTypes)
+	userDataDir := path.Join(dataDir, userID)
+	if err := ensureDirExists(userDataDir); err != nil {
+		return nil, err
+	}
+
+	db, err := NewStore(userDataDir, contentTypes)
 	if err != nil {
 		return nil, err
 	}
@@ -43,6 +51,19 @@ func OpenUserStore(userID string, dataDir string, contentTypes []string) (*Store
 
 	cache[userID] = cs
 	return cs.Store, nil
+}
+
+func ensureDirExists(dir string) error {
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		err := os.MkdirAll(dir, 0755)
+		if err != nil {
+			return fmt.Errorf("failed to create directory: %w", err)
+		}
+	} else if err != nil {
+		// 其他错误
+		return fmt.Errorf("failed to check directory: %w", err)
+	}
+	return nil
 }
 
 func resetDBTimer(cachedDB *cachedStore) {

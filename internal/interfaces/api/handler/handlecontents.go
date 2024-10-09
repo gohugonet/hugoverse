@@ -115,7 +115,7 @@ func (s *Handler) ContentsHandler(res http.ResponseWriter, req *http.Request) {
 		switch status {
 		case "public", "":
 			// get __sorted posts of type t from the db
-			total, posts = db.Query(t+specifier, opts)
+			total, posts = s.db.Query(t+specifier, opts)
 
 			html += `<div class="row externalable">
 					<span class="description">Status:</span> 
@@ -157,7 +157,7 @@ func (s *Handler) ContentsHandler(res http.ResponseWriter, req *http.Request) {
 
 		case "pending":
 			// get __pending posts of type t from the db
-			total, posts = db.Query(t+"__pending", opts)
+			total, posts = s.db.Query(t+"__pending", opts)
 
 			html += `<div class="row externalable">
 					<span class="description">Status:</span> 
@@ -206,7 +206,7 @@ func (s *Handler) ContentsHandler(res http.ResponseWriter, req *http.Request) {
 		}
 
 	} else {
-		total, posts = db.Query(t+specifier, opts)
+		total, posts = s.db.Query(t+specifier, opts)
 
 		for i := range posts {
 			err := json.Unmarshal(posts[i], &p)

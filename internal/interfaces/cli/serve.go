@@ -4,7 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/gohugonet/hugoverse/internal/interfaces/api"
-	"github.com/gohugonet/hugoverse/pkg/log"
+	"github.com/gohugonet/hugoverse/pkg/loggers"
 	"strconv"
 )
 
@@ -42,26 +42,24 @@ func (c *serverCmd) Usage() {
 }
 
 func (c *serverCmd) Run() error {
-	l := log.NewStdLogger()
-
 	env := api.DEV
 	if *c.env == "prod" {
 		env = api.PROD
 	}
-	s, err := api.NewServer(setupLogger(l), setupPort(*c.port))
+	s, err := api.NewServer(setupLogger(), setupPort(*c.port))
 	if err != nil {
-		l.Fatalf("Error creating server: %v", err)
+		s.Log.Errorf("Error creating server: %v", err)
 	}
 	defer s.Close()
 
-	l.Fatalf("Error listening on :%v: %v", *c.port, s.ListenAndServe(env, *c.https))
+	s.Log.Errorf("Error listening on :%v: %v", *c.port, s.ListenAndServe(env, *c.https))
 
 	return nil
 }
 
-func setupLogger(l log.Logger) func(s *api.Server) error {
+func setupLogger() func(s *api.Server) error {
 	return func(s *api.Server) error {
-		s.Log = l
+		s.Log = loggers.NewDefault()
 
 		return nil
 	}

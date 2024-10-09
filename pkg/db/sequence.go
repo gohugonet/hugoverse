@@ -2,9 +2,9 @@ package db
 
 import bolt "go.etcd.io/bbolt"
 
-func NextSequence(item BucketItem) (uint64, error) {
+func (s *Store) NextSequence(item BucketItem) (uint64, error) {
 	var id uint64
-	err := store.Update(func(tx *bolt.Tx) error {
+	err := s.db.Update(func(tx *bolt.Tx) error {
 		items := tx.Bucket([]byte(item.Bucket()))
 		if items == nil {
 			return bolt.ErrBucketNotFound

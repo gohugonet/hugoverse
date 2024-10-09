@@ -5,9 +5,9 @@ import (
 	"log"
 )
 
-func Sort(items Items) error {
+func (s *Store) Sort(items Items) error {
 	// store in <namespace>_sorted bucket, first delete existing
-	err := store.Update(func(tx *bolt.Tx) error {
+	err := s.db.Update(func(tx *bolt.Tx) error {
 		bn := []byte(items.Bucket())
 		err := tx.DeleteBucket(bn)
 		if err != nil && err != bolt.ErrBucketNotFound {

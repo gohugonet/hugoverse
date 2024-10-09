@@ -14,6 +14,8 @@ type SitePost struct {
 	Site string `json:"site"`
 	Post string `json:"post"`
 	Path string `json:"path"`
+
+	refSelData map[string][][]byte
 }
 
 // MarshalEditor writes a buffer of html to edit a Song within the CMS
@@ -26,6 +28,7 @@ func (s *SitePost) MarshalEditor() ([]byte, error) {
 			},
 				"Site",
 				`{{ .title }} `,
+				s.refSelData["Site"],
 			),
 		},
 		editor.Field{
@@ -34,6 +37,7 @@ func (s *SitePost) MarshalEditor() ([]byte, error) {
 			},
 				"Post",
 				`{{ .title }} `,
+				s.refSelData["Post"],
 			),
 		},
 		editor.Field{
@@ -50,6 +54,14 @@ func (s *SitePost) MarshalEditor() ([]byte, error) {
 	}
 
 	return view, nil
+}
+
+func (s *SitePost) SetSelectData(data map[string][][]byte) {
+	s.refSelData = data
+}
+
+func (s *SitePost) SelectContentTypes() []string {
+	return []string{"Site", "Post"}
 }
 
 // String defines the display name of a Song in the CMS list-view

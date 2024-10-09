@@ -35,13 +35,21 @@ func (s *Response) Json(res http.ResponseWriter, data []byte) {
 }
 
 func (s *Response) FmtJSON(data ...json.RawMessage) ([]byte, error) {
-	var msg []json.RawMessage
-	for _, d := range data {
-		msg = append(msg, d)
-	}
+	var resp map[string][]json.RawMessage
 
-	resp := map[string][]json.RawMessage{
-		"data": msg,
+	if len(data) == 1 {
+		resp = map[string][]json.RawMessage{
+			"data": data,
+		}
+	} else {
+		var msg []json.RawMessage
+		for _, d := range data {
+			msg = append(msg, d)
+		}
+
+		resp = map[string][]json.RawMessage{
+			"data": msg,
+		}
 	}
 
 	var buf = &bytes.Buffer{}

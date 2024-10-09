@@ -17,6 +17,8 @@ type Site struct {
 	Params      string `json:"params"`
 	Owner       int    `json:"owner"`
 	WorkingDir  string `json:"working_dir"`
+
+	refSelData map[string][][]byte
 }
 
 // MarshalEditor writes a buffer of html to edit a Song within the CMS
@@ -50,6 +52,7 @@ func (s *Site) MarshalEditor() ([]byte, error) {
 			},
 				"Theme",
 				`{{ .name }} `,
+				s.refSelData["Theme"],
 			),
 		},
 		editor.Field{
@@ -80,6 +83,14 @@ func (s *Site) MarshalEditor() ([]byte, error) {
 	}
 
 	return view, nil
+}
+
+func (s *Site) SetSelectData(data map[string][][]byte) {
+	s.refSelData = data
+}
+
+func (s *Site) SelectContentTypes() []string {
+	return []string{"Theme"}
 }
 
 // String defines the display name of a Song in the CMS list-view

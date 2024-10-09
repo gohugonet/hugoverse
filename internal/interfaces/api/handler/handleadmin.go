@@ -3,8 +3,7 @@ package handler
 import (
 	"encoding/base64"
 	"github.com/gohugonet/hugoverse/internal/interfaces/api/admin"
-	"github.com/gohugonet/hugoverse/pkg/db"
-	"github.com/nilslice/jwt"
+	"github.com/gohugonet/hugoverse/internal/interfaces/api/token"
 	"log"
 	"net/http"
 	"strings"
@@ -24,7 +23,7 @@ func (s *Handler) AdminHandler(res http.ResponseWriter, req *http.Request) {
 }
 
 func (s *Handler) InitHandler(res http.ResponseWriter, req *http.Request) {
-	if db.SystemInitComplete() {
+	if s.db.SystemInitComplete() {
 		http.Redirect(res, req, req.URL.Scheme+req.URL.Host+"/admin", http.StatusFound)
 		return
 	}
@@ -80,15 +79,7 @@ func (s *Handler) InitHandler(res http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		// add _token cookie for login persistence
-		week := time.Now().Add(time.Hour * 24 * 7)
-		claims := map[string]interface{}{
-			"exp":  week.Unix(),
-			"user": email,
-		}
-
-		jwt.Secret([]byte(secret))
-		token, err := jwt.New(claims)
+		nt, exp, err := token.New(email)
 		if err != nil {
 			s.log.Errorf("Error creating JWT: %v", err)
 			res.WriteHeader(http.StatusInternalServerError)
@@ -97,8 +88,8 @@ func (s *Handler) InitHandler(res http.ResponseWriter, req *http.Request) {
 
 		http.SetCookie(res, &http.Cookie{
 			Name:    "_token",
-			Value:   token,
-			Expires: week,
+			Value:   nt,
+			Expires: exp,
 			Path:    "/",
 		})
 
@@ -110,7 +101,7 @@ func (s *Handler) InitHandler(res http.ResponseWriter, req *http.Request) {
 }
 
 func (s *Handler) LoginHandler(res http.ResponseWriter, req *http.Request) {
-	if !db.SystemInitComplete() {
+	if !s.db.SystemInitComplete() {
 		redir := req.URL.Scheme + req.URL.Host + "/admin/init"
 		http.Redirect(res, req, redir, http.StatusFound)
 		return
@@ -158,12 +149,7 @@ func (s *Handler) LoginHandler(res http.ResponseWriter, req *http.Request) {
 		}
 
 		// create new token
-		week := time.Now().Add(time.Hour * 24 * 7)
-		claims := map[string]interface{}{
-			"exp":  week,
-			"user": email,
-		}
-		token, err := jwt.New(claims)
+		nt, exp, err := token.New(email)
 		if err != nil {
 			s.log.Errorf("Error creating JWT: %v", err)
 			http.Redirect(res, req, req.URL.String(), http.StatusFound)
@@ -173,8 +159,8 @@ func (s *Handler) LoginHandler(res http.ResponseWriter, req *http.Request) {
 		// add it to cookie +1 week expiration
 		http.SetCookie(res, &http.Cookie{
 			Name:    "_token",
-			Value:   token,
-			Expires: week,
+			Value:   nt,
+			Expires: exp,
 			Path:    "/",
 		})
 

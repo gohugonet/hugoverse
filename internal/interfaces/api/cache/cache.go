@@ -2,7 +2,7 @@ package cache
 
 import (
 	"fmt"
-	"github.com/gohugonet/hugoverse/pkg/log"
+	"github.com/gohugonet/hugoverse/pkg/loggers"
 	"net/http"
 	"strings"
 )
@@ -15,10 +15,10 @@ type Controller interface {
 
 type Cache struct {
 	adminApp Controller
-	log      log.Logger
+	log      loggers.Logger
 }
 
-func New(log log.Logger, adminApp Controller) *Cache {
+func New(log loggers.Logger, adminApp Controller) *Cache {
 	return &Cache{
 		adminApp: adminApp,
 		log:      log,

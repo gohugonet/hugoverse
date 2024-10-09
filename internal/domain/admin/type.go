@@ -32,6 +32,7 @@ type User interface {
 type UserService interface {
 	ValidateUser(email, password string) error
 	NewUser(email, password string) (User, error)
+	IsUserExists(email string) bool
 }
 
 type Upload interface {

@@ -12,4 +12,6 @@ type Repository interface {
 	CheckSlugForDuplicate(slug string) (string, error)
 
 	PutSortedContent(namespace string, m map[string][]byte) error
+
+	UserDataDir() string
 }

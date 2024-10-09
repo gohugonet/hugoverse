@@ -30,6 +30,14 @@ func (a *Administrator) ValidateUser(email, password string) error {
 	return nil
 }
 
+func (a *Administrator) IsUserExists(email string) bool {
+	user, err := getUser(email, a.Repo)
+	if err != nil {
+		return false
+	}
+	return user != nil
+}
+
 func (a *Administrator) NewUser(email, password string) (admin.User, error) {
 	userData, err := getUser(email, a.Repo)
 	if err != nil {

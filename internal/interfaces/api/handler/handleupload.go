@@ -98,7 +98,7 @@ func (s *Handler) UploadContentsHandler(res http.ResponseWriter, req *http.Reque
 
 	t := "__uploads"
 	status := ""
-	total, posts = db.Query(t, opts)
+	total, posts = s.db.Query(t, opts)
 
 	pt := s.adminApp.UploadCreator()()
 	p, ok := pt.(editor.Editable)

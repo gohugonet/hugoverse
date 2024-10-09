@@ -5,8 +5,8 @@ import (
 	bolt "go.etcd.io/bbolt"
 )
 
-func RemoveIndex(slug string) error {
-	err := store.Update(func(tx *bolt.Tx) error {
+func (s *Store) RemoveIndex(slug string) error {
+	err := s.db.Update(func(tx *bolt.Tx) error {
 		ci := tx.Bucket([]byte("__contentIndex"))
 		if ci == nil {
 			return bolt.ErrBucketNotFound
@@ -26,9 +26,9 @@ func RemoveIndex(slug string) error {
 	return nil
 }
 
-func CheckSlugForDuplicate(slug string) (string, error) {
+func (s *Store) CheckSlugForDuplicate(slug string) (string, error) {
 	// check for existing slug in __contentIndex
-	err := store.View(func(tx *bolt.Tx) error {
+	err := s.db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("__contentIndex"))
 		if b == nil {
 			return bolt.ErrBucketNotFound
@@ -56,9 +56,9 @@ func CheckSlugForDuplicate(slug string) (string, error) {
 	return slug, nil
 }
 
-func SetIndex(item KeyValue) error {
+func (s *Store) SetIndex(item KeyValue) error {
 	var err error
-	err = store.Update(func(tx *bolt.Tx) error {
+	err = s.db.Update(func(tx *bolt.Tx) error {
 		b, err := tx.CreateBucketIfNotExists([]byte("__contentIndex"))
 		if err != nil {
 			return err

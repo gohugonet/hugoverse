@@ -7,10 +7,10 @@ import (
 )
 
 // ContentAll retrives all items from the database within the provided namespace
-func ContentAll(namespace string) [][]byte {
+func (s *Store) ContentAll(namespace string) [][]byte {
 	var posts [][]byte
 
-	if err := store.View(func(tx *bolt.Tx) error {
+	if err := s.db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(namespace))
 		if b == nil {
 			fmt.Println("Bucket not found", namespace)

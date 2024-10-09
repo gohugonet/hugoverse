@@ -4,8 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"github.com/gohugonet/hugoverse/internal/interfaces/api/search"
-	"github.com/gohugonet/hugoverse/pkg/db"
+	"github.com/gohugonet/hugoverse/internal/domain/content"
 	"github.com/gohugonet/hugoverse/pkg/editor"
 	"net/http"
 	"net/url"
@@ -16,7 +15,6 @@ import (
 func (s *Handler) SearchContentHandler(res http.ResponseWriter, req *http.Request) {
 	qs := req.URL.Query()
 	t := qs.Get("type")
-	// type must be set, future version may compile multi-type result set
 	if t == "" {
 		s.log.Printf("Type must be set")
 		res.WriteHeader(http.StatusBadRequest)
@@ -70,7 +68,7 @@ func (s *Handler) SearchContentHandler(res http.ResponseWriter, req *http.Reques
 
 	// execute search for query provided, if no index for type send 404
 	indices, err := s.contentApp.Search.TypeQuery(t, q, count, offset)
-	if errors.Is(err, search.ErrNoIndex) {
+	if errors.Is(err, content.ErrNoIndex) {
 		s.log.Errorf("Index for type %s not found", t)
 		res.WriteHeader(http.StatusNotFound)
 		return
@@ -101,12 +99,14 @@ func (s *Handler) SearchContentHandler(res http.ResponseWriter, req *http.Reques
 
 	j, err := s.res.FmtJSON(result...)
 	if err != nil {
+		s.log.Errorf("Error formatting json: %v", err)
 		res.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	j, err = omit(res, req, it(), j)
 	if err != nil {
+		s.log.Errorf("Error formatting json: %v", err)
 		res.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -130,7 +130,7 @@ func (s *Handler) SearchHandler(res http.ResponseWriter, req *http.Request) {
 		specifier = "__" + status
 	}
 
-	posts := db.ContentAll(t + specifier)
+	posts := s.db.AllContent(t + specifier)
 	b := &bytes.Buffer{}
 	pt, ok := s.contentApp.AllContentTypes()[t]
 	if !ok {

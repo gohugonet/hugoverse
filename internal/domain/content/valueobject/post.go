@@ -15,6 +15,8 @@ type Post struct {
 	Author  string   `json:"author"`
 	Params  string   `json:"params"`
 	Assets  []string `json:"assets"`
+
+	refSelData map[string][][]byte
 }
 
 // MarshalEditor writes a buffer of html to edit a Song within the CMS
@@ -41,6 +43,7 @@ func (s *Post) MarshalEditor() ([]byte, error) {
 			},
 				"Author",
 				`{{ printf "%s %s" .first_name .last_name }} `,
+				s.refSelData["Author"],
 			),
 		},
 		editor.Field{
@@ -63,6 +66,14 @@ func (s *Post) MarshalEditor() ([]byte, error) {
 	}
 
 	return view, nil
+}
+
+func (s *Post) SetSelectData(data map[string][][]byte) {
+	s.refSelData = data
+}
+
+func (s *Post) SelectContentTypes() []string {
+	return []string{"Author"}
 }
 
 // String defines the display name of a Song in the CMS list-view

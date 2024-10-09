@@ -1,6 +1,7 @@
 package factory
 
 import (
+	"github.com/blevesearch/bleve"
 	"github.com/gohugonet/hugoverse/internal/domain/content"
 	"github.com/gohugonet/hugoverse/internal/domain/content/entity"
 	"github.com/gohugonet/hugoverse/internal/domain/content/repository"
@@ -9,7 +10,7 @@ import (
 	"github.com/spf13/afero"
 )
 
-func NewContent(repo repository.Repository, searchDir string) *entity.Content {
+func NewContent(repo repository.Repository) *entity.Content {
 	log := loggers.NewDefault()
 
 	c := &entity.Content{
@@ -32,19 +33,19 @@ func NewContent(repo repository.Repository, searchDir string) *entity.Content {
 	c.Types["SiteLanguage"] = func() interface{} { return new(valueobject.SiteLanguage) }
 	c.Types["SitePost"] = func() interface{} { return new(valueobject.SitePost) }
 
-	c.Search = newSearch(c, searchDir)
+	c.Search = &entity.Search{
+		ContentTypes: c.AllContentTypes(),
+		Repo:         repo,
+		Log:          log,
+
+		IndicesMap: make(map[string]map[string]bleve.Index),
+	}
 
 	return c
 }
 
-func newSearch(c *entity.Content, searchDir string) *entity.Search {
-	s := &entity.Search{}
-	s.Setup(c.AllContentTypes(), searchDir)
-	return s
-}
-
-func NewContentWithServices(repo repository.Repository, searchDir string, services content.Services) *entity.Content {
-	c := NewContent(repo, searchDir)
+func NewContentWithServices(repo repository.Repository, services content.Services) *entity.Content {
+	c := NewContent(repo)
 	c.Hugo.Services = services
 
 	return c

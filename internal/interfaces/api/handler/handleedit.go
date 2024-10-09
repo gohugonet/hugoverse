@@ -66,6 +66,17 @@ func (s *Handler) EditHandler(res http.ResponseWriter, req *http.Request) {
 			item.SetItemID(-1)
 		}
 
+		sel, ok := post.(content.RefSelectable)
+		if ok {
+			selContentTypes := sel.SelectContentTypes()
+			var data map[string][][]byte
+			for _, ct := range selContentTypes {
+				data[ct] = s.db.AllContent(ct)
+			}
+
+			sel.SetSelectData(data)
+		}
+
 		m, err := admin.Manage(post.(editor.Editable), t)
 		if err != nil {
 			s.log.Errorf("Error rendering admin view: %v", err)

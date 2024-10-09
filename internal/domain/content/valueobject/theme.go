@@ -14,6 +14,8 @@ type Theme struct {
 	ModuleURL   string `json:"module_url"`
 	Author      string `json:"author"`
 	Screenshots string `json:"screenshots"`
+
+	refSelData map[string][][]byte
 }
 
 // MarshalEditor writes a buffer of html to edit a Song within the CMS
@@ -40,6 +42,7 @@ func (s *Theme) MarshalEditor() ([]byte, error) {
 			},
 				"Author",
 				`{{ printf "%s %s" .first_name .last_name }} `,
+				s.refSelData["Author"],
 			),
 		},
 		editor.Field{
@@ -55,6 +58,14 @@ func (s *Theme) MarshalEditor() ([]byte, error) {
 	}
 
 	return view, nil
+}
+
+func (s *Theme) SetSelectData(data map[string][][]byte) {
+	s.refSelData = data
+}
+
+func (s *Theme) SelectContentTypes() []string {
+	return []string{"Author"}
 }
 
 // String defines the display name of a Song in the CMS list-view

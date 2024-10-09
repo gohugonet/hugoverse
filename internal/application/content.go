@@ -18,7 +18,7 @@ import (
 )
 
 func NewContentServer(db repository.Repository) *entity.Content {
-	return factory.NewContent(db, SearchDir())
+	return factory.NewContent(db)
 }
 
 func LoadHugoProject() error {
@@ -81,14 +81,18 @@ func LoadHugoProject() error {
 		return err
 	}
 
-	db := database.New(DataDir())
-	ct := factory.NewContentWithServices(db, SearchDir(), &siteServices{
+	db, err := database.New(DataDir())
+	if err != nil {
+		return err
+	}
+
+	ct := factory.NewContentWithServices(db, &siteServices{
 		Config:     c,
 		Fs:         sfs,
 		ContentHub: ch,
 	})
 
-	db.Start(ct.AllContentTypeNames())
+	db.RegisterContentBuckets(ct.AllContentTypeNames())
 	defer db.Close()
 
 	err = ct.LoadHugoProject()

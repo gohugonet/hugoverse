@@ -2,7 +2,7 @@ package compression
 
 import (
 	"compress/gzip"
-	"github.com/gohugonet/hugoverse/pkg/log"
+	"github.com/gohugonet/hugoverse/pkg/loggers"
 	"net/http"
 	"strings"
 )
@@ -13,10 +13,10 @@ type GzipControl interface {
 
 type Compression struct {
 	adminApp GzipControl
-	log      log.Logger
+	log      loggers.Logger
 }
 
-func New(log log.Logger, adminApp GzipControl) *Compression {
+func New(log loggers.Logger, adminApp GzipControl) *Compression {
 	return &Compression{
 		adminApp: adminApp,
 		log:      log,

@@ -6,12 +6,12 @@ import (
 	"github.com/gohugonet/hugoverse/internal/interfaces/api/admin"
 	"github.com/gohugonet/hugoverse/internal/interfaces/api/auth"
 	"github.com/gohugonet/hugoverse/internal/interfaces/api/database"
-	"github.com/gohugonet/hugoverse/pkg/log"
+	"github.com/gohugonet/hugoverse/pkg/loggers"
 )
 
 type Handler struct {
 	res *Response
-	log log.Logger
+	log loggers.Logger
 
 	uploadDir string
 
@@ -23,7 +23,7 @@ type Handler struct {
 	auth *auth.Auth
 }
 
-func New(log log.Logger, uploadDir string, db *database.Database,
+func New(log loggers.Logger, uploadDir string, db *database.Database,
 	contentApp *entity.Content, adminApp *application.AdminServer) *Handler {
 
 	adminView := admin.NewView(adminApp.Name(), contentApp.AllContentTypes())

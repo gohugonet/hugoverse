@@ -3,13 +3,13 @@ package entity
 import (
 	"encoding/json"
 	"errors"
-	"github.com/gohugonet/hugoverse/internal/interfaces/api/search"
+	"github.com/gohugonet/hugoverse/internal/domain/content"
 )
 
 func (c *Content) search(contentType string, query string) ([][]byte, error) {
 	// execute search for query provided, if no index for type send 404
 	indices, err := c.Search.TypeQuery(contentType, query, 10, 0)
-	if errors.Is(err, search.ErrNoIndex) {
+	if errors.Is(err, content.ErrNoIndex) {
 		c.Log.Errorf("Index for type %s not found", contentType)
 
 		return nil, err

@@ -6,41 +6,52 @@ import (
 )
 
 func (s *Server) registerContentHandler() {
-	s.mux.HandleFunc("/api/contents", s.record.Collect(
-		s.cors.Handle(s.comp.Gzip(s.handler.ApiContentsHandler))))
-	s.mux.HandleFunc("/api/content", s.record.Collect(
-		s.cors.Handle(s.comp.Gzip(s.handler.ContentHandler))))
-	s.mux.HandleFunc("/api/content/create", s.record.Collect(
-		s.cors.Handle(s.handler.CreateContentHandler)))
+	s.mux.HandleFunc("/api/contents", s.wrapContentHandler(s.handler.ApiContentsHandler))
+	s.mux.HandleFunc("/api/content", s.wrapContentHandler(s.handler.ContentHandler))
+	s.mux.HandleFunc("/api/content/create", s.wrapContentHandler(s.handler.CreateContentHandler))
 
-	s.mux.HandleFunc("/api/search", s.record.Collect(
-		s.cors.Handle(s.comp.Gzip(s.handler.SearchContentHandler))))
+	s.mux.HandleFunc("/api/search", s.wrapContentHandler(s.handler.SearchContentHandler))
 
-	s.mux.HandleFunc("/api/build", s.record.Collect(
-		s.cors.Handle(s.comp.Gzip(s.handler.BuildContentHandler))))
-	s.mux.HandleFunc("/api/deploy", s.record.Collect(
-		s.cors.Handle(s.comp.Gzip(s.handler.DeployContentHandler))))
+	s.mux.HandleFunc("/api/build", s.wrapContentHandler(s.handler.BuildContentHandler))
+	s.mux.HandleFunc("/api/deploy", s.wrapContentHandler(s.handler.DeployContentHandler))
+}
+
+func (s *Server) wrapContentHandler(handler http.HandlerFunc) http.HandlerFunc {
+	return s.record.Collect(
+		s.cors.Handle(
+			s.comp.Gzip(
+				s.db.Open(
+					s.auth.Check(handler)))))
+}
+
+func (s *Server) registerUserHandler() {
+	s.mux.HandleFunc("/api/user", s.record.Collect(s.cors.Handle(s.handler.UserRegisterHandler)))
+	s.mux.HandleFunc("/api/login", s.record.Collect(s.cors.Handle(s.handler.UserLoginHandler)))
+}
+
+func (s *Server) wrapAdminHandler(handler http.HandlerFunc) http.HandlerFunc {
+	return s.db.Open(s.auth.CheckWithRedirect(handler))
 }
 
 func (s *Server) registerAdminHandler() {
-	s.mux.HandleFunc("/admin", s.auth.Check(s.handler.AdminHandler))
+	s.mux.HandleFunc("/admin", s.wrapAdminHandler(s.handler.AdminHandler))
 
 	s.mux.HandleFunc("/admin/login", s.handler.LoginHandler)
 	s.mux.HandleFunc("/admin/logout", s.handler.LogoutHandler)
 
-	s.mux.HandleFunc("/admin/configure", s.auth.Check(s.handler.ConfigHandler))
+	s.mux.HandleFunc("/admin/configure", s.wrapAdminHandler(s.handler.ConfigHandler))
 
-	s.mux.HandleFunc("/admin/contents", s.auth.Check(s.handler.ContentsHandler))
-	s.mux.HandleFunc("/admin/contents/search", s.auth.Check(s.handler.SearchHandler))
+	s.mux.HandleFunc("/admin/contents", s.wrapAdminHandler(s.handler.ContentsHandler))
+	s.mux.HandleFunc("/admin/contents/search", s.wrapAdminHandler(s.handler.SearchHandler))
 
-	s.mux.HandleFunc("/admin/edit", s.auth.Check(s.handler.EditHandler))
-	s.mux.HandleFunc("/admin/edit/delete", s.auth.Check(s.handler.DeleteHandler))
-	s.mux.HandleFunc("/admin/edit/approve", s.auth.Check(s.handler.ApproveContentHandler))
+	s.mux.HandleFunc("/admin/edit", s.wrapAdminHandler(s.handler.EditHandler))
+	s.mux.HandleFunc("/admin/edit/delete", s.wrapAdminHandler(s.handler.DeleteHandler))
+	s.mux.HandleFunc("/admin/edit/approve", s.wrapAdminHandler(s.handler.ApproveContentHandler))
 
-	s.mux.HandleFunc("/admin/uploads", s.auth.Check(s.handler.UploadContentsHandler))
-	s.mux.HandleFunc("/admin/uploads/search", s.auth.Check(s.handler.UploadSearchHandler))
-	s.mux.HandleFunc("/admin/edit/upload", s.auth.Check(s.handler.EditUploadHandler))
-	s.mux.HandleFunc("/admin/edit/upload/delete", s.auth.Check(s.handler.DeleteUploadHandler))
+	s.mux.HandleFunc("/admin/uploads", s.wrapAdminHandler(s.handler.UploadContentsHandler))
+	s.mux.HandleFunc("/admin/uploads/search", s.wrapAdminHandler(s.handler.UploadSearchHandler))
+	s.mux.HandleFunc("/admin/edit/upload", s.wrapAdminHandler(s.handler.EditUploadHandler))
+	s.mux.HandleFunc("/admin/edit/upload/delete", s.wrapAdminHandler(s.handler.DeleteUploadHandler))
 
 	s.mux.HandleFunc("/admin/init", s.handler.InitHandler)
 

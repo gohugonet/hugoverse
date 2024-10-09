@@ -15,6 +15,8 @@ type SiteLanguage struct {
 	Language string `json:"language"`
 	Default  bool   `json:"default"`
 	Folder   string `json:"folder"`
+
+	refSelData map[string][][]byte
 }
 
 // MarshalEditor writes a buffer of html to edit a Song within the CMS
@@ -27,6 +29,7 @@ func (s *SiteLanguage) MarshalEditor() ([]byte, error) {
 			},
 				"Site",
 				`{{ .title }} `,
+				s.refSelData["Site"],
 			),
 		},
 		editor.Field{
@@ -35,6 +38,7 @@ func (s *SiteLanguage) MarshalEditor() ([]byte, error) {
 			},
 				"Language",
 				`{{ .name }} `,
+				s.refSelData["Language"],
 			),
 		},
 		editor.Field{
@@ -58,6 +62,14 @@ func (s *SiteLanguage) MarshalEditor() ([]byte, error) {
 	}
 
 	return view, nil
+}
+
+func (s *SiteLanguage) SetSelectData(data map[string][][]byte) {
+	s.refSelData = data
+}
+
+func (s *SiteLanguage) SelectContentTypes() []string {
+	return []string{"Site", "Language"}
 }
 
 // String defines the display name of a Song in the CMS list-view

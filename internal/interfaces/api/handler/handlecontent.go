@@ -53,7 +53,7 @@ func (s *Handler) ApiContentsHandler(res http.ResponseWriter, req *http.Request)
 		Order:  order,
 	}
 
-	_, bb := db.Query(t+"__sorted", opts)
+	_, bb := s.db.Query(t+"__sorted", opts)
 	var result []json.RawMessage
 	for i := range bb {
 		result = append(result, bb[i])

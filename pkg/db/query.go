@@ -11,7 +11,7 @@ type QueryOptions struct {
 
 // Query retrieves a set of content from the db based on options
 // and returns the total number of content in the namespace and the content
-func Query(namespace string, opts QueryOptions) (int, [][]byte) {
+func (s *Store) Query(namespace string, opts QueryOptions) (int, [][]byte) {
 	var posts [][]byte
 	var total int
 
@@ -25,7 +25,7 @@ func Query(namespace string, opts QueryOptions) (int, [][]byte) {
 		opts.Offset = 0
 	}
 
-	store.View(func(tx *bolt.Tx) error {
+	s.db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(namespace))
 		if b == nil {
 			return bolt.ErrBucketNotFound

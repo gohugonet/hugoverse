@@ -26,10 +26,6 @@ func UploadDir() string {
 	return filepath.Join(DataDir(), "uploads")
 }
 
-func SearchDir() string {
-	return filepath.Join(DataDir(), "search")
-}
-
 func DataDir() string {
 	return cachedHugoverseDir
 }
@@ -57,14 +53,11 @@ func getWd() string {
 }
 
 func ensureDirExists(dir string) error {
-	// 使用 os.Stat 检查目录是否存在
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
-		// 目录不存在，使用 os.MkdirAll 创建目录
 		err := os.MkdirAll(dir, 0755)
 		if err != nil {
 			return fmt.Errorf("failed to create directory: %w", err)
 		}
-		fmt.Println("Directory created:", dir)
 	} else if err != nil {
 		// 其他错误
 		return fmt.Errorf("failed to check directory: %w", err)
