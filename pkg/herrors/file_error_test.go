@@ -19,7 +19,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/github.com/gohugonet/hugoverse/pkg/text"
+	"github.com/gohugonet/hugoverse/pkg/text"
 
 	qt "github.com/frankban/quicktest"
 )
