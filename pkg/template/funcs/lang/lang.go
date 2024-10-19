@@ -43,15 +43,6 @@ type Namespace struct {
 
 // Translate returns a translated string for id.
 func (ns *Namespace) Translate(ctx context.Context, id any, args ...any) (string, error) {
-	var templateData any
-
-	if len(args) > 0 {
-		if len(args) > 1 {
-			return "", fmt.Errorf("wrong number of arguments, expecting at most 2, got %d", len(args)+1)
-		}
-		templateData = args[0]
-	}
-
 	sid, err := cast.ToStringE(id)
 	if err != nil {
 		return "", nil
@@ -59,7 +50,6 @@ func (ns *Namespace) Translate(ctx context.Context, id any, args ...any) (string
 
 	// TODO, make it more extensible with real translator
 	// missing i18n, and translation provider
-	fmt.Printf("TODO: Translate: %s, %v\n", sid, templateData)
 
 	return sid, nil
 }

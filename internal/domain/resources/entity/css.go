@@ -152,7 +152,6 @@ func (t *scssTransformation) Transform(ctx *valueobject.ResourceTransformationCt
 
 	if ctx.SourcePath() != "" {
 		filename += t.c.FsService.AssetsFsRealFilename(ctx.SourcePath())
-		t.log.Println("toCSS filename", filename, ctx.SourcePath())
 	}
 
 	args := godartsass.Args{
@@ -183,7 +182,6 @@ func (t *scssTransformation) Transform(ctx *valueobject.ResourceTransformationCt
 		args.SourceSyntax = godartsass.SourceSyntaxSASS
 	}
 
-	t.log.Println("toCSS with args", args, "and source from:", ctx.Source.From)
 	res, err := t.c.toCSS(args, ctx.Source.From)
 	if err != nil {
 		t.log.Printf("toCSS error: %s", err)
@@ -194,7 +192,7 @@ func (t *scssTransformation) Transform(ctx *valueobject.ResourceTransformationCt
 
 	_, err = io.WriteString(ctx.Target.To, out)
 	if err != nil {
-		t.log.Printf("toCSS write string error: %s", err)
+		t.log.Errorf("toCSS write string error: %s", err)
 		return err
 	}
 

@@ -30,9 +30,9 @@ Hugo headless CMS server
   - [ ] 创建个人主页站点
   - [ ] 创建商业服务站点 - 个人陪跑教练
   - [ ] 创建Unfix敏捷小组介绍
-- [ ] Hugoverse待补全功能
-  - [ ] 注册用户
-  - [ ] 多租户管理
+- [x] Hugoverse待补全功能
+  - [x] 注册用户
+  - [x] 多租户管理
 
 ## Next
 
@@ -40,5 +40,4 @@ Hugo headless CMS server
 - [ ] Sitemap
 - [ ] Inline shortcode
 - [ ] Output Format: connect page layouts and page outputs, should separate the config info service and business logic
-- [ ] API Authorization token
 - [ ] Docs

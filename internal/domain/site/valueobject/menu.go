@@ -1,8 +1,10 @@
 package valueobject
 
 import (
+	"github.com/gohugonet/hugoverse/pkg/compare"
 	"github.com/gohugonet/hugoverse/pkg/maps"
 	"html/template"
+	"sort"
 )
 
 // MenuEntry represents a menu item defined in either Page front matter
@@ -19,10 +21,65 @@ type MenuEntry struct {
 
 	// Child entries.
 	Children Menu
+
+	// TODO, removed
+	Page *MenuEntry
 }
 
 // Menu is a collection of menu entries.
 type Menu []*MenuEntry
+
+func (m Menu) Add(me *MenuEntry) Menu {
+	m = append(m, me)
+	m.Sort()
+	return m
+}
+
+func (m Menu) Sort() Menu {
+	menuEntryBy(defaultMenuEntrySort).Sort(m)
+	return m
+}
+
+type menuEntryBy func(m1, m2 *MenuEntry) bool
+
+func (by menuEntryBy) Sort(menu Menu) {
+	ms := &menuSorter{
+		menu: menu,
+		by:   by, // The Sort method's receiver is the function (closure) that defines the sort order.
+	}
+	sort.Stable(ms)
+}
+
+type menuSorter struct {
+	menu Menu
+	by   menuEntryBy
+}
+
+func (ms *menuSorter) Len() int      { return len(ms.menu) }
+func (ms *menuSorter) Swap(i, j int) { ms.menu[i], ms.menu[j] = ms.menu[j], ms.menu[i] }
+
+// Less is part of sort.Interface. It is implemented by calling the "by" closure in the sorter.
+func (ms *menuSorter) Less(i, j int) bool { return ms.by(ms.menu[i], ms.menu[j]) }
+
+var defaultMenuEntrySort = func(m1, m2 *MenuEntry) bool {
+	if m1.Weight == m2.Weight {
+		c := compare.Strings(m1.Name, m2.Name)
+		if c == 0 {
+			return m1.Identifier < m2.Identifier
+		}
+		return c < 0
+	}
+
+	if m2.Weight == 0 {
+		return true
+	}
+
+	if m1.Weight == 0 {
+		return false
+	}
+
+	return m1.Weight < m2.Weight
+}
 
 // Menus is a dictionary of menus.
 type Menus map[string]Menu

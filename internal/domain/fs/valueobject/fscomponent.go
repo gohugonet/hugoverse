@@ -37,7 +37,6 @@ func (cfs *ComponentFs) UnwrapFilesystem() afero.Fs {
 }
 
 func (cfs *ComponentFs) Stat(name string) (os.FileInfo, error) {
-	cfs.log.Printf("Stat (ComponentFs): %s", name)
 	fi, err := cfs.Fs.Stat(name)
 	if err != nil {
 		return nil, err
@@ -58,8 +57,6 @@ func (cfs *ComponentFs) Stat(name string) (os.FileInfo, error) {
 }
 
 func (cfs *ComponentFs) Open(name string) (afero.File, error) {
-	cfs.log.Printf("Open (ComponentFs): %s", name)
-
 	f, err := cfs.Fs.Open(name)
 	if err != nil {
 		return nil, err

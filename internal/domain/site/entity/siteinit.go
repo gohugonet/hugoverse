@@ -27,8 +27,30 @@ func (s *Site) PrepareLazyLoads() {
 	var init lazy.Init
 
 	s.lazy.menus = init.Branch(func() (any, error) {
-		//TODO: generate menus
-		s.Navigation.menus = valueobject.Menus{}
+		menus := valueobject.Menus{}
+
+		menusConf := s.ConfigSvc.Menus()
+
+		for name, menu := range menusConf {
+			menus[name] = valueobject.Menu{}
+
+			for _, entry := range menu {
+				if menus[name] == nil {
+					menus[name] = valueobject.Menu{}
+				}
+
+				menus[name] = menus[name].Add(&valueobject.MenuEntry{
+					MenuConfig: valueobject.MenuConfig{
+						Name:   entry.Name(),
+						URL:    entry.URL(),
+						Weight: entry.Weight(),
+					},
+					Menu: name,
+				})
+			}
+		}
+		s.Navigation.menus = menus
+
 		return nil, nil
 	})
 
@@ -54,14 +76,15 @@ func (s *Site) PrepareLazyLoads() {
 
 func (s *Site) Taxonomies() TaxonomyList {
 	if _, err := s.lazy.taxonomies.Do(); err != nil {
-		panic(err)
+		s.Log.Errorf("Taxonomies: %v", err)
 	}
 	return s.Navigation.taxonomies
 }
 
 func (s *Site) Menus() valueobject.Menus {
 	if _, err := s.lazy.menus.Do(); err != nil {
-		panic(err)
+		s.Log.Errorf("Menus: %v", err)
 	}
+
 	return s.Navigation.menus
 }

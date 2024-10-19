@@ -110,8 +110,6 @@ func (w *Walkway) walk(path string, info fs.FileMetaInfo, dirEntries []fs.FileMe
 	}
 
 	if dirEntries == nil {
-		w.logger.Printf("Walk dir: %s", path)
-
 		f, err := w.Fs.Open(path)
 		if err != nil {
 			if w.checkErr(path, err) {

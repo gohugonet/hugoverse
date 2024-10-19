@@ -164,8 +164,6 @@ func (r *ResourceTransformer) transform(key string) (*Resource, error) {
 	updates.data = tctx.Data
 	updates.paths = valueobject.NewResourcePaths(tctx.Source.InPath)
 
-	fmt.Println("transform", updates.paths.TargetPath())
-
 	var publishwriters []io.WriteCloser
 	//publicw, err := r.publisher.OpenPublishFileForWriting(updates.paths.TargetPath())
 	//if err != nil {

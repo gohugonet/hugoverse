@@ -26,6 +26,13 @@ type Services interface {
 type ConfigService interface {
 	ConfigParams() map[string]any
 	SiteTitle() string
+	Menus() map[string][]Menu
+}
+
+type Menu interface {
+	Name() string
+	URL() string
+	Weight() int
 }
 
 type LanguageService interface {

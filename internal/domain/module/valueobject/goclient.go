@@ -79,7 +79,6 @@ func (c *GoClient) listGoMods() (GoModules, error) {
 
 	var modules GoModules
 	err := listAndDecodeModules(func(m *GoModule) error {
-		c.Logger.Println("found module: ", m.Path, "version:", m.Version, "dir:", m.Dir)
 		modules = append(modules, m)
 		return nil
 	})

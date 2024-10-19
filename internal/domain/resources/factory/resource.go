@@ -24,7 +24,7 @@ func NewResources(ws resources.Workspace) (*entity.Resources, error) {
 	log := loggers.NewDefault()
 	ds, err := newDartSass(execHelper, ws)
 	if err != nil {
-		log.Errorln(err)
+		log.Errorln("newDartSass", err)
 	}
 
 	ip, err := newImageProcessor(ws)

@@ -80,7 +80,6 @@ func (t *Template) LookupLayout(names []string) (template.Preparer, bool, error)
 			if err := t.extractPartials(ts.Preparer); err != nil {
 				return nil, false, err
 			}
-			t.Log.Println("LookupLayout with overlay: ", overlay.Name, " base: ", base.Name)
 
 			cacheVal := valueobject.LayoutCacheEntry{Found: found, Templ: ts.Preparer, Err: nil}
 			t.LayoutTemplateCache[key] = cacheVal
@@ -205,7 +204,6 @@ func (t *Template) addTemplate(name string, tinfo valueobject.TemplateInfo) erro
 	}
 
 	if t.Lookup.BaseOf.NeedsBaseOf(name, tinfo.Template) {
-		t.Log.Println("Needs base of", name)
 		t.Lookup.BaseOf.AddNeedsBaseOf(name, tinfo)
 		return nil
 	}
@@ -220,8 +218,6 @@ func (t *Template) addTemplate(name string, tinfo valueobject.TemplateInfo) erro
 	if err := t.Parser.Transform(t.Main, state); err != nil {
 		fmt.Println(tinfo.ErrWithFileContext("ast transform parse failed", err))
 	}
-
-	t.Log.Println("Added template", tinfo.Name)
 
 	return nil
 }

@@ -114,7 +114,7 @@ func (s *Search) setup() {
 	for t := range s.ContentTypes {
 		idx, err := s.mapIndex(t)
 		if err != nil {
-			s.Log.Errorln(err)
+			s.Log.Errorln("[search] Setup Error", err)
 			return
 		}
 

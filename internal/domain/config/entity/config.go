@@ -14,6 +14,7 @@ type Config struct {
 	Root
 	Caches
 	Security
+	Menu
 	Module
 	Service
 	*Language

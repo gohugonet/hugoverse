@@ -161,10 +161,8 @@ func (rmfs *RootMappingFs) doDoStat(name string) ([]fs.FileMetaInfo, error) {
 		return nil, err
 	}
 
-	rmfs.log.Println("doDoStat (RootMappingFs): ", name)
 	return []fs.FileMetaInfo{NewFileInfoWithOpener(roots[0].ToFi, name,
 		func() (afero.File, error) {
-			rmfs.log.Println("doDoStat (RootMappingFs) open: ", name)
 			return NewDirFileWithVirtualOpener(
 				&File{File: nil, FileMeta: FileMeta{filename: name}},
 				func() ([]iofs.DirEntry, error) {
@@ -188,7 +186,6 @@ func (rmfs *RootMappingFs) statRoot(root RootMapping, name string) (fs.FileMetaI
 	} else {
 		// Make sure metadata gets applied in ReadDir.
 		opener = func() (afero.File, error) {
-			rmfs.log.Println("statRoot (RootMappingFs) open: ", filename)
 			f, err := rmfs.Fs.Open(filename) // is dir file already
 			if err != nil {
 				return nil, err
@@ -292,7 +289,6 @@ func (rmfs *RootMappingFs) collectRootDirEntries(prefix string) ([]iofs.DirEntry
 		for _, fi := range direntries {
 			if fi.IsDir() {
 				name := fi.Name()
-				rmfs.log.Println("collectDir (RootMappingFs): dir name", name)
 				if seen[name] {
 					continue
 				}
@@ -314,7 +310,6 @@ func (rmfs *RootMappingFs) collectRootDirEntries(prefix string) ([]iofs.DirEntry
 	// First add any real files/directories.
 	rms := rmfs.getRoot(prefix)
 	for _, rm := range rms {
-		rmfs.log.Println("collectRootDirEntries->collectDir (RootMappingFs): open ComponentRoot", prefix)
 		if err := collectDir(rm, rm.ToFi); err != nil {
 			return nil, err
 		}
@@ -398,8 +393,6 @@ func (rmfs *RootMappingFs) virtualPath(rmFrom, name string) string {
 
 // Open opens the named file for reading.
 func (rmfs *RootMappingFs) Open(name string) (afero.File, error) {
-	rmfs.log.Printf("Open (RootMappingFs): %s", name)
-
 	fis, err := rmfs.doStat(name)
 	if err != nil {
 		return nil, err
@@ -410,7 +403,6 @@ func (rmfs *RootMappingFs) Open(name string) (afero.File, error) {
 
 func (rmfs *RootMappingFs) newUnionFile(fis ...fs.FileMetaInfo) (afero.File, error) {
 	if len(fis) == 1 {
-		rmfs.log.Println("newUnionFile (RootMappingFs)", fis[0].FileName())
 		return fis[0].Open()
 	}
 

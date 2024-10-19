@@ -53,6 +53,7 @@ func LoadConfig() (*entity.Config, error) {
 		Root:      entity.Root{},
 		Caches:    entity.Caches{},
 		Security:  entity.Security{},
+		Menu:      entity.Menu{},
 		Module:    entity.Module{},
 		Service:   entity.Service{},
 		Language:  &entity.Language{},

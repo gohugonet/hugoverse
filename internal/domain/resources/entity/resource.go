@@ -83,8 +83,6 @@ func (l *Resource) publish() {
 			fmt.Println("publish", l.paths.TargetPath(), err)
 			return
 		}
-
-		fmt.Println("publish", l.paths.TargetPath())
 	})
 }
 

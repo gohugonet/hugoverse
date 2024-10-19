@@ -15,6 +15,7 @@ import (
 	moduleFact "github.com/gohugonet/hugoverse/internal/domain/module/factory"
 	rsAgr "github.com/gohugonet/hugoverse/internal/domain/resources/entity"
 	rsFact "github.com/gohugonet/hugoverse/internal/domain/resources/factory"
+	"github.com/gohugonet/hugoverse/internal/domain/site"
 	siteAgr "github.com/gohugonet/hugoverse/internal/domain/site/entity"
 	siteFact "github.com/gohugonet/hugoverse/internal/domain/site/factory"
 	tmplFact "github.com/gohugonet/hugoverse/internal/domain/template/factory"
@@ -175,4 +176,47 @@ type siteServices struct {
 	*fsAgr.Fs
 	*chAgr.ContentHub
 	*rsAgr.Resources
+}
+
+func (s *siteServices) Menus() map[string][]site.Menu {
+	siteMenus := make(map[string][]site.Menu)
+
+	ms := s.Config.AllMenus()
+
+	for k, v := range ms {
+		if siteMenus[k] == nil {
+			siteMenus[k] = make([]site.Menu, 0)
+		}
+
+		var menus []site.Menu
+		for _, menu := range v {
+			menus = append(menus, &siteMenu{
+				name:   menu.Name,
+				url:    menu.URL,
+				weight: menu.Weight,
+			})
+		}
+
+		siteMenus[k] = append(siteMenus[k], menus...)
+	}
+
+	return siteMenus
+}
+
+type siteMenu struct {
+	name   string
+	url    string
+	weight int
+}
+
+func (s *siteMenu) Name() string {
+	return s.name
+}
+
+func (s *siteMenu) URL() string {
+	return s.url
+}
+
+func (s *siteMenu) Weight() int {
+	return s.weight
 }

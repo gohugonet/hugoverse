@@ -178,6 +178,12 @@ func (cl *ConfigLoader) decodeConfig(p config.Provider, target *entity.Config) e
 	}
 	target.Security.SecurityConfig = sec
 
+	menus, err := valueobject.DecodeMenuConfig(p)
+	if err != nil {
+		return err
+	}
+	target.Menu.Menus = menus
+
 	svc, err := valueobject.DecodeServiceConfig(p)
 	if err != nil {
 		return err
@@ -286,7 +292,6 @@ func (cl *ConfigLoader) decodeConfig(p config.Provider, target *entity.Config) e
 			}
 
 			clone, err := valueobject.DecodeRoot(mergedConfig)
-			cl.Logger.Printf("hugoverse: merging config for language `%s`, %+v", k, clone)
 			if err != nil {
 				return err
 			}

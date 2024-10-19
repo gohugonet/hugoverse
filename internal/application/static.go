@@ -33,7 +33,10 @@ func (s *static) copyStatic() {
 	if err == nil || herrors.IsNotExist(err) {
 		s.logger.Infoln("Copied", m, "static files")
 	}
-	s.logger.Errorln(err)
+
+	if err != nil {
+		s.logger.Errorln(err)
+	}
 }
 
 func (s *static) doWithPublishDirs(f func(sourceFs *fsVO.ComponentFs) (uint64, error)) (map[string]uint64, error) {

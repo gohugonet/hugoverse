@@ -55,7 +55,7 @@ func (c *ContentProvider) cacheKey() string {
 func (c *ContentProvider) Summary() goTemplate.HTML {
 	cs, err := c.ContentSummary()
 	if err != nil {
-		c.log.Errorln(err)
+		c.log.Errorln("Summary", err)
 		return goTemplate.HTML("")
 	}
 
@@ -65,7 +65,7 @@ func (c *ContentProvider) Summary() goTemplate.HTML {
 func (c *ContentProvider) TableOfContents() goTemplate.HTML {
 	cs, err := c.ContentSummary()
 	if err != nil {
-		c.log.Errorln(err)
+		c.log.Errorln("TableOfContents", err)
 		return goTemplate.HTML("")
 	}
 

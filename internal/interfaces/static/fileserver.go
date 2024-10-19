@@ -73,7 +73,7 @@ func (s *FileServer) Serve() error {
 		}
 	}()
 	if err != nil {
-		s.log.Errorln(err)
+		s.log.Errorln("Serve", err)
 		return err
 	}
 
