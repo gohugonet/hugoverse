@@ -1,6 +1,5 @@
 package valueobject
 
-import "C"
 import (
 	"bytes"
 	"context"

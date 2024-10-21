@@ -1,6 +1,5 @@
 package entity
 
-import "C"
 import (
 	"bytes"
 	"context"
