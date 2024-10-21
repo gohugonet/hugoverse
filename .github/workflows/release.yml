@@ -1,6 +1,7 @@
 # .github/workflows/release.yaml
 
 name: Release
+
 on:
   push:
     branches: [ "main" ]
