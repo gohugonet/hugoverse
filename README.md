@@ -4,8 +4,11 @@ Hugo headless CMS server
 
 ## Prerequisite
 
-- Go
-- Dart Sass
+Take MacOS for example:
+
+- Go: 
+- Dart Sass： brew install sass/sass/sass
+- jq: brew install jq
 
 ## PoC
 

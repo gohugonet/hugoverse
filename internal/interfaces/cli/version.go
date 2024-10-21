@@ -108,13 +108,6 @@ func getBuildInfo() *buildInfo {
 	return bInfo
 }
 
-var CurrentVersion = Version{
-	Major:      0,
-	Minor:      1,
-	PatchLevel: 0,
-	Suffix:     "-DEV",
-}
-
 // Version represents the Hugo build version.
 type Version struct {
 	Major int

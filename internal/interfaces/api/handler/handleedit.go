@@ -69,7 +69,8 @@ func (s *Handler) EditHandler(res http.ResponseWriter, req *http.Request) {
 		sel, ok := post.(content.RefSelectable)
 		if ok {
 			selContentTypes := sel.SelectContentTypes()
-			var data map[string][][]byte
+			data := make(map[string][][]byte)
+
 			for _, ct := range selContentTypes {
 				data[ct] = s.db.AllContent(ct)
 			}
