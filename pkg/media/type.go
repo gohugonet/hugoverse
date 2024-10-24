@@ -57,6 +57,19 @@ type Type struct {
 	SuffixesCSV string `json:"-"`
 }
 
+func (m Type) Sub() string {
+	if m.SubType != "" {
+		return m.SubType
+	}
+
+	parts := strings.Split(m.Type, "/")
+	if len(parts) == 2 {
+		subTypeParts := strings.Split(parts[1], "+")
+		return subTypeParts[0]
+	}
+	return ""
+}
+
 // SuffixInfo holds information about a Media Type's suffix.
 type SuffixInfo struct {
 	// Suffix is the suffix without the delimiter, e.g. "xml".

@@ -37,6 +37,42 @@ func (s *Site) GetPage(ref ...string) (*Page, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	return s.sitePage(p)
+}
+
+func (s *Site) Pages() []*Page {
+	cps := s.ContentSvc.GlobalPages()
+
+	var pages []*Page
+
+	for _, cp := range cps {
+		p, err := s.sitePage(cp)
+		if err != nil {
+			continue
+		}
+		pages = append(pages, p)
+	}
+	return pages
+}
+
+func (s *Site) RegularPages() []*Page {
+	cps := s.ContentSvc.GlobalRegularPages()
+
+	var pages []*Page
+
+	for _, cp := range cps {
+		p, err := s.sitePage(cp)
+		if err != nil {
+			continue
+		}
+		pages = append(pages, p)
+	}
+	return pages
+
+}
+
+func (s *Site) sitePage(p contenthub.Page) (*Page, error) {
 	pos, err := p.PageOutputs()
 	if err != nil {
 		return nil, err
@@ -56,9 +92,5 @@ func (s *Site) GetPage(ref ...string) (*Page, error) {
 		Page:       p,
 		PageOutput: po,
 		Site:       s,
-	}, err
-}
-
-func (s *Site) Pages() contenthub.Pages {
-	return nil //TODO
+	}, nil
 }

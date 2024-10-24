@@ -196,9 +196,9 @@ func (o *Output) buildPage(f output.Format) error {
 	if o.baseName == "" {
 		return fmt.Errorf("no base name: %+v\n", o.source.File)
 	}
-	pb.Add(bn)
 
-	pb.Add(f.BaseName + pb.FullSuffix)
+	pb.Add(bn + pb.FullSuffix)
+	//pb.Add(f.BaseName + pb.FullSuffix) Mapping file system with site directory
 
 	if pb.IsHtmlIndex() {
 		// TODO, target file not care about html index

@@ -61,10 +61,10 @@ type ImagingConfig struct {
 }
 
 func DecodeImagingConfig(p config.Provider) (ImagingConfigInternal, error) {
-	in := p.GetStringMap("imaging")
+	in := make(map[string]any)
 
-	if in == nil {
-		in = make(map[string]any)
+	if p.IsSet("imaging") {
+		in = p.GetStringMap("imaging")
 	}
 
 	buildConfig := func(in any) (ImagingConfigInternal, error) {

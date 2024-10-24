@@ -96,7 +96,7 @@ func (ch *ContentHub) assemble() error {
 }
 
 func (ch *ContentHub) GetPageSources(page contenthub.Page) ([]contenthub.PageSource, error) {
-	keyPage := page.Paths().Path()
+	keyPage := page.Paths().Base()
 	if keyPage == "/" {
 		keyPage = ""
 	}
@@ -135,6 +135,21 @@ func (ch *ContentHub) GlobalPages() contenthub.Pages {
 				Path:    "",
 				KeyPart: "global",
 				Include: pagePredicates.ShouldListGlobal,
+			},
+			Recursive:   true,
+			IncludeSelf: true,
+		},
+	)
+}
+
+func (ch *ContentHub) GlobalRegularPages() contenthub.Pages {
+	return ch.PageMap.getPagesInSection(
+		0,
+		pageMapQueryPagesInSection{
+			pageMapQueryPagesBelowPath: pageMapQueryPagesBelowPath{
+				Path:    "",
+				KeyPart: "global",
+				Include: pagePredicates.ShouldListGlobal.And(pagePredicates.KindPage),
 			},
 			Recursive:   true,
 			IncludeSelf: true,

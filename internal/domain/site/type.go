@@ -48,6 +48,7 @@ type ContentService interface {
 	GetPageFromPath(path string) (contenthub.Page, error)
 	WalkTaxonomies(langIndex int, walker contenthub.WalkTaxonomyFunc) error
 	GlobalPages() contenthub.Pages
+	GlobalRegularPages() contenthub.Pages
 }
 
 type ResourceService interface {

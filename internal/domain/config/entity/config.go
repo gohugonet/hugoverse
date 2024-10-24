@@ -40,9 +40,12 @@ func (c *Config) GetImports(moduleDir string) ([]string, error) {
 	var (
 		configFilename string
 		hasConfigFile  bool
+		moduleConfig   valueobject.ModuleConfig
 		cfg            config.Provider
 		err            error
 	)
+
+	moduleConfig = valueobject.EmptyModuleConfig
 
 	configFilename, hasConfigFile = valueobject.CheckConfigFilename(moduleDir, c.ConfigSourceFs)
 	if hasConfigFile {
@@ -50,11 +53,11 @@ func (c *Config) GetImports(moduleDir string) ([]string, error) {
 		if err != nil {
 			return nil, err
 		}
-	}
 
-	moduleConfig, err := valueobject.DecodeModuleConfig(cfg)
-	if err != nil {
-		return nil, err
+		moduleConfig, err = valueobject.DecodeModuleConfig(cfg)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	mod := &Module{ModuleConfig: moduleConfig}

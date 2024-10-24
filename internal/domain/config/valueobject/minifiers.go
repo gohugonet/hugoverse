@@ -66,6 +66,10 @@ var defaultConfig = MinifyConfig{
 }
 
 func DecodeMinifyConfig(p config.Provider) (conf MinifyConfig, err error) {
+	if !p.IsSet("minify") {
+		return conf, nil
+	}
+
 	m := p.GetStringMap("minify")
 
 	conf = defaultConfig

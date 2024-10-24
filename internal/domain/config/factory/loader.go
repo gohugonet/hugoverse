@@ -133,7 +133,7 @@ func (cl *ConfigLoader) applyDefaultConfig() error {
 		"disablePathToLower":                   false,
 		"hasCJKLanguage":                       false,
 		"enableEmoji":                          false,
-		"defaultContentLanguage":               "en",
+		"defaultContentLanguage":               valueobject.DefaultLanguage.LanguageCode,
 		"defaultContentLanguageInSubdir":       false,
 		"enableMissingTranslationPlaceholders": false,
 		"enableGitInfo":                        false,

@@ -203,7 +203,7 @@ func (m *PageMap) getResourcesForPage(ps contenthub.Page) ([]contenthub.PageSour
 func (m *PageMap) forEachResourceInPage(ps contenthub.Page, lockType doctree.LockType, exact bool,
 	handle func(resourceKey string, n *PageTreesNode, match doctree.DimensionFlag) (bool, error)) error {
 
-	keyPage := ps.Paths().Path()
+	keyPage := ps.Paths().Base()
 	if keyPage == "/" {
 		keyPage = ""
 	}
@@ -290,7 +290,7 @@ func (m *PageMap) getPagesInSection(langIndex int, q pageMapQueryPagesInSection)
 					}
 				}
 			}
-			valueobject.SortByDefault(pas)
+			valueobject.SortByWeight(pas)
 		}
 
 		return pas, err

@@ -131,7 +131,9 @@ func (b *PageBuilder) buildPage() (*Page, error) {
 		return nil, err
 	}
 
-	p.title = b.fm.Title
+	if err := b.applyFrontMatter(p); err != nil {
+		return nil, err
+	}
 	p.pageMap = b.PageMapper
 	if err := b.buildOutput(p); err != nil {
 		return nil, err
@@ -146,7 +148,9 @@ func (b *PageBuilder) buildPageWithKind(kind string) (*Page, error) {
 		return nil, err
 	}
 
-	p.title = b.fm.Title
+	if err := b.applyFrontMatter(p); err != nil {
+		return nil, err
+	}
 	p.pageMap = b.PageMapper
 	p.kind = kind
 	if p.kind == valueobject.KindSitemap || p.kind == valueobject.KindStatus404 {
@@ -157,6 +161,13 @@ func (b *PageBuilder) buildPageWithKind(kind string) (*Page, error) {
 	}
 
 	return p, nil
+}
+
+func (b *PageBuilder) applyFrontMatter(p *Page) error {
+	p.title = b.fm.Title
+	p.Meta.Weight = b.fm.Weight
+
+	return nil
 }
 
 func (b *PageBuilder) buildHome() (*Page, error) {

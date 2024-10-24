@@ -14,7 +14,6 @@
 package paths
 
 import (
-	"fmt"
 	"github.com/gohugonet/hugoverse/pkg/identity"
 	"github.com/gohugonet/hugoverse/pkg/paths/files"
 	"github.com/gohugonet/hugoverse/pkg/types"
@@ -118,7 +117,6 @@ func (pp *PathParser) parse(component, s string) (*Path, error) {
 }
 
 func (pp *PathParser) doParse(component, s string, p *Path) (*Path, error) {
-
 	if runtime.GOOS == "windows" {
 		s = path.Clean(filepath.ToSlash(s))
 		if s == "." {
@@ -159,9 +157,8 @@ func (pp *PathParser) doParse(component, s string, p *Path) (*Path, error) {
 					p.identifiers = append(p.identifiers, id)
 				} else if len(p.identifiers) == 1 {
 					// Check for a valid language.
-					s := p.s[id.Low:id.High]
-
-					fmt.Println("file name with language inside not supported yet: ", s, p.Path())
+					// Treat all filename as normal names
+					// No language will be used in filename
 				}
 			}
 		case '/':

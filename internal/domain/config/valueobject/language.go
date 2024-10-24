@@ -7,6 +7,15 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
+var DefaultLanguage = LanguageConfig{
+	LanguageName:      "English",
+	LanguageCode:      "en",
+	Title:             "",
+	LanguageDirection: "",
+	Weight:            0,
+	Disabled:          false,
+}
+
 // LanguageConfig holds the configuration for a single language.
 // This is what is read from the config file.
 type LanguageConfig struct {
@@ -43,7 +52,6 @@ func DecodeLanguageConfig(p config.Provider) (map[string]LanguageConfig, error) 
 	var err error
 	m := p.GetStringMap("languages")
 	if len(m) == 1 {
-		// In v0.112.4 we moved this to the language config, but it's very commmon for mono language sites to have this at the top level.
 		var first maps.Params
 		var ok bool
 		for _, v := range m {

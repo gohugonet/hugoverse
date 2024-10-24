@@ -24,6 +24,7 @@ func RegisterNamespaces() {
 	registerReflect()
 	registerMath()
 	registerEncoding()
+	registerTime()
 }
 
 func RegisterCallbackNamespaces(cb func(ctx context.Context, name string, data any) (tmpl string, res any, err error)) {

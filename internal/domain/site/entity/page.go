@@ -69,7 +69,9 @@ func (p *Page) renderPage() error {
 		return err
 	}
 	if !found {
-		return fmt.Errorf("failed to find layout: %s, for page %s", layouts, p.Paths().Path())
+		p.Log.Warnf("failed to find layout: %s, for page %s", layouts, p.Paths().Path())
+
+		return nil
 	}
 
 	renderBuffer := bp.GetBuffer()
@@ -117,7 +119,14 @@ func (p *Page) renderResources() error {
 			return p.errorf(err, "failed to get page outputs")
 		}
 		for _, o := range outputs {
-			targetFilenames = append(targetFilenames, path.Join(o.TargetPrefix(), o.TargetSubResourceDir(), rs.TargetPath()))
+			prefix := o.TargetPrefix()
+			if p.Site.currentLanguage == prefix && prefix == p.LanguageSvc.DefaultLanguage() {
+				prefix = ""
+			} else {
+				prefix = p.Site.currentLanguage
+			}
+
+			targetFilenames = append(targetFilenames, path.Join(prefix, o.TargetSubResourceDir(), rs.TargetPath()))
 		}
 
 		if err := func() error {

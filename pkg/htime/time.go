@@ -14,12 +14,65 @@
 package htime
 
 import (
+	"github.com/gohugoio/locales"
+	"github.com/spf13/cast"
+	"strings"
 	"time"
 
 	clock "github.com/bep/clocks"
 )
 
 var (
+	longDayNames = []string{
+		"Sunday",
+		"Monday",
+		"Tuesday",
+		"Wednesday",
+		"Thursday",
+		"Friday",
+		"Saturday",
+	}
+
+	shortDayNames = []string{
+		"Sun",
+		"Mon",
+		"Tue",
+		"Wed",
+		"Thu",
+		"Fri",
+		"Sat",
+	}
+
+	shortMonthNames = []string{
+		"Jan",
+		"Feb",
+		"Mar",
+		"Apr",
+		"May",
+		"Jun",
+		"Jul",
+		"Aug",
+		"Sep",
+		"Oct",
+		"Nov",
+		"Dec",
+	}
+
+	longMonthNames = []string{
+		"January",
+		"February",
+		"March",
+		"April",
+		"May",
+		"June",
+		"July",
+		"August",
+		"September",
+		"October",
+		"November",
+		"December",
+	}
+
 	Clock = clock.System()
 )
 
@@ -32,4 +85,79 @@ func Now() time.Time {
 // AsTimeProvider is implemented by go-toml's LocalDate and LocalDateTime.
 type AsTimeProvider interface {
 	AsTime(zone *time.Location) time.Time
+}
+
+func NewTimeFormatter(ltr locales.Translator) TimeFormatter {
+	if ltr == nil {
+		panic("must provide a locales.Translator")
+	}
+	return TimeFormatter{
+		ltr: ltr,
+	}
+}
+
+// TimeFormatter is locale aware.
+type TimeFormatter struct {
+	ltr locales.Translator
+}
+
+func (f TimeFormatter) Format(t time.Time, layout string) string {
+	if layout == "" {
+		return ""
+	}
+
+	if layout[0] == ':' {
+		// It may be one of Hugo's custom layouts.
+		switch strings.ToLower(layout[1:]) {
+		case "date_full":
+			return f.ltr.FmtDateFull(t)
+		case "date_long":
+			return f.ltr.FmtDateLong(t)
+		case "date_medium":
+			return f.ltr.FmtDateMedium(t)
+		case "date_short":
+			return f.ltr.FmtDateShort(t)
+		case "time_full":
+			return f.ltr.FmtTimeFull(t)
+		case "time_long":
+			return f.ltr.FmtTimeLong(t)
+		case "time_medium":
+			return f.ltr.FmtTimeMedium(t)
+		case "time_short":
+			return f.ltr.FmtTimeShort(t)
+		}
+	}
+
+	s := t.Format(layout)
+
+	monthIdx := t.Month() - 1 // Month() starts at 1.
+	dayIdx := t.Weekday()
+
+	if strings.Contains(layout, "January") {
+		s = strings.ReplaceAll(s, longMonthNames[monthIdx], f.ltr.MonthWide(t.Month()))
+	} else if strings.Contains(layout, "Jan") {
+		s = strings.ReplaceAll(s, shortMonthNames[monthIdx], f.ltr.MonthAbbreviated(t.Month()))
+	}
+
+	if strings.Contains(layout, "Monday") {
+		s = strings.ReplaceAll(s, longDayNames[dayIdx], f.ltr.WeekdayWide(t.Weekday()))
+	} else if strings.Contains(layout, "Mon") {
+		s = strings.ReplaceAll(s, shortDayNames[dayIdx], f.ltr.WeekdayAbbreviated(t.Weekday()))
+	}
+
+	return s
+}
+
+func ToTimeInDefaultLocationE(i any, location *time.Location) (tim time.Time, err error) {
+	switch vv := i.(type) {
+	case AsTimeProvider:
+		return vv.AsTime(location), nil
+	// issue #8895
+	// datetimes parsed by `go-toml` have empty zone name
+	// convert back them into string and use `cast`
+	// TODO(bep) add tests, make sure we really need this.
+	case time.Time:
+		i = vv.Format(time.RFC3339)
+	}
+	return cast.ToTimeInDefaultLocationE(i, location)
 }

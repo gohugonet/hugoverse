@@ -62,7 +62,10 @@ func newPage(source *Source, content *Content) (*Page, error) {
 	p := &Page{
 		Source:  source,
 		Content: content,
-		Meta:    &Meta{List: Always},
+		Meta: &Meta{
+			List:       Always,
+			Parameters: map[string]any{},
+		},
 
 		kind: valueobject.KindPage,
 

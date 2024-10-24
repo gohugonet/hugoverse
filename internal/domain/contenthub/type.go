@@ -257,6 +257,7 @@ type OrdinalWeightPage interface {
 type PageMeta interface {
 	Description() string
 	Params() maps.Params
+	PageWeight() int
 }
 
 type PageOutput interface {

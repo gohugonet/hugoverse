@@ -20,11 +20,7 @@ func DecodeModuleConfig(cfg config.Provider) (ModuleConfig, error) {
 }
 
 func decodeConfig(cfg config.Provider) (ModuleConfig, error) {
-	c := DefaultModuleConfig
-
-	if cfg == nil {
-		return c, nil
-	}
+	c := EmptyModuleConfig
 
 	moduleSet := cfg.IsSet("module")
 	if moduleSet {
@@ -40,22 +36,10 @@ func decodeConfig(cfg config.Provider) (ModuleConfig, error) {
 		}
 	}
 
-	// Module support only
-	//themeSet := cfg.IsSet("theme")
-	//if themeSet {
-	//	sd := cfg.Get("theme")
-	//	imports := types.ToStringSlicePreserveString(sd)
-	//	for _, imp := range imports {
-	//		c.Imports = append(c.Imports, Import{
-	//			RelPath: imp,
-	//		})
-	//	}
-	//}
-
 	return c, nil
 }
 
-var DefaultModuleConfig = ModuleConfig{
+var EmptyModuleConfig = ModuleConfig{
 	Mounts:  make([]Mount, 0),
 	Imports: make([]Import, 0),
 }

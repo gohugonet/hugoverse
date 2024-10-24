@@ -23,10 +23,16 @@ func DecodeMediaTypesConfig(p config.Provider) (MediaTypeConfig, error) {
 	in := p.GetStringMap("mediatypes")
 
 	buildConfig := func(v any) (media.Types, error) {
-		m, err := maps.ToStringMapE(v)
-		if err != nil {
-			return nil, err
+		var m map[string]any
+		var err error
+
+		if v != nil {
+			m, err = maps.ToStringMapE(v)
+			if err != nil {
+				return nil, err
+			}
 		}
+
 		if m == nil {
 			m = map[string]any{}
 		}

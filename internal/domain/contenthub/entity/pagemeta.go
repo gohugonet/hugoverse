@@ -10,7 +10,9 @@ const (
 )
 
 type Meta struct {
-	List string
+	List       string
+	Parameters maps.Params
+	Weight     int
 }
 
 func (m *Meta) Description() string {
@@ -18,7 +20,11 @@ func (m *Meta) Description() string {
 }
 
 func (m *Meta) Params() maps.Params {
-	return maps.Params{}
+	return m.Parameters
+}
+
+func (m *Meta) PageWeight() int {
+	return m.Weight
 }
 
 func (m *Meta) shouldList(global bool) bool {

@@ -15,10 +15,11 @@ import (
 type FrontMatter struct {
 	*Cascade
 
-	Path  string
-	Lang  string
-	Kind  string
-	Title string
+	Path   string
+	Lang   string
+	Kind   string
+	Title  string
+	Weight int
 
 	Terms map[string][]string
 }
@@ -50,7 +51,19 @@ func (b *FrontMatterParser) Parse() (*FrontMatter, error) {
 		return nil, err
 	}
 
+	if err := b.parseWeight(fm); err != nil {
+		return nil, err
+	}
+
 	return fm, nil
+}
+
+func (b *FrontMatterParser) parseWeight(fm *FrontMatter) error {
+	fm.Weight = 0
+	if v, found := b.Params["weight"]; found {
+		fm.Weight = cast.ToInt(v)
+	}
+	return nil
 }
 
 func (b *FrontMatterParser) parseTitle(fm *FrontMatter) error {

@@ -29,6 +29,10 @@ func DecodeMenuConfig(cfg config.Provider) (map[string][]MenuConfig, error) {
 func decodeMenuConfig(cfg config.Provider) (map[string][]MenuConfig, error) {
 	menuMap := make(map[string][]MenuConfig)
 
+	if !cfg.IsSet("menu") {
+		return menuMap, nil
+	}
+
 	m := cfg.Get("menu")
 
 	menus, err := maps.ToStringMapE(m)

@@ -21,12 +21,12 @@ const (
 
 var (
 	ImageFormatsBySubType = map[string]ImageFormat{
-		media.Builtin.JPEGType.SubType: JPEG,
-		media.Builtin.PNGType.SubType:  PNG,
-		media.Builtin.TIFFType.SubType: TIFF,
-		media.Builtin.BMPType.SubType:  BMP,
-		media.Builtin.GIFType.SubType:  GIF,
-		media.Builtin.WEBPType.SubType: WEBP,
+		media.Builtin.JPEGType.Sub(): JPEG,
+		media.Builtin.PNGType.Sub():  PNG,
+		media.Builtin.TIFFType.Sub(): TIFF,
+		media.Builtin.BMPType.Sub():  BMP,
+		media.Builtin.GIFType.Sub():  GIF,
+		media.Builtin.WEBPType.Sub(): WEBP,
 	}
 )
 

@@ -11,6 +11,11 @@ func SortByDefault(pages contenthub.Pages) {
 	pageBy(lessPageTitle).Sort(pages)
 }
 
+// SortByWeight sorts pages by weight.
+func SortByWeight(pages contenthub.Pages) {
+	pageBy(weight).Sort(pages)
+}
+
 func SortByLanguage(pages contenthub.Pages) {
 	// TODO
 	pageBy(lessPageTitle).Sort(pages)
@@ -31,6 +36,10 @@ func (by pageBy) Sort(pages contenthub.Pages) {
 var (
 	lessPageTitle = func(p1, p2 contenthub.Page) bool {
 		return collatorStringCompare(func(p contenthub.Page) string { return p.Title() }, p1, p2) < 0
+	}
+
+	weight = func(p1, p2 contenthub.Page) bool {
+		return p1.PageWeight() < p2.PageWeight()
 	}
 )
 
