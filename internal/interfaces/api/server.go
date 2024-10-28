@@ -6,6 +6,7 @@ import (
 	"github.com/gohugonet/hugoverse/internal/interfaces/api/auth"
 	"github.com/gohugonet/hugoverse/internal/interfaces/api/cache"
 	"github.com/gohugonet/hugoverse/internal/interfaces/api/compression"
+	"github.com/gohugonet/hugoverse/internal/interfaces/api/content"
 	"github.com/gohugonet/hugoverse/internal/interfaces/api/cors"
 	"github.com/gohugonet/hugoverse/internal/interfaces/api/database"
 	"github.com/gohugonet/hugoverse/internal/interfaces/api/handler"
@@ -46,11 +47,12 @@ type Server struct {
 
 	tls *tls.Tls
 
-	record *record.Record
-	comp   *compression.Compression
-	cache  *cache.Cache
-	cors   *cors.Cors
-	auth   *auth.Auth
+	record  *record.Record
+	content *content.Content
+	comp    *compression.Compression
+	cache   *cache.Cache
+	cors    *cors.Cors
+	auth    *auth.Auth
 
 	handler *handler.Handler
 }
@@ -68,9 +70,10 @@ func NewServer(options ...func(s *Server) error) (*Server, error) {
 		HttpsPort:    443,
 		DevHttpsPort: 10443,
 
-		db:     db,
-		record: record.New(application.DataDir()),
-		auth:   &auth.Auth{},
+		db:      db,
+		record:  record.New(application.DataDir()),
+		content: &content.Content{},
+		auth:    &auth.Auth{},
 	}
 	for _, o := range options {
 		if err := o(s); err != nil {

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/gohugonet/hugoverse/internal/domain/admin/repository"
 	"github.com/gohugonet/hugoverse/internal/domain/admin/valueobject"
+	"github.com/gohugonet/hugoverse/pkg/loggers"
 	"net/url"
 )
 
@@ -17,6 +18,8 @@ type Admin struct {
 	*Cache
 	*Controller
 	*Client
+
+	Log loggers.Logger
 }
 
 func (a *Admin) ConfigEditor() ([]byte, error) {

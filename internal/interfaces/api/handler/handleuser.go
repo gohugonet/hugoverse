@@ -22,7 +22,10 @@ func (s *Handler) UserRegisterHandler(res http.ResponseWriter, req *http.Request
 		pwd := req.FormValue("password")
 
 		found := s.adminApp.IsUserExists(email)
+		s.log.Println("[UserRegisterHandler]: ", email, found)
+
 		if found {
+			s.log.Errorf("User already exists: %v", email)
 			res.WriteHeader(http.StatusConflict)
 			return
 		}
@@ -97,6 +100,7 @@ func (s *Handler) UserLoginHandler(res http.ResponseWriter, req *http.Request) {
 
 		j, err := s.res.FmtJSON(tokenJSON)
 		if err != nil {
+			s.log.Errorf("Error formatting JSON: %v", err)
 			res.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -105,6 +109,7 @@ func (s *Handler) UserLoginHandler(res http.ResponseWriter, req *http.Request) {
 		s.res.Json(res, j)
 
 	default:
+		s.log.Errorf("Method not allowed: %s", req.Method)
 		res.WriteHeader(http.StatusMethodNotAllowed)
 	}
 }

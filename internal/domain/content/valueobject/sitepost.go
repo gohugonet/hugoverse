@@ -117,7 +117,7 @@ func (s *SitePost) BeforeAPICreate(res http.ResponseWriter, req *http.Request) e
 // request. Ex. Song__pending:3 or Song:8 depending if Song implements api.Trustable
 func (s *SitePost) AfterAPICreate(res http.ResponseWriter, req *http.Request) error {
 	addr := req.RemoteAddr
-	log.Println("Song sent by:", addr, "titled:", req.PostFormValue("title"))
+	log.Println("AfterAPICreate: SitePost sent by:", addr, "titled:", req.PostFormValue("title"))
 
 	return nil
 }

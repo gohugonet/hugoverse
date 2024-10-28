@@ -4,14 +4,18 @@ import (
 	"github.com/gohugonet/hugoverse/internal/domain/admin"
 	"github.com/gohugonet/hugoverse/internal/domain/admin/entity"
 	"github.com/gohugonet/hugoverse/internal/domain/admin/repository"
+	"github.com/gohugonet/hugoverse/pkg/loggers"
 )
 
 func NewAdmin(repo repository.Repository) (admin.Admin, error) {
+	log := loggers.NewDefault()
+
 	a := &entity.Admin{
 		Repo: repo,
 
 		Administrator: &entity.Administrator{
 			Repo: repo,
+			Log:  log,
 		},
 		Upload: &entity.Upload{
 			Repo: repo,

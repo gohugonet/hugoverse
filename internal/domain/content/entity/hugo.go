@@ -167,7 +167,7 @@ func (h *Hugo) loadSite() error {
 		BaseURL:    h.Services.BaseUrl(),
 		WorkingDir: h.Services.WorkingDir(),
 		Theme:      themeQueryStr,
-		Owner:      1,
+		Owner:      "me@sunwei.xyz",
 	}
 	if h.Services.ConfigParams() != nil {
 		site.Params, err = mapToYAML(h.Services.ConfigParams())

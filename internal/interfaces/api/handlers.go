@@ -8,7 +8,7 @@ import (
 func (s *Server) registerContentHandler() {
 	s.mux.HandleFunc("/api/contents", s.wrapContentHandler(s.handler.ApiContentsHandler))
 	s.mux.HandleFunc("/api/content", s.wrapContentHandler(s.handler.ContentHandler))
-	s.mux.HandleFunc("/api/content/create", s.wrapContentHandler(s.handler.CreateContentHandler))
+	s.mux.HandleFunc("/api/content/create", s.wrapContentHandler(s.content.Handle(s.handler.CreateContentHandler)))
 
 	s.mux.HandleFunc("/api/search", s.wrapContentHandler(s.handler.SearchContentHandler))
 
@@ -25,8 +25,8 @@ func (s *Server) wrapContentHandler(handler http.HandlerFunc) http.HandlerFunc {
 }
 
 func (s *Server) registerUserHandler() {
-	s.mux.HandleFunc("/api/user", s.record.Collect(s.cors.Handle(s.handler.UserRegisterHandler)))
-	s.mux.HandleFunc("/api/login", s.record.Collect(s.cors.Handle(s.handler.UserLoginHandler)))
+	s.mux.HandleFunc("/api/user", s.record.Collect(s.cors.Handle(s.content.Handle(s.handler.UserRegisterHandler))))
+	s.mux.HandleFunc("/api/login", s.record.Collect(s.cors.Handle(s.content.Handle(s.handler.UserLoginHandler))))
 }
 
 func (s *Server) wrapAdminHandler(handler http.HandlerFunc) http.HandlerFunc {

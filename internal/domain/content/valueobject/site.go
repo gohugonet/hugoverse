@@ -15,10 +15,8 @@ type Site struct {
 	BaseURL     string `json:"base_url"`
 	Theme       string `json:"theme"`
 	Params      string `json:"params"`
-	Owner       int    `json:"owner"`
+	Owner       string `json:"owner"`
 	WorkingDir  string `json:"working_dir"`
-
-	refSelData map[string][][]byte
 }
 
 // MarshalEditor writes a buffer of html to edit a Song within the CMS
@@ -47,13 +45,11 @@ func (s *Site) MarshalEditor() ([]byte, error) {
 			}),
 		},
 		editor.Field{
-			View: editor.RefSelect("Theme", s, map[string]string{
-				"label": "Theme",
-			},
-				"Theme",
-				`{{ .name }} `,
-				s.refSelData["Theme"],
-			),
+			View: editor.Input("Theme", s, map[string]string{
+				"label":       "Theme",
+				"type":        "text",
+				"placeholder": "Enter the Theme URL here",
+			}),
 		},
 		editor.Field{
 			View: editor.Textarea("Params", s, map[string]string{
@@ -66,14 +62,14 @@ func (s *Site) MarshalEditor() ([]byte, error) {
 			View: editor.Input("Owner", s, map[string]string{
 				"label":       "Owner",
 				"type":        "text",
-				"placeholder": "Enter the owner user id here",
+				"placeholder": "Enter the owner user email here",
 			}),
 		},
 		editor.Field{
 			View: editor.Input("WorkingDir", s, map[string]string{
 				"label":       "WorkingDir",
 				"type":        "text",
-				"placeholder": "Enter the project dir here",
+				"placeholder": "Enter the project file system dir here",
 			}),
 		},
 	)
@@ -83,14 +79,6 @@ func (s *Site) MarshalEditor() ([]byte, error) {
 	}
 
 	return view, nil
-}
-
-func (s *Site) SetSelectData(data map[string][][]byte) {
-	s.refSelData = data
-}
-
-func (s *Site) SelectContentTypes() []string {
-	return []string{"Theme"}
 }
 
 // String defines the display name of a Song in the CMS list-view
@@ -141,7 +129,7 @@ func (s *Site) BeforeAPICreate(res http.ResponseWriter, req *http.Request) error
 // request. Ex. Song__pending:3 or Song:8 depending if Song implements api.Trustable
 func (s *Site) AfterAPICreate(res http.ResponseWriter, req *http.Request) error {
 	addr := req.RemoteAddr
-	log.Println("Song sent by:", addr, "titled:", req.PostFormValue("title"))
+	log.Println("[AfterAPICreate] Site sent by:", addr, "titled:", req.PostFormValue("title"))
 
 	return nil
 }

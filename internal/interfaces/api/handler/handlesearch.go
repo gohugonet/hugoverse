@@ -33,6 +33,7 @@ func (s *Handler) SearchContentHandler(res http.ResponseWriter, req *http.Reques
 	}
 
 	q, err := url.QueryUnescape(qs.Get("q"))
+	s.log.Println("Query: " + q)
 	if err != nil {
 		s.log.Errorf("Error unescaping query: %v", err)
 		res.WriteHeader(http.StatusInternalServerError)

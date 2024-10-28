@@ -15,8 +15,6 @@ type Post struct {
 	Author  string   `json:"author"`
 	Params  string   `json:"params"`
 	Assets  []string `json:"assets"`
-
-	refSelData map[string][][]byte
 }
 
 // MarshalEditor writes a buffer of html to edit a Song within the CMS
@@ -38,13 +36,11 @@ func (s *Post) MarshalEditor() ([]byte, error) {
 			}),
 		},
 		editor.Field{
-			View: editor.RefSelect("Author", s, map[string]string{
-				"label": "Author",
-			},
-				"Author",
-				`{{ printf "%s %s" .first_name .last_name }} `,
-				s.refSelData["Author"],
-			),
+			View: editor.Input("Author", s, map[string]string{
+				"label":       "Author",
+				"type":        "text",
+				"placeholder": "Enter the Author name here",
+			}),
 		},
 		editor.Field{
 			View: editor.Textarea("Params", s, map[string]string{
@@ -68,14 +64,6 @@ func (s *Post) MarshalEditor() ([]byte, error) {
 	return view, nil
 }
 
-func (s *Post) SetSelectData(data map[string][][]byte) {
-	s.refSelData = data
-}
-
-func (s *Post) SelectContentTypes() []string {
-	return []string{"Author"}
-}
-
 // String defines the display name of a Song in the CMS list-view
 func (s *Post) String() string { return s.Title }
 
@@ -87,7 +75,6 @@ func (s *Post) Create(res http.ResponseWriter, req *http.Request) error {
 	required := []string{
 		"title",
 		"content",
-		"author",
 	}
 
 	for _, r := range required {
@@ -124,7 +111,7 @@ func (s *Post) BeforeAPICreate(res http.ResponseWriter, req *http.Request) error
 // request. Ex. Song__pending:3 or Song:8 depending if Song implements api.Trustable
 func (s *Post) AfterAPICreate(res http.ResponseWriter, req *http.Request) error {
 	addr := req.RemoteAddr
-	log.Println("Song sent by:", addr, "titled:", req.PostFormValue("title"))
+	log.Println("[AfterAPICreate] Post sent by:", addr, "titled:", req.PostFormValue("title"))
 
 	return nil
 }

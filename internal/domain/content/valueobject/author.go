@@ -111,7 +111,7 @@ func (s *Author) BeforeAPICreate(res http.ResponseWriter, req *http.Request) err
 // request. Ex. Song__pending:3 or Song:8 depending if Song implements api.Trustable
 func (s *Author) AfterAPICreate(res http.ResponseWriter, req *http.Request) error {
 	addr := req.RemoteAddr
-	log.Println("Song sent by:", addr, "titled:", req.PostFormValue("title"))
+	log.Println("AfterAPICreate: Author sent by:", addr, "titled:", req.PostFormValue("title"))
 
 	return nil
 }

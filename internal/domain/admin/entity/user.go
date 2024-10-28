@@ -7,10 +7,13 @@ import (
 	"github.com/gohugonet/hugoverse/internal/domain/admin"
 	"github.com/gohugonet/hugoverse/internal/domain/admin/repository"
 	"github.com/gohugonet/hugoverse/internal/domain/admin/valueobject"
+	"github.com/gohugonet/hugoverse/pkg/loggers"
 )
 
 type Administrator struct {
 	Repo repository.Repository
+
+	Log loggers.Logger
 }
 
 func (a *Administrator) ValidateUser(email, password string) error {
@@ -33,6 +36,7 @@ func (a *Administrator) ValidateUser(email, password string) error {
 func (a *Administrator) IsUserExists(email string) bool {
 	user, err := getUser(email, a.Repo)
 	if err != nil {
+		a.Log.Errorf("Error [IsUserExists] checking user: %v", err)
 		return false
 	}
 	return user != nil

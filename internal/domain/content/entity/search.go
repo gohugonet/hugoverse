@@ -34,6 +34,7 @@ func (s *Search) TypeQuery(typeName, query string, count, offset int) ([]content
 		return nil, content.ErrNoIndex
 	}
 
+	s.Log.Debugln("TypeQuery: ", query)
 	q := bleve.NewQueryStringQuery(query)
 	req := bleve.NewSearchRequestOptions(q, count, offset, false)
 	res, err := idx.Search(req)
