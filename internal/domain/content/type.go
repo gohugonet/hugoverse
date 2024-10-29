@@ -15,6 +15,13 @@ type Identifier interface {
 	ContentType() string
 }
 
+type DirService interface {
+	DataDir() string
+	UploadDir() string
+	PreviewDir() string
+	PreviewFolder() string
+}
+
 type Services interface {
 	SiteService
 	CHService

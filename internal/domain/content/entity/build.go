@@ -1,12 +1,249 @@
 package entity
 
-import "github.com/gohugonet/hugoverse/internal/domain/content/valueobject"
+import (
+	"encoding/json"
+	"errors"
+	"fmt"
+	"github.com/gohugonet/hugoverse/internal/domain/content/valueobject"
+	"github.com/gohugonet/hugoverse/pkg/herrors"
+	"io"
+	"net/url"
+	"os"
+	"path"
+	"path/filepath"
+	"strings"
+	"sync"
+)
 
 func (c *Content) BuildTarget(contentType, id, status string) (string, error) {
-	site, err := c.getContent(contentType, id)
+	content, err := c.getContent(contentType, id)
 	if err != nil {
 		return "", err
 	}
 
-	return site.(*valueobject.Site).WorkingDir, nil
+	if site, ok := content.(*valueobject.Site); ok {
+		dir, _, err := c.Hugo.tempDir(site.Title, c.Repo.UserDataDir())
+		//defer cleanFunc()
+		c.Log.Debugf("temp dir: %s", dir)
+
+		if err != nil {
+			c.Log.Errorf("failed to get temp dir: %v", err)
+			return "", err
+		}
+
+		writer := newWriter(c.Log)
+		go writer.startDumpFiles()
+
+		writer.files <- &valueobject.File{
+			Fs:      c.Hugo.Fs,
+			Path:    path.Join(dir, "go.mod"),
+			Content: []byte("module github.com/mdfriday/temp-build\n\ngo 1.18"),
+		}
+
+		confFile, err := c.siteConfigFile(site, dir)
+		if err != nil {
+			c.Log.Errorf("failed to get site config file: %v", err)
+			writer.close()
+			return "", err
+		}
+		writer.files <- confFile
+
+		if err := c.writeSitePosts(site.ID, dir, writer.files); err != nil {
+			c.Log.Errorf("failed to write site posts: %v", err)
+			writer.close()
+			return "", err
+		}
+
+		writer.close()
+
+		err = <-writer.errs
+		if err != nil {
+			return "", fmt.Errorf("failed to render pages: %w", herrors.ImproveIfNilPointer(err))
+		}
+
+		return dir, nil
+	}
+
+	return "", errors.New("only site could be built")
+}
+
+func (c *Content) writeSitePosts(siteId int, dir string, writerFiles chan *valueobject.File) error {
+	q := fmt.Sprintf(`site:"api/content?type=Site&id=%d"`, siteId)
+	encodedQ := url.QueryEscape(q)
+
+	sitePosts, err := c.search("SitePost", fmt.Sprintf("site:%s", encodedQ))
+	if err != nil {
+		return err
+	}
+
+	for _, data := range sitePosts {
+		var sp valueobject.SitePost
+		if err := json.Unmarshal(data, &sp); err != nil {
+			return err
+		}
+
+		post, err := c.getPost(sp.Post)
+		if err != nil {
+			return err
+		}
+
+		confBytes, err := post.Markdown()
+		if err != nil {
+			c.Log.Errorf("failed to get site config: %v", err)
+			return err
+		}
+
+		writerFiles <- &valueobject.File{
+			Fs:      c.Hugo.Fs,
+			Path:    path.Join(dir, sp.Path),
+			Content: confBytes,
+		}
+
+		if len(post.Assets) > 0 {
+			go c.copyFiles(dir, getParentPath(sp.Path), post.Assets)
+		}
+	}
+
+	return nil
+}
+
+func getParentPath(fullPath string) string {
+	// 获取父目录路径
+	dirPath := filepath.Dir(fullPath)
+
+	// 去除开头的斜杠
+	return path.Clean(dirPath)[1:]
+}
+
+func (c *Content) copyFiles(dir string, parentPath string, files []string) {
+	var wg sync.WaitGroup
+
+	for _, filePath := range files {
+		wg.Add(1)
+
+		filename, p, err := parseURL(filePath)
+		if err != nil {
+			c.Log.Printf("parse url %s failed: %v\n", filePath, err)
+			wg.Done()
+			continue
+		}
+
+		src := path.Join(c.Hugo.DirService.UploadDir(), p)
+		dst := path.Join(dir, parentPath, filename)
+
+		if err := c.Hugo.Fs.MkdirAll(path.Join(dir, parentPath), 0755); err != nil {
+			c.Log.Printf("mkdir %s failed: %v\n", path.Join(dir, parentPath), err)
+			wg.Done()
+			continue
+		}
+
+		go func(src, dst string) {
+			defer wg.Done()
+
+			if err := c.copyFile(src, dst); err != nil {
+				c.Log.Debugf("file %s copy failed: %v\n", src, err)
+				return
+			}
+			c.Log.Debugf("file %s copied to %s successfully\n", src, dst)
+		}(src, dst)
+	}
+
+	wg.Wait()
+}
+
+func parseURL(url string) (string, string, error) {
+	apiIndex := strings.Index(url, "/api/uploads/")
+	if apiIndex == -1 {
+		return "", "", fmt.Errorf("URL not contain /api/uploads/, path: %s", url)
+	}
+
+	apiPath := url[apiIndex+len("/api/uploads/"):]
+
+	fileName := path.Base(apiPath)
+
+	return fileName, apiPath, nil
+}
+
+func (c *Content) copyFile(src, dst string) error {
+	// 打开源文件
+	sourceFile, err := os.Open(src)
+	if err != nil {
+		return fmt.Errorf("cannot open source file: %v", err)
+	}
+	defer sourceFile.Close()
+
+	// 创建目标文件
+	destFile, err := os.Create(dst)
+	if err != nil {
+		return fmt.Errorf("cannot create destination file: %v", err)
+	}
+	defer destFile.Close()
+
+	// 复制文件内容
+	_, err = io.Copy(destFile, sourceFile)
+	if err != nil {
+		return fmt.Errorf("copy file failed: %v", err)
+	}
+
+	return nil
+}
+
+func (c *Content) getPost(rawURL string) (*valueobject.Post, error) {
+	id, err := c.getIDByURL(rawURL)
+	if err != nil {
+		return nil, err
+	}
+
+	p, err := c.getContent("Post", id)
+	if err != nil {
+		return nil, err
+	}
+
+	post, ok := p.(*valueobject.Post)
+	if !ok {
+		return nil, errors.New("invalid post")
+	}
+
+	return post, nil
+}
+
+func (c *Content) getIDByURL(rawURL string) (string, error) {
+	parsedURL, err := url.Parse(rawURL)
+	if err != nil {
+		return "", fmt.Errorf("parse url failed: %v", err)
+	}
+
+	id := parsedURL.Query().Get("id")
+	if id == "" {
+		return "", fmt.Errorf("cannot get id from url: %s", rawURL)
+	}
+
+	return id, nil
+}
+
+func (c *Content) siteConfigFile(site *valueobject.Site, dir string) (*valueobject.File, error) {
+	previewDir, err := c.Hugo.previewDir()
+	if err != nil {
+		c.Log.Errorf("failed to get preview dir: %v", err)
+		return nil, err
+	}
+
+	baseURL, err := c.Hugo.previewPath(previewDir)
+	if err != nil {
+		c.Log.Errorf("failed to get preview path: %v", err)
+		return nil, err
+	}
+	site.BaseURL = baseURL
+
+	confBytes, err := site.Toml()
+	if err != nil {
+		c.Log.Errorf("failed to get site config: %v", err)
+		return nil, err
+	}
+
+	return &valueobject.File{
+		Fs:      c.Hugo.Fs,
+		Path:    path.Join(dir, "config.toml"),
+		Content: confBytes,
+	}, nil
 }

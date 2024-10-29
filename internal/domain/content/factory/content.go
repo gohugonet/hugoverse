@@ -10,15 +10,18 @@ import (
 	"github.com/spf13/afero"
 )
 
-func NewContent(repo repository.Repository) *entity.Content {
+func NewContent(repo repository.Repository, dir content.DirService) *entity.Content {
 	log := loggers.NewDefault()
+	log.Debugln("user data dir: ", repo.UserDataDir())
 
 	c := &entity.Content{
 		Types: make(map[string]content.Creator),
 		Repo:  repo,
 
 		Hugo: &entity.Hugo{
-			Fs:  afero.NewOsFs(),
+			Fs:         afero.NewOsFs(),
+			DirService: dir,
+
 			Log: log,
 		},
 
@@ -44,8 +47,8 @@ func NewContent(repo repository.Repository) *entity.Content {
 	return c
 }
 
-func NewContentWithServices(repo repository.Repository, services content.Services) *entity.Content {
-	c := NewContent(repo)
+func NewContentWithServices(repo repository.Repository, services content.Services, dirService content.DirService) *entity.Content {
+	c := NewContent(repo, dirService)
 	c.Hugo.Services = services
 
 	return c

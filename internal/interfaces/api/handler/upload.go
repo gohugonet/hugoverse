@@ -44,7 +44,7 @@ func (s *Handler) StoreFiles(req *http.Request) (map[string]string, error) {
 
 	urlPathPrefix := "api"
 	uploadDirName := "uploads"
-	uploadDir := filepath.Join(s.uploadDir, fmt.Sprintf("%d", tm.Year()), fmt.Sprintf("%02d", tm.Month()))
+	uploadDir := filepath.Join(s.uploadDir, s.db.UserDir(), fmt.Sprintf("%d", tm.Year()), fmt.Sprintf("%02d", tm.Month()))
 	err = os.MkdirAll(uploadDir, os.ModeDir|os.ModePerm)
 	if err != nil {
 		return nil, err
@@ -77,19 +77,19 @@ func (s *Handler) StoreFiles(req *http.Request) (map[string]string, error) {
 		// (TODO: or check if S3 credentials exist, & save to cloud)
 		dst, err := os.Create(absPath)
 		if err != nil {
-			err := fmt.Errorf("Failed to create destination file for upload: %s", err)
+			err := fmt.Errorf("failed to create destination file for upload: %s", err)
 			return nil, err
 		}
 
 		// copy file from src to dst on disk
 		var size int64
 		if size, err = io.Copy(dst, src); err != nil {
-			err := fmt.Errorf("Failed to copy uploaded file to destination: %s", err)
+			err := fmt.Errorf("failed to copy uploaded file to destination: %s", err)
 			return nil, err
 		}
 
 		// add name:urlPath to req.PostForm to be inserted into db
-		urlPath := fmt.Sprintf("/%s/%s/%d/%02d/%s", urlPathPrefix, uploadDirName, tm.Year(), tm.Month(), filename)
+		urlPath := fmt.Sprintf("/%s/%s/%s/%d/%02d/%s", urlPathPrefix, uploadDirName, s.db.UserDir(), tm.Year(), tm.Month(), filename)
 		urlPaths[name] = urlPath
 
 		// add upload information to db

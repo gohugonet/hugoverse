@@ -52,6 +52,10 @@ func (d *Database) UserDataDir() string {
 	return path.Join(d.dataDir, d.userDir)
 }
 
+func (d *Database) UserDir() string {
+	return d.userDir
+}
+
 func (d *Database) RegisterContentBuckets(contentTypeNames []string) {
 	d.contentBuckets = append(d.contentBuckets, contentTypeNames...)
 }

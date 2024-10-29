@@ -9,6 +9,8 @@ import (
 
 var cachedHugoverseDir string
 
+const folderPreview = "preview"
+
 func init() {
 	cachedHugoverseDir = hugoverseDir()
 
@@ -24,6 +26,10 @@ func TLSDir() string {
 
 func UploadDir() string {
 	return filepath.Join(DataDir(), "uploads")
+}
+
+func PreviewDir() string {
+	return filepath.Join(DataDir(), folderPreview)
 }
 
 func DataDir() string {
@@ -63,4 +69,20 @@ func ensureDirExists(dir string) error {
 		return fmt.Errorf("failed to check directory: %w", err)
 	}
 	return nil
+}
+
+type dir struct{}
+
+func (d *dir) DataDir() string {
+	return DataDir()
+}
+func (d *dir) PreviewDir() string {
+	return PreviewDir()
+}
+func (d *dir) PreviewFolder() string {
+	return folderPreview
+}
+
+func (d *dir) UploadDir() string {
+	return UploadDir()
 }

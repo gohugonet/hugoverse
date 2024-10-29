@@ -1,6 +1,8 @@
 package entity
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/content"
@@ -13,6 +15,7 @@ import (
 	"path"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -20,11 +23,54 @@ type Hugo struct {
 	Services content.Services
 	Fs       afero.Fs
 
+	DirService content.DirService
+
 	contentSvc contentSvc
 
 	site *valueobject.Site
 
 	Log loggers.Logger
+}
+
+func (h *Hugo) previewDir() (string, error) {
+	b := make([]byte, 6)
+	if _, err := rand.Read(b); err != nil {
+		return "", fmt.Errorf("rand read error: %v", err)
+	}
+
+	shortLink := base64.URLEncoding.EncodeToString(b)
+	shortLink = strings.TrimRight(shortLink, "=")
+
+	dir := path.Join(h.DirService.PreviewDir(), shortLink)
+	if err := h.Fs.MkdirAll(dir, 0755); err != nil {
+		return "", fmt.Errorf("make preview dir error: %v", err)
+	}
+
+	return dir, nil
+}
+
+func (h *Hugo) previewPath(fullPath string) (string, error) {
+	relPath, err := filepath.Rel(h.DirService.DataDir(), fullPath)
+	if err != nil {
+		return "", fmt.Errorf("get relative path error: %v", err)
+	}
+
+	return relPath, nil
+}
+
+func (h *Hugo) tempDir(prefix string, workingDir string) (string, func(), error) {
+	sitesPath := path.Join(workingDir, "sites")
+	if err := h.Fs.MkdirAll(sitesPath, 0755); err != nil {
+		return "", nil, err
+	}
+
+	formattedPrefix := strings.ReplaceAll(prefix, " ", "_") + "_"
+	tempDir, err := afero.TempDir(h.Fs, sitesPath, formattedPrefix)
+	if err != nil {
+		return "", nil, err
+	}
+
+	return tempDir, func() { h.Fs.RemoveAll(tempDir) }, nil
 }
 
 func (h *Hugo) LoadProject(c contentSvc) error {

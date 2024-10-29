@@ -1,10 +1,12 @@
 package valueobject
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/gohugonet/hugoverse/pkg/editor"
 	"log"
 	"net/http"
+	"text/template"
 )
 
 type Site struct {
@@ -176,4 +178,31 @@ func (s *Site) Build() bool {
 
 func (s *Site) Deploy() bool {
 	return true
+}
+
+func (s *Site) Toml() ([]byte, error) {
+	const tomlTemplate = `title = "{{.Title}}"
+description = "{{.Description}}"
+baseURL = "{{.BaseURL}}"
+owner = "{{.Owner}}"
+
+[module]
+  [[module.imports]]
+    path = "{{.Theme}}"
+
+[params]
+{{.Params}}
+
+`
+	tmpl, err := template.New("toml").Parse(tomlTemplate)
+	if err != nil {
+		return nil, fmt.Errorf("parse toml template error : %v", err)
+	}
+
+	var result bytes.Buffer
+	if err := tmpl.Execute(&result, s); err != nil {
+		return nil, fmt.Errorf("execute toml template error: %v", err)
+	}
+
+	return result.Bytes(), nil
 }

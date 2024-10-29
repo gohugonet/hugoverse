@@ -109,10 +109,6 @@ func (c *Content) newContent(contentType string, ci any) (string, error) {
 		}
 	}()
 
-	if contentType == "SitePost" {
-		go c.syncCheck(ci.(*valueobject.SitePost))
-	}
-
 	return strconv.FormatInt(id, 10), nil
 }
 

@@ -18,7 +18,7 @@ import (
 )
 
 func NewContentServer(db repository.Repository) *entity.Content {
-	return factory.NewContent(db)
+	return factory.NewContent(db, &dir{})
 }
 
 func LoadHugoProject() error {
@@ -90,7 +90,7 @@ func LoadHugoProject() error {
 		Config:     c,
 		Fs:         sfs,
 		ContentHub: ch,
-	})
+	}, &dir{})
 
 	db.RegisterContentBuckets(ct.AllContentTypeNames())
 	defer db.Close()

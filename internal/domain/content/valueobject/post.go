@@ -1,10 +1,12 @@
 package valueobject
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/gohugonet/hugoverse/pkg/editor"
 	"log"
 	"net/http"
+	"text/template"
 )
 
 type Post struct {
@@ -162,4 +164,26 @@ func (s *Post) FrontMatter() string {
 
 func (s *Post) FullContent() string {
 	return s.FrontMatter() + "\n" + s.Content
+}
+
+func (s *Post) Markdown() ([]byte, error) {
+	const postTemplate = `---
+title: {{.Title}}
+author: {{.Author}}
+{{.Params}}
+---
+
+{{.Content}}
+`
+	tmpl, err := template.New("toml").Parse(postTemplate)
+	if err != nil {
+		return nil, fmt.Errorf("parse toml template error : %v", err)
+	}
+
+	var result bytes.Buffer
+	if err := tmpl.Execute(&result, s); err != nil {
+		return nil, fmt.Errorf("execute toml template error: %v", err)
+	}
+
+	return result.Bytes(), nil
 }

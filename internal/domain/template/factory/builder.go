@@ -79,13 +79,13 @@ func (b *builder) buildFunctions() *builder {
 	for _, nsf := range valueobject.TemplateFuncsNamespaceRegistry {
 		ns := nsf()
 		if _, exists := funcs[ns.Name]; exists {
-			panic(ns.Name + " is a duplicate template func")
+			continue
 		}
 		funcs[ns.Name] = ns.Context
 		for _, mm := range ns.MethodMappings {
 			for _, alias := range mm.Aliases {
 				if _, exists := funcs[alias]; exists {
-					panic(alias + " is a duplicate template func")
+					continue
 				}
 				funcs[alias] = mm.Method
 			}

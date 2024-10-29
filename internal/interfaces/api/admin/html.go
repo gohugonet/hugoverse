@@ -70,7 +70,7 @@ var endAdminHTML = `
                 <p class="center-align">
 					Powered by &copy;<a target="_blank" href="https://gohugo.net">Hugoverse</a>
 					&nbsp;&vert;&nbsp; 
-					open-sourced by <a target="_blank" href="https://sunwei.xyz">sunwei</a>
+					open-sourced by <a target="_blank" href="https://mdfriday.com">MDFriday</a>
 					&nbsp;&vert;&nbsp; 
 					<a target="_blank" href="https://github.com/gohugonet/hugoverse">GitHub</a>
 				</p>

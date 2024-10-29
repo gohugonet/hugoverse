@@ -40,6 +40,9 @@ func (d *Database) StartUserDatabase(email string) error {
 
 	d.userStore = s
 	d.userDir = ud
+
+	d.log.Debugf("Started user database: %s", ud)
+
 	return nil
 }
 
