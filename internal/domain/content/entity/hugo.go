@@ -32,10 +32,32 @@ type Hugo struct {
 	Log loggers.Logger
 }
 
-func (h *Hugo) previewDir() (string, error) {
+func (h *Hugo) goModFile(dir string) *valueobject.File {
+	return &valueobject.File{
+		Fs:      h.Fs,
+		Path:    path.Join(dir, "go.mod"),
+		Content: []byte("module github.com/mdfriday/temp-build\n\ngo 1.18"),
+	}
+}
+
+func (h *Hugo) siteConfigFile(site *valueobject.Site, dir string) (*valueobject.File, error) {
+	confBytes, err := site.Toml()
+	if err != nil {
+		h.Log.Errorf("failed to get site config: %v", err)
+		return nil, err
+	}
+
+	return &valueobject.File{
+		Fs:      h.Fs,
+		Path:    path.Join(dir, "config.toml"),
+		Content: confBytes,
+	}, nil
+}
+
+func (h *Hugo) previewDir() (string, string, error) {
 	b := make([]byte, 6)
 	if _, err := rand.Read(b); err != nil {
-		return "", fmt.Errorf("rand read error: %v", err)
+		return "", "", fmt.Errorf("rand read error: %v", err)
 	}
 
 	shortLink := base64.URLEncoding.EncodeToString(b)
@@ -43,10 +65,10 @@ func (h *Hugo) previewDir() (string, error) {
 
 	dir := path.Join(h.DirService.PreviewDir(), shortLink)
 	if err := h.Fs.MkdirAll(dir, 0755); err != nil {
-		return "", fmt.Errorf("make preview dir error: %v", err)
+		return "", "", fmt.Errorf("make preview dir error: %v", err)
 	}
 
-	return dir, nil
+	return dir, shortLink, nil
 }
 
 func (h *Hugo) previewPath(fullPath string) (string, error) {
@@ -71,6 +93,10 @@ func (h *Hugo) tempDir(prefix string, workingDir string) (string, func(), error)
 	}
 
 	return tempDir, func() { h.Fs.RemoveAll(tempDir) }, nil
+}
+
+func (c *Content) LoadHugoProject() error {
+	return c.Hugo.LoadProject(c)
 }
 
 func (h *Hugo) LoadProject(c contentSvc) error {

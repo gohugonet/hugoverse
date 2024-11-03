@@ -9,9 +9,10 @@ type Repository interface {
 	DeleteContent(namespace string, id string, slug string) error
 
 	NextContentId(ns string) (uint64, error)
-	CheckSlugForDuplicate(slug string) (string, error)
+	CheckSlugForDuplicate(namespace string, slug string) (string, error)
 
 	PutSortedContent(namespace string, m map[string][]byte) error
 
 	UserDataDir() string
+	AdminDataDir() string
 }

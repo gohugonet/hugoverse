@@ -46,7 +46,7 @@ func (a *Upload) NewUpload(data url.Values) error {
 	}
 	upload.Item = *item
 
-	slug, err := a.Repo.CheckSlugForDuplicate(upload.Name)
+	slug, err := a.Repo.CheckSlugForDuplicate("__uploads", upload.Name)
 	if err != nil {
 		return err
 	}

@@ -14,5 +14,5 @@ type Repository interface {
 	DeleteUpload(id string) error
 	AllUploads() ([][]byte, error)
 
-	CheckSlugForDuplicate(slug string) (string, error)
+	CheckSlugForDuplicate(namespace string, slug string) (string, error)
 }

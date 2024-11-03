@@ -1,13 +1,30 @@
 package factory
 
 import (
-	"github.com/gohugonet/hugoverse/internal/domain/admin"
 	"github.com/gohugonet/hugoverse/internal/domain/admin/entity"
 	"github.com/gohugonet/hugoverse/internal/domain/admin/repository"
 	"github.com/gohugonet/hugoverse/pkg/loggers"
+	"github.com/nilslice/jwt"
 )
 
-func NewAdmin(repo repository.Repository) (admin.Admin, error) {
+func NewAdminServer(db repository.Repository) (*entity.Admin, error) {
+	a, err := NewAdmin(db)
+	if err != nil {
+		return nil, err
+	}
+
+	if a.ClientSecret() != "" {
+		jwt.Secret([]byte(a.ClientSecret()))
+	}
+	err = a.InvalidateCache()
+	if err != nil {
+		return nil, err
+	}
+
+	return a, nil
+}
+
+func NewAdmin(repo repository.Repository) (*entity.Admin, error) {
 	log := loggers.NewDefault()
 
 	a := &entity.Admin{
@@ -30,6 +47,7 @@ func NewAdmin(repo repository.Repository) (admin.Admin, error) {
 	a.Cache = &entity.Cache{Conf: a.Conf}
 	a.Controller = &entity.Controller{Conf: a.Conf}
 	a.Client = &entity.Client{Conf: a.Conf}
+	a.Netlify = &entity.Netlify{Conf: a.Conf}
 
 	return a, nil
 }

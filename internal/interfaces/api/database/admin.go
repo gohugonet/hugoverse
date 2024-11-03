@@ -1,5 +1,29 @@
 package database
 
+import "github.com/gohugonet/hugoverse/pkg/db"
+
+func (d *Database) StartAdminDatabase(adminTypeNames []string) error {
+	var buckets []string
+	buckets = append(buckets, adminTypeNames...)
+	buckets = append(buckets, adminOriginBuckets...)
+
+	as, err := db.NewStore(d.dataDir, buckets)
+	if err != nil {
+		return err
+	}
+
+	d.adminStore = as
+	d.adminBuckets = adminTypeNames
+
+	return nil
+}
+
+func (d *Database) SystemInitComplete() bool {
+	users := d.adminStore.ContentAll(bucketNameWithPrefix("users"))
+
+	return len(users) > 0
+}
+
 func (d *Database) User(email string) ([]byte, error) {
 	return d.adminStore.Get(newUserItem(email, nil))
 }

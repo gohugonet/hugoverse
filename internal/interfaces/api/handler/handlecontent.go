@@ -99,6 +99,18 @@ func (s *Handler) ApiContentsHandler(res http.ResponseWriter, req *http.Request)
 }
 
 func (s *Handler) ContentHandler(res http.ResponseWriter, req *http.Request) {
+	switch req.Method {
+	case http.MethodGet:
+		s.getContent(res, req)
+	case http.MethodPost:
+		s.postContent(res, req)
+	default:
+		res.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+}
+
+func (s *Handler) getContent(res http.ResponseWriter, req *http.Request) {
 	q := req.URL.Query()
 	id := q.Get("id")
 	t := q.Get("type")
@@ -181,12 +193,7 @@ func (s *Handler) ContentHandler(res http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func (s *Handler) CreateContentHandler(res http.ResponseWriter, req *http.Request) {
-	if req.Method != http.MethodPost {
-		res.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
-
+func (s *Handler) postContent(res http.ResponseWriter, req *http.Request) {
 	err := req.ParseMultipartForm(1024 * 1024 * 4) // maxMemory 4MB
 	if err != nil {
 		s.log.Errorf("Error parsing multipart form: %v", err)
@@ -221,6 +228,7 @@ func (s *Handler) CreateContentHandler(res http.ResponseWriter, req *http.Reques
 	req.PostForm.Set("updated", ts)
 
 	urlPaths, err := s.StoreFiles(req)
+	fmt.Printf("=== post form: %v\n", urlPaths)
 	if err != nil {
 		s.log.Errorf("Error storing files: %v", err)
 		res.WriteHeader(http.StatusInternalServerError)

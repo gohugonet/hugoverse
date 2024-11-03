@@ -12,8 +12,9 @@ import (
 )
 
 var (
-	adminBuckets = []string{
+	adminOriginBuckets = []string{
 		"__config", "__users",
+		"__contentIndex",
 	}
 
 	userBuckets = []string{
@@ -23,9 +24,11 @@ var (
 )
 
 type Database struct {
-	dataDir        string
-	userDir        string
+	dataDir string
+	userDir string
+
 	contentBuckets []string
+	adminBuckets   []string
 
 	adminStore *db.Store
 	userStore  *db.Store
@@ -34,22 +37,18 @@ type Database struct {
 }
 
 func New(dataDir string) (*Database, error) {
-	as, err := db.NewStore(dataDir, adminBuckets)
-	if err != nil {
-		return nil, err
-	}
-
 	return &Database{
 		dataDir: dataDir,
-
-		adminStore: as,
-
-		log: loggers.NewDefault(),
+		log:     loggers.NewDefault(),
 	}, nil
 }
 
 func (d *Database) UserDataDir() string {
 	return path.Join(d.dataDir, d.userDir)
+}
+
+func (d *Database) AdminDataDir() string {
+	return d.dataDir
 }
 
 func (d *Database) UserDir() string {
@@ -69,28 +68,38 @@ func (d *Database) Close() {
 	}
 }
 
+func (d *Database) getStore(ns string) *db.Store {
+	for _, bucket := range d.adminBuckets {
+		if bucket == ns {
+			return d.adminStore
+		}
+	}
+
+	return d.userStore
+}
+
 func (d *Database) PutSortedContent(namespace string, m map[string][]byte) error {
-	return d.userStore.Sort(newItems(namespace, m))
+	return d.getStore(namespace).Sort(newItems(namespace, m))
 }
 
 func (d *Database) AllContent(namespace string) [][]byte {
-	return d.userStore.ContentAll(namespace)
+	return d.getStore(namespace).ContentAll(namespace)
 }
 
-func (d *Database) GetContent(contentType string, id string) ([]byte, error) {
-	return d.userStore.Get(
+func (d *Database) GetContent(namespace string, id string) ([]byte, error) {
+	return d.getStore(namespace).Get(
 		&item{
-			bucket: contentType,
+			bucket: namespace,
 			key:    id,
 		})
 }
 
 func (d *Database) DeleteContent(namespace string, id string, slug string) error {
-	if err := d.userStore.Delete(&item{bucket: namespace, key: id}); err != nil {
+	if err := d.getStore(namespace).Delete(&item{bucket: namespace, key: id}); err != nil {
 		return err
 	}
 
-	if err := d.userStore.RemoveIndex(slug); err != nil {
+	if err := d.getStore(namespace).RemoveIndex(slug); err != nil {
 		return err
 	}
 
@@ -116,9 +125,9 @@ func (d *Database) PutContent(ci any, data []byte) error {
 		bucket = fmt.Sprintf("%s%s", ns, bucketNameWithPrefix(string(status)))
 	}
 
-	fmt.Printf(" === bucket: %s\n", bucket)
+	d.log.Printf(" === bucket: %s\n", bucket)
 
-	if err := d.userStore.Set(
+	if err := d.getStore(ns).Set(
 		&item{
 			bucket: bucket,
 			key:    strconv.FormatInt(int64(id), 10),
@@ -146,7 +155,7 @@ func (d *Database) NewContent(ci any, data []byte) error {
 	if !ok {
 		return errors.New("invalid content type")
 	}
-	if err := d.userStore.SetIndex(newKeyValueItem(ciSlug.ItemSlug(), fmt.Sprintf("%s:%d", ns, id))); err != nil {
+	if err := d.getStore(ns).SetIndex(newKeyValueItem(ciSlug.ItemSlug(), fmt.Sprintf("%s:%d", ns, id))); err != nil {
 		return err
 	}
 
@@ -154,7 +163,7 @@ func (d *Database) NewContent(ci any, data []byte) error {
 }
 
 func (d *Database) NextContentId(ns string) (uint64, error) {
-	return d.userStore.NextSequence(&item{bucket: ns})
+	return d.getStore(ns).NextSequence(&item{bucket: ns})
 }
 
 func (d *Database) NextUploadId() (uint64, error) {
@@ -210,16 +219,10 @@ func keyBit8Uint64(sid string) (string, error) {
 	return string(b), err
 }
 
-func (d *Database) CheckSlugForDuplicate(slug string) (string, error) {
-	return d.userStore.CheckSlugForDuplicate(slug)
-}
-
-func (d *Database) SystemInitComplete() bool {
-	users := d.adminStore.ContentAll(bucketNameWithPrefix("users"))
-
-	return len(users) > 0
+func (d *Database) CheckSlugForDuplicate(namespace string, slug string) (string, error) {
+	return d.getStore(namespace).CheckSlugForDuplicate(slug)
 }
 
 func (d *Database) Query(namespace string, opts db.QueryOptions) (int, [][]byte) {
-	return d.userStore.Query(namespace, opts)
+	return d.getStore(namespace).Query(namespace, opts)
 }

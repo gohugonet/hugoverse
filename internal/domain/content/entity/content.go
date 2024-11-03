@@ -21,36 +21,14 @@ type contentSvc interface {
 }
 
 type Content struct {
-	Types map[string]content.Creator
-	Repo  repository.Repository
+	UserTypes  map[string]content.Creator
+	AdminTypes map[string]content.Creator
+	Repo       repository.Repository
 
 	*Search
 	*Hugo
 
 	Log loggers.Logger
-}
-
-func (c *Content) count(contentType string) {
-	all := c.Repo.AllContent(contentType)
-
-	fmt.Println("all: ", contentType, len(all))
-}
-
-func (c *Content) LoadHugoProject() error {
-	return c.Hugo.LoadProject(c)
-}
-
-func (c *Content) AllContentTypeNames() []string {
-	keys := make([]string, 0, len(c.Types))
-	for k := range c.Types {
-		keys = append(keys, k)
-	}
-	return keys
-}
-
-func (c *Content) GetContentCreator(name string) (content.Creator, bool) {
-	t, ok := c.Types[name]
-	return t, ok
 }
 
 func (c *Content) GetContents(ids []content.Identifier) ([][]byte, error) {
@@ -128,6 +106,10 @@ func (c *Content) UpdateContent(contentType string, data url.Values) error {
 		return err
 	}
 
+	return c.UpdateContentObject(ci)
+}
+
+func (c *Content) UpdateContentObject(ci any) error {
 	b, err := c.Marshal(ci)
 	if err != nil {
 		return err
@@ -143,11 +125,12 @@ func (c *Content) UpdateContent(contentType string, data url.Values) error {
 	}
 	status := cis.ItemStatus()
 
-	if cii, ok := ci.(content.Identifiable); ok {
+	cii, ok := ci.(content.Identifiable)
+	if ok {
 		go func() {
 			// update data in search index
 			if err := c.Search.UpdateIndex(
-				GetNamespace(contentType, string(cis.ItemStatus())),
+				GetNamespace(cii.ItemName(), string(cis.ItemStatus())),
 				fmt.Sprintf("%d", cii.ItemID()), b); err != nil {
 
 				log.Println("[search] UpdateIndex Error:", err)
@@ -157,7 +140,7 @@ func (c *Content) UpdateContent(contentType string, data url.Values) error {
 
 	if status == content.Public {
 		go func() {
-			err := c.SortContent(contentType)
+			err := c.SortContent(cii.ItemName())
 			if err != nil {
 				log.Println("sort content err: ", err)
 			}
@@ -240,10 +223,6 @@ func (c *Content) Marshal(content any) ([]byte, error) {
 
 func (c *Content) Unmarshal(data []byte, content any) error {
 	return json.Unmarshal(data, content)
-}
-
-func (c *Content) AllContentTypes() map[string]content.Creator {
-	return c.Types
 }
 
 func (c *Content) NormalizeString(s string) (string, error) {

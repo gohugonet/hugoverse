@@ -6,15 +6,14 @@ import (
 	"fmt"
 	oapiclient "github.com/go-openapi/runtime/client"
 	"github.com/go-openapi/strfmt"
-	netlify "github.com/netlify/open-api/go/porcelain"
-	ooapicontext "github.com/netlify/open-api/go/porcelain/context"
+	"github.com/gohugonet/hugoverse/internal/domain/content/valueobject"
+	"github.com/netlify/open-api/v2/go/models"
+	netlify "github.com/netlify/open-api/v2/go/porcelain"
+	ooapicontext "github.com/netlify/open-api/v2/go/porcelain/context"
 	"github.com/sirupsen/logrus"
 	"os"
 	"path"
 )
-
-const accessToken = "nfp_AV9PCfK1QkGKeCSMJDokFN4167auccQq420d"
-const siteID = "8f4e867c-b981-4959-8054-86c3f1f321e1"
 
 type netlifyConfig struct {
 	AuthToken     string `envconfig:"auth_token" required:"true"`
@@ -26,13 +25,13 @@ type netlifyConfig struct {
 	LogFormat     string `default:"text"`
 }
 
-func DeployToNetlify(target string) error {
+func DeployToNetlify(target string, deployment *valueobject.SiteDeployment, token string) error {
 	c := &netlifyConfig{
-		AuthToken:     accessToken,
-		SiteID:        siteID,
+		AuthToken:     token,
+		SiteID:        deployment.NetlifySiteID,
 		Directory:     path.Join(target, "public"),
 		Draft:         false,
-		DeployMessage: "Deployed from hugoverse",
+		DeployMessage: "Deployed from Hugoverse",
 		LogLevel:      "debug",
 		LogFormat:     "text",
 	}
@@ -56,6 +55,29 @@ func DeployToNetlify(target string) error {
 	client := setupNetlifyClient()
 	ctx := setupContext(c, logger)
 
+	// 检查 SiteID 是否为空
+	if c.SiteID == "" {
+		// 创建新 Netlify 站点
+		newSite, err := client.CreateSite(ctx, &models.SiteSetup{
+			Site: models.Site{
+				//AccountSlug:  "admin-zbpioce",
+				Name:         deployment.Netlify,
+				CustomDomain: fmt.Sprintf("%s.app.mdfriday.com", deployment.Domain),
+				Ssl:          true,
+			},
+			SiteSetupAllOf1: models.SiteSetupAllOf1{},
+		}, true) // 设置 configureDNS 为 true
+		if err != nil {
+			logger.Errorf("failed to create Netlify site: %s", err)
+			return err
+		}
+
+		// 更新 SiteID
+		c.SiteID = newSite.ID
+		deployment.NetlifySiteID = newSite.ID
+		logger.Println("Created new site with ID: " + c.SiteID)
+	}
+
 	// Deploy site
 	resp, err := client.DoDeploy(ctx, &netlify.DeployOptions{
 		SiteID:  c.SiteID,
@@ -64,7 +86,7 @@ func DeployToNetlify(target string) error {
 		Title:   c.DeployMessage,
 	}, nil)
 	if err != nil {
-		logger.Fatalf("failed to deploy site: %s", err)
+		logger.Errorf("failed to deploy site: %s", err)
 		return err
 	}
 

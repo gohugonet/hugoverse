@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"encoding/json"
+	"fmt"
 	"github.com/gohugonet/hugoverse/internal/application"
 	"github.com/gohugonet/hugoverse/internal/domain/content"
 	"log"
@@ -39,12 +41,46 @@ func (s *Handler) DeployContentHandler(res http.ResponseWriter, req *http.Reques
 		return
 	}
 
-	err = application.DeployToNetlify(t)
+	err = application.GenerateStaticSiteWithTarget(t)
+	if err != nil {
+		s.log.Errorf("Error building site %s for deployment with error : %v", id, err)
+		res.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	sd, err := s.contentApp.GetDeployment(id)
+	if err != nil {
+		s.log.Errorf("Error getting deployment: %v", err)
+		res.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	err = application.DeployToNetlify(t, sd, s.adminApp.Netlify.Token())
 	if err != nil {
 		s.log.Errorf("Error building: %v", err)
 		res.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	s.res.Json(res, []byte("ok"))
+	if err := s.contentApp.UpdateContentObject(sd); err != nil {
+		s.log.Errorf("Error updating deployment: %v", err)
+		res.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	jsonBytes, err := json.Marshal(fmt.Sprintf("https://%s.app.mdfriday.com", sd.Domain))
+	if err != nil {
+		s.log.Errorf("Error marshalling token: %v", err)
+		return
+	}
+
+	j, err := s.res.FmtJSON(jsonBytes)
+	if err != nil {
+		s.log.Errorf("Error formatting JSON: %v", err)
+		res.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	res.WriteHeader(http.StatusOK)
+	s.res.Json(res, j)
 }

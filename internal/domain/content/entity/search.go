@@ -13,11 +13,18 @@ import (
 	"strings"
 )
 
-type Search struct {
-	ContentTypes map[string]content.Creator
-	Repo         repository.Repository
+type TypeService interface {
+	GetContentCreator(name string) (content.Creator, bool)
+	AllContentTypeNames() []string
+	AllAdminTypeNames() []string
+	IsAdminType(name string) bool
+}
 
-	Log loggers.Logger
+type Search struct {
+	TypeService TypeService
+
+	Repo repository.Repository
+	Log  loggers.Logger
 
 	IndicesMap map[string]map[string]bleve.Index
 }
@@ -28,7 +35,7 @@ type Search struct {
 func (s *Search) TypeQuery(typeName, query string, count, offset int) ([]content.Identifier, error) {
 	s.setup()
 
-	idx, ok := s.IndicesMap[s.searchDir()][typeName]
+	idx, ok := s.IndicesMap[s.getSearchDir(typeName)][typeName]
 	if !ok {
 		s.Log.Debugln("Index for type ", typeName, " not found")
 		return nil, content.ErrNoIndex
@@ -55,10 +62,10 @@ func (s *Search) TypeQuery(typeName, query string, count, offset int) ([]content
 func (s *Search) UpdateIndex(ns, id string, data []byte) error {
 	s.setup()
 
-	idx, ok := s.IndicesMap[s.searchDir()][ns]
+	idx, ok := s.IndicesMap[s.getSearchDir(ns)][ns]
 	if ok {
 		// unmarshal json to struct, error if not registered
-		it, ok := s.ContentTypes[ns]
+		it, ok := s.TypeService.GetContentCreator(ns)
 		if !ok {
 			return fmt.Errorf("[search] UpdateIndex Error: type '%s' doesn't exist", ns)
 		}
@@ -86,7 +93,7 @@ func (s *Search) DeleteIndex(id string) error {
 	target := strings.Split(id, ":")
 	ns := target[0]
 
-	idx, ok := s.IndicesMap[s.searchDir()][ns]
+	idx, ok := s.IndicesMap[s.getSearchDir(ns)][ns]
 	if ok {
 		// add data to search index
 		return idx.Delete(id)
@@ -95,8 +102,19 @@ func (s *Search) DeleteIndex(id string) error {
 	return nil
 }
 
-func (s *Search) searchDir() string {
+func (s *Search) getSearchDir(ns string) string {
+	if s.TypeService.IsAdminType(ns) {
+		return s.adminSearchDir()
+	}
+	return s.userSearchDir()
+}
+
+func (s *Search) userSearchDir() string {
 	return filepath.Join(s.Repo.UserDataDir(), "Search")
+}
+
+func (s *Search) adminSearchDir() string {
+	return filepath.Join(s.Repo.AdminDataDir(), "Search")
 }
 
 // Setup initializes Search Index for search to be functional
@@ -105,14 +123,27 @@ func (s *Search) searchDir() string {
 // empty when using addons. We still have no guarentee whatsoever that item.Types is defined
 // Should be called from a goroutine after SetContent is successful (SortContent requirement)
 func (s *Search) setup() {
-	_, ok := s.IndicesMap[s.searchDir()]
+	s.setupAdminIndices()
+	s.setupUserIndices()
+}
+
+func (s *Search) setupUserIndices() {
+	s.setupIndices(s.userSearchDir(), s.TypeService.AllContentTypeNames())
+}
+
+func (s *Search) setupAdminIndices() {
+	s.setupIndices(s.adminSearchDir(), s.TypeService.AllAdminTypeNames())
+}
+
+func (s *Search) setupIndices(dir string, typeNames []string) {
+	_, ok := s.IndicesMap[dir]
 	if ok {
 		return
 	}
 
 	searchIndices := make(map[string]bleve.Index)
 
-	for t := range s.ContentTypes {
+	for _, t := range typeNames {
 		idx, err := s.mapIndex(t)
 		if err != nil {
 			s.Log.Errorln("[search] Setup Error", err)
@@ -122,13 +153,13 @@ func (s *Search) setup() {
 		searchIndices[t] = idx
 	}
 
-	s.IndicesMap[s.searchDir()] = searchIndices
+	s.IndicesMap[dir] = searchIndices
 }
 
 // MapIndex creates the mapping for a type and tracks the index to be used within
 // the system for adding/deleting/checking data
 func (s *Search) mapIndex(typeName string) (bleve.Index, error) {
-	it, ok := s.ContentTypes[typeName]
+	it, ok := s.TypeService.GetContentCreator(typeName)
 	if !ok {
 		return nil, fmt.Errorf("[search] MapIndex Error: Failed to MapIndex for %s, type doesn't exist", typeName)
 	}
@@ -151,7 +182,7 @@ func (s *Search) mapIndex(typeName string) (bleve.Index, error) {
 	idxName := typeName + ".index"
 	var idx bleve.Index
 
-	searchPath := s.searchDir()
+	searchPath := s.getSearchDir(typeName)
 
 	err = os.MkdirAll(searchPath, os.ModeDir|os.ModePerm)
 	if err != nil {

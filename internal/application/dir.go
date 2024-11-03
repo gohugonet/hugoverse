@@ -32,6 +32,10 @@ func PreviewDir() string {
 	return filepath.Join(DataDir(), folderPreview)
 }
 
+func PreviewFolder() string {
+	return folderPreview
+}
+
 func DataDir() string {
 	return cachedHugoverseDir
 }

@@ -59,7 +59,7 @@ func (c *Content) newContent(contentType string, ci any) (string, error) {
 		return "", err
 	}
 
-	slug, err = c.Repo.CheckSlugForDuplicate(slug)
+	slug, err = c.Repo.CheckSlugForDuplicate(contentType, slug)
 	if err != nil {
 		return "", err
 	}

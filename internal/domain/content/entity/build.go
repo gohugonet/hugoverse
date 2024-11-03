@@ -40,7 +40,7 @@ func (c *Content) BuildTarget(contentType, id, status string) (string, error) {
 			Content: []byte("module github.com/mdfriday/temp-build\n\ngo 1.18"),
 		}
 
-		confFile, err := c.siteConfigFile(site, dir)
+		confFile, err := c.Hugo.siteConfigFile(site, dir)
 		if err != nil {
 			c.Log.Errorf("failed to get site config file: %v", err)
 			writer.close()
@@ -68,10 +68,10 @@ func (c *Content) BuildTarget(contentType, id, status string) (string, error) {
 }
 
 func (c *Content) writeSitePosts(siteId int, dir string, writerFiles chan *valueobject.File) error {
-	q := fmt.Sprintf(`site:"api/content?type=Site&id=%d"`, siteId)
+	q := fmt.Sprintf(`site%d`, siteId)
 	encodedQ := url.QueryEscape(q)
 
-	sitePosts, err := c.search("SitePost", fmt.Sprintf("site:%s", encodedQ))
+	sitePosts, err := c.search("SitePost", fmt.Sprintf("slug:%s", encodedQ))
 	if err != nil {
 		return err
 	}
@@ -219,31 +219,4 @@ func (c *Content) getIDByURL(rawURL string) (string, error) {
 	}
 
 	return id, nil
-}
-
-func (c *Content) siteConfigFile(site *valueobject.Site, dir string) (*valueobject.File, error) {
-	previewDir, err := c.Hugo.previewDir()
-	if err != nil {
-		c.Log.Errorf("failed to get preview dir: %v", err)
-		return nil, err
-	}
-
-	baseURL, err := c.Hugo.previewPath(previewDir)
-	if err != nil {
-		c.Log.Errorf("failed to get preview path: %v", err)
-		return nil, err
-	}
-	site.BaseURL = baseURL
-
-	confBytes, err := site.Toml()
-	if err != nil {
-		c.Log.Errorf("failed to get site config: %v", err)
-		return nil, err
-	}
-
-	return &valueobject.File{
-		Fs:      c.Hugo.Fs,
-		Path:    path.Join(dir, "config.toml"),
-		Content: confBytes,
-	}, nil
 }

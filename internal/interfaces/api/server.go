@@ -3,6 +3,8 @@ package api
 import (
 	"fmt"
 	"github.com/gohugonet/hugoverse/internal/application"
+	"github.com/gohugonet/hugoverse/internal/domain/admin/entity"
+	"github.com/gohugonet/hugoverse/internal/domain/admin/factory"
 	"github.com/gohugonet/hugoverse/internal/interfaces/api/auth"
 	"github.com/gohugonet/hugoverse/internal/interfaces/api/cache"
 	"github.com/gohugonet/hugoverse/internal/interfaces/api/compression"
@@ -43,7 +45,7 @@ type Server struct {
 	DevHttpsPort int
 
 	db       *database.Database
-	adminApp *application.AdminServer
+	adminApp *entity.Admin
 
 	tls *tls.Tls
 
@@ -85,10 +87,12 @@ func NewServer(options ...func(s *Server) error) (*Server, error) {
 	}
 
 	contentApp := application.NewContentServer(s.db)
-
 	s.db.RegisterContentBuckets(contentApp.AllContentTypeNames())
+	if err := s.db.StartAdminDatabase(contentApp.AllAdminTypeNames()); err != nil {
+		return nil, err
+	}
 
-	server, err := application.NewAdminServer(s.db)
+	server, err := factory.NewAdminServer(s.db)
 	if err != nil {
 		return nil, err
 	}
@@ -102,7 +106,7 @@ func NewServer(options ...func(s *Server) error) (*Server, error) {
 
 	s.tls = tls.NewTls(s, s.adminApp, application.TLSDir())
 
-	s.handler = handler.New(s.Log, application.UploadDir(), s.db, contentApp, s.adminApp)
+	s.handler = handler.New(s.Log, s.db, contentApp, s.adminApp)
 
 	s.registerHandler()
 

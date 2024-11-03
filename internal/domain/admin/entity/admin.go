@@ -18,6 +18,7 @@ type Admin struct {
 	*Cache
 	*Controller
 	*Client
+	*Netlify
 
 	Log loggers.Logger
 }

@@ -22,6 +22,7 @@ type Config struct {
 
 	Name                    string   `json:"name"`
 	Domain                  string   `json:"domain"`
+	Netlify                 string   `json:"netlify"`
 	BindAddress             string   `json:"bind_addr"`
 	HTTPPort                string   `json:"http_port"`
 	HTTPSPort               string   `json:"https_port"`
@@ -117,6 +118,12 @@ func (c *Config) MarshalEditor() ([]byte, error) {
 			View: editor.Input("Domain", c, map[string]string{
 				"label":       "Domain Name (required for SSL certificate)",
 				"placeholder": "e.g. www.example.com or example.com",
+			}),
+		},
+		editor.Field{
+			View: editor.Input("Netlify", c, map[string]string{
+				"label":       "Netlify Token (required for deployment)",
+				"placeholder": "e.g. nfp_Z4c2Defcv57ddXcJHd626rNQKBk9VT1rbf43",
 			}),
 		},
 		editor.Field{

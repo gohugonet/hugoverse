@@ -1,17 +1,18 @@
 package api
 
 import (
+	"fmt"
 	"github.com/gohugonet/hugoverse/internal/application"
 	"net/http"
 )
 
 func (s *Server) registerContentHandler() {
 	s.mux.HandleFunc("/api/contents", s.wrapContentHandler(s.handler.ApiContentsHandler))
-	s.mux.HandleFunc("/api/content", s.wrapContentHandler(s.handler.ContentHandler))
-	s.mux.HandleFunc("/api/content/create", s.wrapContentHandler(s.content.Handle(s.handler.CreateContentHandler)))
+	s.mux.HandleFunc("/api/content", s.wrapContentHandler(s.content.Handle(s.handler.ContentHandler)))
 
 	s.mux.HandleFunc("/api/search", s.wrapContentHandler(s.handler.SearchContentHandler))
 
+	s.mux.HandleFunc("/api/preview", s.wrapContentHandler(s.handler.PreviewContentHandler))
 	s.mux.HandleFunc("/api/build", s.wrapContentHandler(s.handler.BuildContentHandler))
 	s.mux.HandleFunc("/api/deploy", s.wrapContentHandler(s.handler.DeployContentHandler))
 }
@@ -64,5 +65,10 @@ func (s *Server) registerAdminHandler() {
 	s.mux.Handle("/api/uploads/", s.record.Collect(s.cors.Handle(s.cache.Control(
 		http.StripPrefix("/api/uploads/",
 			http.FileServer(restrict(http.Dir(uploadsDir))))))))
+
+	previewPath := fmt.Sprintf("/%s/", application.PreviewFolder())
+	s.mux.Handle(previewPath, s.record.Collect(s.cors.Handle(s.cache.Control(
+		http.StripPrefix(previewPath,
+			http.FileServer(restrict(http.Dir(application.PreviewDir()))))))))
 
 }
