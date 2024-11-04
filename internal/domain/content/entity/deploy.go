@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/content/valueobject"
 	"net/url"
+	"time"
 )
 
 func (c *Content) GetDeployment(siteId string) (*valueobject.SiteDeployment, error) {
@@ -29,7 +30,7 @@ func (c *Content) GetDeployment(siteId string) (*valueobject.SiteDeployment, err
 			sd = &valueobject.SiteDeployment{
 				Item:    *item,
 				Site:    site.QueryString(),
-				Netlify: fmt.Sprintf("mdf-%s", site.ItemSlug()),
+				Netlify: fmt.Sprintf("mdf-%d-%s", time.Now().Unix(), site.ItemSlug()),
 				Domain:  site.ItemSlug(),
 				Status:  "Not Started",
 			}
@@ -47,12 +48,16 @@ func (c *Content) GetDeployment(siteId string) (*valueobject.SiteDeployment, err
 }
 
 func (c *Content) searchDeployment(siteId string) (*valueobject.SiteDeployment, error) {
-	q := fmt.Sprintf(`site:"api/content?type=Site&id=%s"`, siteId)
+	q := fmt.Sprintf(`site%s`, siteId)
 	encodedQ := url.QueryEscape(q)
 
-	siteDeployments, err := c.search("SiteDeployment", fmt.Sprintf("site:%s", encodedQ))
+	siteDeployments, err := c.search("SiteDeployment", fmt.Sprintf("slug:%s", encodedQ))
 	if err != nil {
 		return nil, err
+	}
+
+	if len(siteDeployments) == 1 && siteDeployments[0] == nil {
+		return nil, nil
 	}
 
 	for _, data := range siteDeployments {

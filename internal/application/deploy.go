@@ -55,6 +55,8 @@ func DeployToNetlify(target string, deployment *valueobject.SiteDeployment, toke
 	client := setupNetlifyClient()
 	ctx := setupContext(c, logger)
 
+	fmt.Println("Deploying to Netlify...", deployment.Netlify, deployment.Domain)
+
 	// 检查 SiteID 是否为空
 	if c.SiteID == "" {
 		// 创建新 Netlify 站点

@@ -22,7 +22,7 @@ curl -X POST http://127.0.0.1:1314/api/login \
 ### 创建站点
 
 curl -X POST "http://127.0.0.1:1314/api/content?type=Site" \
--H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhdWQiOm51bGwsImV4cCI6IjIwMjQtMTItMDNUMTI6MjM6NTMuODY2MTY3KzA4OjAwIiwiaWF0IjpudWxsLCJpc3MiOm51bGwsImp0aSI6bnVsbCwibmJmIjpudWxsLCJzdWIiOm51bGwsInVzZXIiOiJtZUBzdW53ZWkueHl6In0.2xU4XR12r_2QxQ1z3dKy7WZr2qyZwHLYi_jN8OnjyXg" \
+-H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhdWQiOm51bGwsImV4cCI6IjIwMjQtMTItMDRUMDg6MTQ6NTIuNTk2MDI5KzA4OjAwIiwiaWF0IjpudWxsLCJpc3MiOm51bGwsImp0aSI6bnVsbCwibmJmIjpudWxsLCJzdWIiOm51bGwsInVzZXIiOiJtZUBzdW53ZWkueHl6In0.foManZwcdG0h52dCxeKY6jE6iTkdSZFcEbnGFanLZU0" \
 -F "type=Site" \
 -F "title=Demo" \
 -F "description=This is my first demo site created by hugoverse" \
@@ -40,12 +40,12 @@ CoverImage = 'cover.jpeg'" \
 #### 创建Post
 
 curl -X POST "http://127.0.0.1:1314/api/content?type=Post" \
--H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhdWQiOm51bGwsImV4cCI6IjIwMjQtMTItMDNUMTI6MjM6NTMuODY2MTY3KzA4OjAwIiwiaWF0IjpudWxsLCJpc3MiOm51bGwsImp0aSI6bnVsbCwibmJmIjpudWxsLCJzdWIiOm51bGwsInVzZXIiOiJtZUBzdW53ZWkueHl6In0.2xU4XR12r_2QxQ1z3dKy7WZr2qyZwHLYi_jN8OnjyXg" \
+-H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhdWQiOm51bGwsImV4cCI6IjIwMjQtMTItMDRUMDg6MTQ6NTIuNTk2MDI5KzA4OjAwIiwiaWF0IjpudWxsLCJpc3MiOm51bGwsImp0aSI6bnVsbCwibmJmIjpudWxsLCJzdWIiOm51bGwsInVzZXIiOiJtZUBzdW53ZWkueHl6In0.foManZwcdG0h52dCxeKY6jE6iTkdSZFcEbnGFanLZU0" \
 -F "type=Post" \
 -F "title=关于我" \
 -F "author=laoyuan" \
 -F "params=weight: 1" \
--F "assets.0=@/Users/sunwei/Downloads/good.jpeg" \
+-F "assets.0=@/Users/sunwei/Downloads/building.jpg" \
 -F "content=- **个人长期陪跑教练**
 - 企业级敏捷教练
 - 研发团队效能顾问
@@ -54,7 +54,7 @@ curl -X POST "http://127.0.0.1:1314/api/content?type=Post" \
 - \"老袁讲敏捷\" 公众号和视频号
 - 长篇小说作家（湖北省作协会员）
 
-\![good](good.jpeg)
+\![good](building.jpg)
 
 ---
 
@@ -64,25 +64,25 @@ curl -X POST "http://127.0.0.1:1314/api/content?type=Post" \
 创建SitePost
 
 curl -X POST "http://127.0.0.1:1314/api/content?type=SitePost" \
--H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhdWQiOm51bGwsImV4cCI6IjIwMjQtMTItMDNUMTI6MjM6NTMuODY2MTY3KzA4OjAwIiwiaWF0IjpudWxsLCJpc3MiOm51bGwsImp0aSI6bnVsbCwibmJmIjpudWxsLCJzdWIiOm51bGwsInVzZXIiOiJtZUBzdW53ZWkueHl6In0.2xU4XR12r_2QxQ1z3dKy7WZr2qyZwHLYi_jN8OnjyXg" \
--F "site=/api/content?type=Site&id=13" \
--F "post=/api/content?type=Post&id=17" \
+-H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhdWQiOm51bGwsImV4cCI6IjIwMjQtMTItMDRUMDg6MTQ6NTIuNTk2MDI5KzA4OjAwIiwiaWF0IjpudWxsLCJpc3MiOm51bGwsImp0aSI6bnVsbCwibmJmIjpudWxsLCJzdWIiOm51bGwsInVzZXIiOiJtZUBzdW53ZWkueHl6In0.foManZwcdG0h52dCxeKY6jE6iTkdSZFcEbnGFanLZU0" \
+-F "site=/api/content?type=Site&id=2" \
+-F "post=/api/content?type=Post&id=3" \
 -F "path=/content/01.service.md"
 
 #### Preview
 
-curl -X POST "http://127.0.0.1:1314/api/preview?type=Site&id=13" \
--H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhdWQiOm51bGwsImV4cCI6IjIwMjQtMTItMDNUMTI6MjM6NTMuODY2MTY3KzA4OjAwIiwiaWF0IjpudWxsLCJpc3MiOm51bGwsImp0aSI6bnVsbCwibmJmIjpudWxsLCJzdWIiOm51bGwsInVzZXIiOiJtZUBzdW53ZWkueHl6In0.2xU4XR12r_2QxQ1z3dKy7WZr2qyZwHLYi_jN8OnjyXg"
+curl -X POST "http://127.0.0.1:1314/api/preview?type=Site&id=2" \
+-H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhdWQiOm51bGwsImV4cCI6IjIwMjQtMTItMDRUMDg6MTQ6NTIuNTk2MDI5KzA4OjAwIiwiaWF0IjpudWxsLCJpc3MiOm51bGwsImp0aSI6bnVsbCwibmJmIjpudWxsLCJzdWIiOm51bGwsInVzZXIiOiJtZUBzdW53ZWkueHl6In0.foManZwcdG0h52dCxeKY6jE6iTkdSZFcEbnGFanLZU0"
 
 
 #### Deployment
 
-curl -X POST "http://127.0.0.1:1314/api/deploy?type=Site&id=13" \
--H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhdWQiOm51bGwsImV4cCI6IjIwMjQtMTItMDNUMDk6NTA6NDEuOTEwMDE3KzA4OjAwIiwiaWF0IjpudWxsLCJpc3MiOm51bGwsImp0aSI6bnVsbCwibmJmIjpudWxsLCJzdWIiOm51bGwsInVzZXIiOiJtZUBzdW53ZWkueHl6In0.UISiT9zdJS1KQDT_K6o81jPybBdxz51952JGTZmYkhs"
+curl -X POST "http://127.0.0.1:1314/api/deploy?type=Site&id=2" \
+-H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhdWQiOm51bGwsImV4cCI6IjIwMjQtMTItMDRUMDg6MTQ6NTIuNTk2MDI5KzA4OjAwIiwiaWF0IjpudWxsLCJpc3MiOm51bGwsImp0aSI6bnVsbCwibmJmIjpudWxsLCJzdWIiOm51bGwsInVzZXIiOiJtZUBzdW53ZWkueHl6In0.foManZwcdG0h52dCxeKY6jE6iTkdSZFcEbnGFanLZU0"
 
 
 
 #### Search
 
-curl -X GET "http://127.0.0.1:1314/api/search?type=SitePost&q=site:%2Fapi%2Fcontent%3Ftype%3DSite%26id%3D9" \
--H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhdWQiOm51bGwsImV4cCI6IjIwMjQtMTItMDNUMDk6NTA6NDEuOTEwMDE3KzA4OjAwIiwiaWF0IjpudWxsLCJpc3MiOm51bGwsImp0aSI6bnVsbCwibmJmIjpudWxsLCJzdWIiOm51bGwsInVzZXIiOiJtZUBzdW53ZWkueHl6In0.UISiT9zdJS1KQDT_K6o81jPybBdxz51952JGTZmYkhs"
+curl -X GET "http://127.0.0.1:1314/api/search?type=SiteDeployment&q=slug:site2" \
+-H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhdWQiOm51bGwsImV4cCI6IjIwMjQtMTItMDRUMDg6MTQ6NTIuNTk2MDI5KzA4OjAwIiwiaWF0IjpudWxsLCJpc3MiOm51bGwsImp0aSI6bnVsbCwibmJmIjpudWxsLCJzdWIiOm51bGwsInVzZXIiOiJtZUBzdW53ZWkueHl6In0.foManZwcdG0h52dCxeKY6jE6iTkdSZFcEbnGFanLZU0"
