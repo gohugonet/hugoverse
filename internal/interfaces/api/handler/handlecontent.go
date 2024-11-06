@@ -203,6 +203,7 @@ func (s *Handler) postContent(res http.ResponseWriter, req *http.Request) {
 
 	t := req.URL.Query().Get("type")
 	if t == "" {
+		s.log.Errorf("Attempt to submit without type from %s", req.URL.String())
 		res.WriteHeader(http.StatusBadRequest)
 		return
 	}

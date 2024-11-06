@@ -58,11 +58,11 @@ func (s *Handler) StoreFiles(req *http.Request) (map[string]string, error) {
 
 		src, err := fds[0].Open()
 		if err != nil {
-			err := fmt.Errorf("Couldn't open uploaded file: %s", err)
+			err := fmt.Errorf("couldn't open uploaded file: %s", err)
+			s.log.Errorf("Error opening uploaded file: %s", err)
 			return nil, err
 
 		}
-		defer src.Close()
 
 		// Overwrite file if it exists by default
 		// support later : check if file at path exists, if so, add timestamp to file
@@ -78,22 +78,32 @@ func (s *Handler) StoreFiles(req *http.Request) (map[string]string, error) {
 		dst, err := os.Create(absPath)
 		if err != nil {
 			err := fmt.Errorf("failed to create destination file for upload: %s", err)
+			s.log.Errorf("Error creating destination file for upload: %s", err)
 			return nil, err
 		}
 
 		// copy file from src to dst on disk
 		var size int64
 		if size, err = io.Copy(dst, src); err != nil {
+			_ = src.Close()
+			_ = dst.Close()
 			err := fmt.Errorf("failed to copy uploaded file to destination: %s", err)
+			s.log.Errorf("Error copying uploaded file to destination: %s", err)
 			return nil, err
 		}
+
+		// Close the source and destination files explicitly
+		_ = src.Close()
+		_ = dst.Close()
 
 		// add name:urlPath to req.PostForm to be inserted into db
 		urlPath := fmt.Sprintf("/%s/%s/%s/%d/%02d/%s", urlPathPrefix, uploadDirName, s.db.UserDir(), tm.Year(), tm.Month(), filename)
 		urlPaths[name] = urlPath
 
 		// add upload information to db
-		go s.storeFileInfo(size, filename, urlPath, fds)
+		go func() {
+			s.storeFileInfo(size, filename, urlPath, fds)
+		}()
 	}
 
 	return urlPaths, nil
@@ -106,6 +116,8 @@ func (s *Handler) storeFileInfo(size int64, filename, urlPath string, fds []*mul
 		"content_type":   []string{fds[0].Header.Get("Content-Type")},
 		"content_length": []string{fmt.Sprintf("%d", size)},
 	}
+
+	s.log.Debugln("storeFileInfo: ", filename, urlPath, fmt.Sprintf("%d", size))
 
 	if err := s.adminApp.NewUpload(data); err != nil {
 		s.log.Errorf("Error saving file upload record to database: %v", err)

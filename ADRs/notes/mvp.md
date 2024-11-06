@@ -40,12 +40,13 @@ CoverImage = 'cover.jpeg'" \
 #### 创建Post
 
 curl -X POST "http://127.0.0.1:1314/api/content?type=Post" \
--H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhdWQiOm51bGwsImV4cCI6IjIwMjQtMTItMDRUMDg6MTQ6NTIuNTk2MDI5KzA4OjAwIiwiaWF0IjpudWxsLCJpc3MiOm51bGwsImp0aSI6bnVsbCwibmJmIjpudWxsLCJzdWIiOm51bGwsInVzZXIiOiJtZUBzdW53ZWkueHl6In0.foManZwcdG0h52dCxeKY6jE6iTkdSZFcEbnGFanLZU0" \
+-H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhdWQiOm51bGwsImV4cCI6IjIwMjQtMTItMDVUMTY6MTE6NDQuOTU3ODUxKzA4OjAwIiwiaWF0IjpudWxsLCJpc3MiOm51bGwsImp0aSI6bnVsbCwibmJmIjpudWxsLCJzdWIiOm51bGwsInVzZXIiOiJ1c2VyXzk3NjkxNkBtZGZyaWRheS5jb20ifQ.iLWi8wWHg2C9JuJsEQW7WB7m0k524Wcv_Ok0TW3j2zA" \
 -F "type=Post" \
 -F "title=关于我" \
 -F "author=laoyuan" \
 -F "params=weight: 1" \
 -F "assets.0=@/Users/sunwei/Downloads/building.jpg" \
+-F "assets.1=@/Users/sunwei/Downloads/laoyuan-bili.jpg" \
 -F "content=- **个人长期陪跑教练**
 - 企业级敏捷教练
 - 研发团队效能顾问
@@ -61,6 +62,24 @@ curl -X POST "http://127.0.0.1:1314/api/content?type=Post" \
 "
 
 
+
+curl -X POST "http://127.0.0.1:1314/api/content?type=Post" \
+-H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhdWQiOm51bGwsImV4cCI6IjIwMjQtMTItMDVUMTY6MTE6NDQuOTU3ODUxKzA4OjAwIiwiaWF0IjpudWxsLCJpc3MiOm51bGwsImp0aSI6bnVsbCwibmJmIjpudWxsLCJzdWIiOm51bGwsInVzZXIiOiJ1c2VyXzk3NjkxNkBtZGZyaWRheS5jb20ifQ.iLWi8wWHg2C9JuJsEQW7WB7m0k524Wcv_Ok0TW3j2zA" \
+-F "type=Post" \
+-F "content=- **个人长期陪跑教练**
+- 企业级敏捷教练
+- 研发团队效能顾问
+- unFIX中文社区发起人
+- 中国最大的敏捷主题个人自媒体（bilibili \"老袁讲敏捷\"）
+- \"老袁讲敏捷\" 公众号和视频号
+- 长篇小说作家（湖北省作协会员）
+
+\![good](building.jpg)
+
+---
+
+"
+
 创建SitePost
 
 curl -X POST "http://127.0.0.1:1314/api/content?type=SitePost" \
@@ -72,7 +91,7 @@ curl -X POST "http://127.0.0.1:1314/api/content?type=SitePost" \
 #### Preview
 
 curl -X POST "http://127.0.0.1:1314/api/preview?type=Site&id=2" \
--H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhdWQiOm51bGwsImV4cCI6IjIwMjQtMTItMDRUMDg6MTQ6NTIuNTk2MDI5KzA4OjAwIiwiaWF0IjpudWxsLCJpc3MiOm51bGwsImp0aSI6bnVsbCwibmJmIjpudWxsLCJzdWIiOm51bGwsInVzZXIiOiJtZUBzdW53ZWkueHl6In0.foManZwcdG0h52dCxeKY6jE6iTkdSZFcEbnGFanLZU0"
+-H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhdWQiOm51bGwsImV4cCI6IjIwMjQtMTItMDZUMTk6MDk6MjcuNDUwNzA1KzA4OjAwIiwiaWF0IjpudWxsLCJpc3MiOm51bGwsImp0aSI6bnVsbCwibmJmIjpudWxsLCJzdWIiOm51bGwsInVzZXIiOiJ1c2VyXzYyNTIxNkBtZGZyaWRheS5jb20ifQ.ZJMDUiRshJUAUXts6lZCtPNDZnFyPqx-ujqeIfi6xJw"
 
 
 #### Deployment

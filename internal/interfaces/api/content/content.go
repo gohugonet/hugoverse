@@ -25,6 +25,7 @@ func (c *Content) Handle(next http.HandlerFunc) http.HandlerFunc {
 			} else if strings.HasPrefix(contentType, "multipart/form-data") {
 				// 支持 multipart/form-data
 				if err := req.ParseMultipartForm(4 << 20); err != nil { // 限制上传大小为 4 MB
+					fmt.Println("[content] Error parsing multipart form data:", err)
 					http.Error(res, "Failed to parse multipart form data", http.StatusBadRequest)
 					return
 				}

@@ -75,7 +75,6 @@ func (s *Post) String() string { return s.Title }
 func (s *Post) Create(res http.ResponseWriter, req *http.Request) error {
 	// do form data validation for required fields
 	required := []string{
-		"title",
 		"content",
 	}
 
@@ -167,12 +166,7 @@ func (s *Post) FullContent() string {
 }
 
 func (s *Post) Markdown() ([]byte, error) {
-	const postTemplate = `---
-title: {{.Title}}
-author: {{.Author}}
-{{.Params}}
----
-
+	const postTemplate = `
 {{.Content}}
 `
 	tmpl, err := template.New("toml").Parse(postTemplate)
