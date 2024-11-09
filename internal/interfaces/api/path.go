@@ -1,17 +1,21 @@
 package api
 
 import (
+	"embed"
 	"log"
+	"net/http"
 	"os"
-	"path/filepath"
 )
 
-func adminStaticDir() string {
+//go:embed admin/static/*
+var staticFiles embed.FS
+
+func adminStaticDir() http.FileSystem {
 	staticDir := os.Getenv("HUGOVERSE_ADMIN_STATIC_DIR")
 	if staticDir == "" {
-		staticDir = filepath.Join(getWd(), "internal", "interfaces", "api", "admin", "static")
+		return http.FS(staticFiles)
 	}
-	return staticDir
+	return http.Dir(staticDir)
 }
 
 func getWd() string {
