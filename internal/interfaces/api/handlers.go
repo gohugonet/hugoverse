@@ -57,7 +57,7 @@ func (s *Server) registerAdminHandler() {
 	s.mux.HandleFunc("/admin/init", s.handler.InitHandler)
 
 	s.mux.Handle("/admin/static/", s.cache.Control(
-		http.StripPrefix("/admin/static",
+		http.StripPrefix("/admin/static/",
 			http.FileServer(adminStaticDir()))))
 
 	uploadsDir := application.UploadDir()
