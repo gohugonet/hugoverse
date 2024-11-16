@@ -22,6 +22,8 @@ type FrontMatter struct {
 	Weight int
 
 	Terms map[string][]string
+
+	Params maps.Params
 }
 
 type FrontMatterParser struct {
@@ -32,7 +34,8 @@ type FrontMatterParser struct {
 
 func (b *FrontMatterParser) Parse() (*FrontMatter, error) {
 	fm := &FrontMatter{
-		Terms: map[string][]string{},
+		Terms:  map[string][]string{},
+		Params: b.Params,
 	}
 
 	if err := b.parseCascade(fm); err != nil {

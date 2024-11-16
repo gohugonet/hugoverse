@@ -167,6 +167,13 @@ func registerStrings(ts strings.Title) {
 			},
 		)
 
+		ns.AddMethodMapping(ctx.TrimSpace,
+			nil,
+			[][2]string{
+				{`{{ " aabbaa" | strings.TrimSpace }}`, `aabbaa`},
+			},
+		)
+
 		ns.AddMethodMapping(ctx.TrimPrefix,
 			nil,
 			[][2]string{

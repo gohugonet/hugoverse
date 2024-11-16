@@ -166,6 +166,7 @@ func (b *PageBuilder) buildPageWithKind(kind string) (*Page, error) {
 func (b *PageBuilder) applyFrontMatter(p *Page) error {
 	p.title = b.fm.Title
 	p.Meta.Weight = b.fm.Weight
+	p.Meta.Parameters = b.fm.Params
 
 	return nil
 }

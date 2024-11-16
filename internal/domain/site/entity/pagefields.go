@@ -12,7 +12,6 @@ func (p *Page) Section() string {
 }
 
 func (p *Page) Params() maps.Params {
-	//fmt.Println("params lalala", p.RelPermalink())
 	return p.Page.Params()
 }
 
