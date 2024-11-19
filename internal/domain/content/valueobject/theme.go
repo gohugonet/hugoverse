@@ -3,7 +3,6 @@ package valueobject
 import (
 	"fmt"
 	"github.com/gohugonet/hugoverse/pkg/editor"
-	"log"
 	"net/http"
 )
 
@@ -115,9 +114,6 @@ func (s *Theme) BeforeAPICreate(res http.ResponseWriter, req *http.Request) erro
 // The request has a context containing the databse 'target' affected by the
 // request. Ex. Song__pending:3 or Song:8 depending if Song implements api.Trustable
 func (s *Theme) AfterAPICreate(res http.ResponseWriter, req *http.Request) error {
-	addr := req.RemoteAddr
-	log.Println("[AfterAPICreate] Theme sent by:", addr, "titled:", req.PostFormValue("title"))
-
 	return nil
 }
 

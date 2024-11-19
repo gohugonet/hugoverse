@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/gohugonet/hugoverse/pkg/editor"
-	"log"
 	"net/http"
 	"text/template"
 )
@@ -111,9 +110,6 @@ func (s *Post) BeforeAPICreate(res http.ResponseWriter, req *http.Request) error
 // The request has a context containing the databse 'target' affected by the
 // request. Ex. Song__pending:3 or Song:8 depending if Song implements api.Trustable
 func (s *Post) AfterAPICreate(res http.ResponseWriter, req *http.Request) error {
-	addr := req.RemoteAddr
-	log.Println("[AfterAPICreate] Post sent by:", addr, "titled:", req.PostFormValue("title"))
-
 	return nil
 }
 

@@ -229,7 +229,6 @@ func (s *Handler) postContent(res http.ResponseWriter, req *http.Request) {
 	req.PostForm.Set("updated", ts)
 
 	urlPaths, err := s.StoreFiles(req)
-	fmt.Printf("=== post form: %v\n", urlPaths)
 	if err != nil {
 		s.log.Errorf("Error storing files: %v", err)
 		res.WriteHeader(http.StatusInternalServerError)
@@ -303,7 +302,6 @@ func (s *Handler) postContent(res http.ResponseWriter, req *http.Request) {
 	}
 
 	req.PostForm.Set("namespace", t)
-	s.log.Printf("PostForm: %+v", req.PostForm)
 
 	id, err := s.contentApp.NewContent(t, req.PostForm)
 	if err != nil {

@@ -8,6 +8,10 @@ import (
 
 var TemplateFuncsNamespaceRegistry []func() *TemplateFuncsNamespace
 
+func ResetTemplateFuncsNamespaceRegistry() {
+	TemplateFuncsNamespaceRegistry = nil
+}
+
 func AddTemplateFuncsNamespace(ns func() *TemplateFuncsNamespace) {
 	TemplateFuncsNamespaceRegistry = append(TemplateFuncsNamespaceRegistry, ns)
 }

@@ -3,7 +3,6 @@ package entity
 import (
 	"bytes"
 	"embed"
-	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/fs"
 	"github.com/gohugonet/hugoverse/internal/domain/template"
 	"github.com/gohugonet/hugoverse/internal/domain/template/valueobject"
@@ -216,7 +215,7 @@ func (t *Template) addTemplate(name string, tinfo valueobject.TemplateInfo) erro
 	t.Main.addTemplate(tinfo.Name, state)
 
 	if err := t.Parser.Transform(t.Main, state); err != nil {
-		fmt.Println(tinfo.ErrWithFileContext("ast transform parse failed", err))
+		return tinfo.ErrWithFileContext("ast transform parse failed", err)
 	}
 
 	return nil

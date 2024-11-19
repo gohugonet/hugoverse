@@ -141,10 +141,8 @@ func (c *Content) copyFiles(dir string, parentPath string, files []string) {
 			defer wg.Done()
 
 			if err := c.copyFile(src, dst); err != nil {
-				c.Log.Debugf("file %s copy failed: %v\n", src, err)
 				return
 			}
-			c.Log.Debugf("file %s copied to %s successfully\n", src, dst)
 		}(src, dst)
 	}
 

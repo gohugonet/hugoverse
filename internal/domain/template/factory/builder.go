@@ -68,6 +68,7 @@ func (b *builder) withCfs(cfs template.CustomizedFunctions) *builder {
 }
 
 func (b *builder) buildFunctions() *builder {
+	valueobject.ResetTemplateFuncsNamespaceRegistry()
 	valueobject.RegisterNamespaces()
 	valueobject.RegisterCallbackNamespaces(b.tmpl.Execute)
 	valueobject.RegisterExtendedNamespaces(b.cfs)

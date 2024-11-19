@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 )
 
 type TypeService interface {
@@ -26,6 +27,7 @@ type Search struct {
 	Repo repository.Repository
 	Log  loggers.Logger
 
+	mu         sync.RWMutex
 	IndicesMap map[string]map[string]bleve.Index
 }
 
@@ -33,6 +35,9 @@ type Search struct {
 // and an error. If there is no search index for the typeName (Type) provided,
 // db.ErrNoIndex will be returned as the error
 func (s *Search) TypeQuery(typeName, query string, count, offset int) ([]content.Identifier, error) {
+	s.mu.RLock()
+	defer s.mu.Unlock()
+
 	s.setup()
 
 	idx, ok := s.IndicesMap[s.getSearchDir(typeName)][typeName]
@@ -54,12 +59,20 @@ func (s *Search) TypeQuery(typeName, query string, count, offset int) ([]content
 		results = append(results, valueobject.CreateIndex(hit.ID))
 	}
 
+	if closeErr := idx.Close(); closeErr != nil {
+		s.Log.Printf("Failed to close index: %v", closeErr)
+	}
+	delete(s.IndicesMap, s.getSearchDir(typeName))
+
 	return results, nil
 }
 
 // UpdateIndex sets data into a content type's search index at the given
 // identifier
 func (s *Search) UpdateIndex(ns, id string, data []byte) error {
+	s.mu.RLock()
+	defer s.mu.Unlock()
+
 	s.setup()
 
 	idx, ok := s.IndicesMap[s.getSearchDir(ns)][ns]
@@ -78,7 +91,14 @@ func (s *Search) UpdateIndex(ns, id string, data []byte) error {
 
 		// add data to search index
 		i := valueobject.NewIndex(ns, id)
-		return idx.Index(i.String(), p)
+		err = idx.Index(i.String(), p)
+
+		if closeErr := idx.Close(); closeErr != nil {
+			s.Log.Printf("Failed to close index: %v", closeErr)
+		}
+		delete(s.IndicesMap, s.getSearchDir(ns))
+
+		return err
 	}
 
 	return nil
@@ -87,6 +107,9 @@ func (s *Search) UpdateIndex(ns, id string, data []byte) error {
 // DeleteIndex removes data from a content type's search index at the
 // given identifier
 func (s *Search) DeleteIndex(id string) error {
+	s.mu.RLock()
+	defer s.mu.Unlock()
+
 	s.setup()
 
 	// check if there is a search index to work with
@@ -96,7 +119,14 @@ func (s *Search) DeleteIndex(id string) error {
 	idx, ok := s.IndicesMap[s.getSearchDir(ns)][ns]
 	if ok {
 		// add data to search index
-		return idx.Delete(id)
+		err := idx.Delete(id)
+
+		if closeErr := idx.Close(); closeErr != nil {
+			s.Log.Printf("Failed to close index: %v", closeErr)
+		}
+		delete(s.IndicesMap, s.getSearchDir(ns))
+
+		return err
 	}
 
 	return nil
@@ -117,11 +147,6 @@ func (s *Search) adminSearchDir() string {
 	return filepath.Join(s.Repo.AdminDataDir(), "Search")
 }
 
-// Setup initializes Search Index for search to be functional
-// This was moved out of db.Init and put to main(), because addon checker was initializing db together with
-// search indexing initialisation in time when there were no item.Types defined so search index was always
-// empty when using addons. We still have no guarentee whatsoever that item.Types is defined
-// Should be called from a goroutine after SetContent is successful (SortContent requirement)
 func (s *Search) setup() {
 	s.setupAdminIndices()
 	s.setupUserIndices()
@@ -138,6 +163,7 @@ func (s *Search) setupAdminIndices() {
 func (s *Search) setupIndices(dir string, typeNames []string) {
 	_, ok := s.IndicesMap[dir]
 	if ok {
+		s.Log.Debugln("[search] Setup found: Index already exists for ", dir)
 		return
 	}
 
@@ -195,15 +221,16 @@ func (s *Search) mapIndex(typeName string) (bleve.Index, error) {
 		if err != nil {
 			return nil, err
 		}
-		idx.SetName(idxName)
+		s.Log.Debugf("[search] Index new created for %s\n", typeName)
 	} else {
 		idx, err = bleve.Open(idxPath)
 		if err != nil {
 			return nil, err
 		}
+		s.Log.Debugf("[search] Index open created for %s\n", typeName)
 	}
 
-	s.Log.Debugf("[search] Index created for %s\n", typeName)
+	idx.SetName(idxName)
 
 	return idx, nil
 }

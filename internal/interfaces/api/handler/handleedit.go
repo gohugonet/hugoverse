@@ -187,7 +187,6 @@ func (s *Handler) EditHandler(res http.ResponseWriter, req *http.Request) {
 		}
 
 		req.PostForm.Set("namespace", pt)
-		s.log.Printf("PostForm: %+v", req.PostForm)
 
 		if cid == "-1" {
 			id, err := s.contentApp.NewContent(pt, req.PostForm)
@@ -478,7 +477,6 @@ func (s *Handler) ApproveContentHandler(res http.ResponseWriter, req *http.Reque
 
 	req.PostForm.Set("namespace", t)
 	req.PostForm.Set("status", "public")
-	s.log.Printf("PostForm: %+v", req.PostForm)
 
 	// Store the content in the bucket t
 	id, err := s.contentApp.NewContent(t, req.PostForm)

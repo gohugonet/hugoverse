@@ -125,8 +125,6 @@ func (d *Database) PutContent(ci any, data []byte) error {
 		bucket = fmt.Sprintf("%s%s", ns, bucketNameWithPrefix(string(status)))
 	}
 
-	d.log.Printf(" === bucket: %s\n", bucket)
-
 	if err := d.getStore(ns).Set(
 		&item{
 			bucket: bucket,
