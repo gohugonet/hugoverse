@@ -11,7 +11,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
 )
 
 type TypeService interface {
@@ -27,7 +26,6 @@ type Search struct {
 	Repo repository.Repository
 	Log  loggers.Logger
 
-	mu         sync.RWMutex
 	IndicesMap map[string]map[string]bleve.Index
 }
 
@@ -35,9 +33,6 @@ type Search struct {
 // and an error. If there is no search index for the typeName (Type) provided,
 // db.ErrNoIndex will be returned as the error
 func (s *Search) TypeQuery(typeName, query string, count, offset int) ([]content.Identifier, error) {
-	s.mu.RLock()
-	defer s.mu.Unlock()
-
 	s.setup()
 
 	idx, ok := s.IndicesMap[s.getSearchDir(typeName)][typeName]
@@ -59,20 +54,12 @@ func (s *Search) TypeQuery(typeName, query string, count, offset int) ([]content
 		results = append(results, valueobject.CreateIndex(hit.ID))
 	}
 
-	if closeErr := idx.Close(); closeErr != nil {
-		s.Log.Printf("Failed to close index: %v", closeErr)
-	}
-	delete(s.IndicesMap, s.getSearchDir(typeName))
-
 	return results, nil
 }
 
 // UpdateIndex sets data into a content type's search index at the given
 // identifier
 func (s *Search) UpdateIndex(ns, id string, data []byte) error {
-	s.mu.RLock()
-	defer s.mu.Unlock()
-
 	s.setup()
 
 	idx, ok := s.IndicesMap[s.getSearchDir(ns)][ns]
@@ -93,11 +80,6 @@ func (s *Search) UpdateIndex(ns, id string, data []byte) error {
 		i := valueobject.NewIndex(ns, id)
 		err = idx.Index(i.String(), p)
 
-		if closeErr := idx.Close(); closeErr != nil {
-			s.Log.Printf("Failed to close index: %v", closeErr)
-		}
-		delete(s.IndicesMap, s.getSearchDir(ns))
-
 		return err
 	}
 
@@ -107,9 +89,6 @@ func (s *Search) UpdateIndex(ns, id string, data []byte) error {
 // DeleteIndex removes data from a content type's search index at the
 // given identifier
 func (s *Search) DeleteIndex(id string) error {
-	s.mu.RLock()
-	defer s.mu.Unlock()
-
 	s.setup()
 
 	// check if there is a search index to work with
@@ -120,11 +99,6 @@ func (s *Search) DeleteIndex(id string) error {
 	if ok {
 		// add data to search index
 		err := idx.Delete(id)
-
-		if closeErr := idx.Close(); closeErr != nil {
-			s.Log.Printf("Failed to close index: %v", closeErr)
-		}
-		delete(s.IndicesMap, s.getSearchDir(ns))
 
 		return err
 	}
