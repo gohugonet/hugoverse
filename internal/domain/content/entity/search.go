@@ -11,6 +11,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
+	"time"
 )
 
 type TypeService interface {
@@ -20,140 +22,88 @@ type TypeService interface {
 	IsAdminType(name string) bool
 }
 
+var cleanupWaitDuration = 5 * time.Minute
+
+type CacheIndex struct {
+	bleve.Index
+
+	timer *time.Timer
+}
+
+func (ci *CacheIndex) close() error {
+	ci.timer.Stop()
+	return ci.Index.Close()
+}
+
 type Search struct {
 	TypeService TypeService
 
 	Repo repository.Repository
 	Log  loggers.Logger
 
-	IndicesMap map[string]map[string]bleve.Index
+	mu         sync.Mutex
+	IndicesMap map[string]*CacheIndex
 }
 
-// TypeQuery conducts a search and returns a set of Ponzu "targets", Type:ID pairs,
-// and an error. If there is no search index for the typeName (Type) provided,
-// db.ErrNoIndex will be returned as the error
-func (s *Search) TypeQuery(typeName, query string, count, offset int) ([]content.Identifier, error) {
-	s.setup()
+func (s *Search) getSearchPath(ns string) string {
+	return fmt.Sprintf("%s-%s", s.getSearchDir(ns), ns)
+}
 
-	idx, ok := s.IndicesMap[s.getSearchDir(typeName)][typeName]
-	if !ok {
-		s.Log.Debugln("Index for type ", typeName, " not found")
-		return nil, content.ErrNoIndex
+func (s *Search) resetDBTimer(index *CacheIndex) {
+	if index.timer != nil {
+		index.timer.Stop()
 	}
 
-	s.Log.Debugln("TypeQuery: ", query)
-	q := bleve.NewQueryStringQuery(query)
-	req := bleve.NewSearchRequestOptions(q, count, offset, false)
-	res, err := idx.Search(req)
+	index.timer = time.NewTimer(cleanupWaitDuration)
+	go func() {
+		<-index.timer.C
+		s.cleanupIdleDB(index) // 触发统一的清理函数
+	}()
+}
+
+func (s *Search) cleanupIdleDB(idleIndex *CacheIndex) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	for searchPath, idx := range s.IndicesMap {
+		if idx == idleIndex {
+			err := idx.close()
+			if err != nil {
+				s.Log.Errorln("Couldn't close search index.", err)
+				return
+			}
+
+			delete(s.IndicesMap, searchPath)
+			s.Log.Printf("Clean search index %s, %d", searchPath, len(s.IndicesMap))
+			return
+		}
+	}
+}
+
+func (s *Search) getSearchIndex(ns string) (bleve.Index, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	searchPath := s.getSearchPath(ns)
+
+	if idx, ok := s.IndicesMap[searchPath]; ok {
+		s.resetDBTimer(idx)
+		return idx.Index, nil
+	}
+
+	index, err := s.mapIndex(ns)
 	if err != nil {
+		s.Log.Errorln("[search] Setup Error", searchPath, err)
 		return nil, err
 	}
 
-	var results []content.Identifier
-	for _, hit := range res.Hits {
-		results = append(results, valueobject.CreateIndex(hit.ID))
+	ci := &CacheIndex{
+		Index: index,
 	}
+	s.resetDBTimer(ci)
 
-	return results, nil
-}
-
-// UpdateIndex sets data into a content type's search index at the given
-// identifier
-func (s *Search) UpdateIndex(ns, id string, data []byte) error {
-	s.setup()
-
-	idx, ok := s.IndicesMap[s.getSearchDir(ns)][ns]
-	if ok {
-		// unmarshal json to struct, error if not registered
-		it, ok := s.TypeService.GetContentCreator(ns)
-		if !ok {
-			return fmt.Errorf("[search] UpdateIndex Error: type '%s' doesn't exist", ns)
-		}
-
-		p := it()
-		err := json.Unmarshal(data, &p)
-		if err != nil {
-			return err
-		}
-
-		// add data to search index
-		i := valueobject.NewIndex(ns, id)
-		err = idx.Index(i.String(), p)
-
-		return err
-	}
-
-	return nil
-}
-
-// DeleteIndex removes data from a content type's search index at the
-// given identifier
-func (s *Search) DeleteIndex(id string) error {
-	s.setup()
-
-	// check if there is a search index to work with
-	target := strings.Split(id, ":")
-	ns := target[0]
-
-	idx, ok := s.IndicesMap[s.getSearchDir(ns)][ns]
-	if ok {
-		// add data to search index
-		err := idx.Delete(id)
-
-		return err
-	}
-
-	return nil
-}
-
-func (s *Search) getSearchDir(ns string) string {
-	if s.TypeService.IsAdminType(ns) {
-		return s.adminSearchDir()
-	}
-	return s.userSearchDir()
-}
-
-func (s *Search) userSearchDir() string {
-	return filepath.Join(s.Repo.UserDataDir(), "Search")
-}
-
-func (s *Search) adminSearchDir() string {
-	return filepath.Join(s.Repo.AdminDataDir(), "Search")
-}
-
-func (s *Search) setup() {
-	s.setupAdminIndices()
-	s.setupUserIndices()
-}
-
-func (s *Search) setupUserIndices() {
-	s.setupIndices(s.userSearchDir(), s.TypeService.AllContentTypeNames())
-}
-
-func (s *Search) setupAdminIndices() {
-	s.setupIndices(s.adminSearchDir(), s.TypeService.AllAdminTypeNames())
-}
-
-func (s *Search) setupIndices(dir string, typeNames []string) {
-	_, ok := s.IndicesMap[dir]
-	if ok {
-		s.Log.Debugln("[search] Setup found: Index already exists for ", dir)
-		return
-	}
-
-	searchIndices := make(map[string]bleve.Index)
-
-	for _, t := range typeNames {
-		idx, err := s.mapIndex(t)
-		if err != nil {
-			s.Log.Errorln("[search] Setup Error", err)
-			return
-		}
-
-		searchIndices[t] = idx
-	}
-
-	s.IndicesMap[dir] = searchIndices
+	s.IndicesMap[searchPath] = ci
+	return ci.Index, nil
 }
 
 // MapIndex creates the mapping for a type and tracks the index to be used within
@@ -195,6 +145,7 @@ func (s *Search) mapIndex(typeName string) (bleve.Index, error) {
 		if err != nil {
 			return nil, err
 		}
+		idx.SetName(idxName)
 		s.Log.Debugf("[search] Index new created for %s\n", typeName)
 	} else {
 		idx, err = bleve.Open(idxPath)
@@ -204,7 +155,87 @@ func (s *Search) mapIndex(typeName string) (bleve.Index, error) {
 		s.Log.Debugf("[search] Index open created for %s\n", typeName)
 	}
 
-	idx.SetName(idxName)
-
 	return idx, nil
+}
+
+// TypeQuery conducts a search and returns a set of Ponzu "targets", Type:ID pairs,
+// and an error. If there is no search index for the typeName (Type) provided,
+// db.ErrNoIndex will be returned as the error
+func (s *Search) TypeQuery(typeName, query string, count, offset int) ([]content.Identifier, error) {
+	idx, err := s.getSearchIndex(typeName)
+	if err != nil {
+		s.Log.Debugln("Index for type ", typeName, " not found", err.Error())
+		return nil, content.ErrNoIndex
+	}
+
+	s.Log.Debugln("TypeQuery: ", query)
+	q := bleve.NewQueryStringQuery(query)
+	req := bleve.NewSearchRequestOptions(q, count, offset, false)
+	res, err := idx.Search(req)
+	if err != nil {
+		return nil, err
+	}
+
+	var results []content.Identifier
+	for _, hit := range res.Hits {
+		results = append(results, valueobject.CreateIndex(hit.ID))
+	}
+
+	return results, nil
+}
+
+// UpdateIndex sets data into a content type's search index at the given
+// identifier
+func (s *Search) UpdateIndex(ns, id string, data []byte) error {
+	idx, err := s.getSearchIndex(ns)
+	if err != nil {
+		return err
+	}
+
+	// unmarshal json to struct, error if not registered
+	it, ok := s.TypeService.GetContentCreator(ns)
+	if !ok {
+		return fmt.Errorf("[search] UpdateIndex Error: type '%s' doesn't exist", ns)
+	}
+
+	p := it()
+	err = json.Unmarshal(data, &p)
+	if err != nil {
+		return err
+	}
+
+	// add data to search index
+	i := valueobject.NewIndex(ns, id)
+	err = idx.Index(i.String(), p)
+
+	return err
+}
+
+// DeleteIndex removes data from a content type's search index at the
+// given identifier
+func (s *Search) DeleteIndex(id string) error {
+	target := strings.Split(id, ":")
+	ns := target[0]
+
+	idx, err := s.getSearchIndex(ns)
+	if err != nil {
+		return err
+	}
+
+	return idx.Delete(id)
+}
+
+func (s *Search) getSearchDir(ns string) string {
+	if s.TypeService.IsAdminType(ns) {
+		return s.adminSearchDir()
+	}
+	return s.userSearchDir()
+}
+
+func (s *Search) userSearchDir() string {
+	return filepath.Join(s.Repo.UserDataDir(), "Search")
+}
+
+func (s *Search) adminSearchDir() string {
+	return filepath.Join(s.Repo.AdminDataDir(), "Search")
 }

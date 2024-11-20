@@ -1,7 +1,6 @@
 package factory
 
 import (
-	"github.com/blevesearch/bleve"
 	"github.com/gohugonet/hugoverse/internal/domain/content"
 	"github.com/gohugonet/hugoverse/internal/domain/content/entity"
 	"github.com/gohugonet/hugoverse/internal/domain/content/repository"
@@ -37,7 +36,7 @@ func NewContent(repo repository.Repository, dir content.DirService) *entity.Cont
 		Repo:        repo,
 		Log:         log,
 
-		IndicesMap: make(map[string]map[string]bleve.Index),
+		IndicesMap: make(map[string]*entity.CacheIndex),
 	}
 
 	return c
