@@ -27,6 +27,10 @@ func (m *Meta) PageWeight() int {
 	return m.Weight
 }
 
+func (m *Meta) ShouldList(global bool) bool {
+	return m.shouldList(global)
+}
+
 func (m *Meta) shouldList(global bool) bool {
 	switch m.List {
 	case Always:
@@ -39,8 +43,16 @@ func (m *Meta) shouldList(global bool) bool {
 	return false
 }
 
+func (m *Meta) ShouldListAny() bool {
+	return m.shouldListAny()
+}
+
 func (m *Meta) shouldListAny() bool {
 	return m.shouldList(true) || m.shouldList(false)
+}
+
+func (m *Meta) NoLink() bool {
+	return m.noLink()
 }
 
 func (m *Meta) noLink() bool {

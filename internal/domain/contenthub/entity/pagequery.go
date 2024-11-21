@@ -8,38 +8,38 @@ import (
 )
 
 var pagePredicates = struct {
-	KindPage         predicate.P[*Page]
-	KindSection      predicate.P[*Page]
-	KindHome         predicate.P[*Page]
-	KindTerm         predicate.P[*Page]
-	ShouldListLocal  predicate.P[*Page]
-	ShouldListGlobal predicate.P[*Page]
-	ShouldListAny    predicate.P[*Page]
+	KindPage         predicate.P[contenthub.Page]
+	KindSection      predicate.P[contenthub.Page]
+	KindHome         predicate.P[contenthub.Page]
+	KindTerm         predicate.P[contenthub.Page]
+	ShouldListLocal  predicate.P[contenthub.Page]
+	ShouldListGlobal predicate.P[contenthub.Page]
+	ShouldListAny    predicate.P[contenthub.Page]
 	ShouldLink       predicate.P[contenthub.Page]
 }{
-	KindPage: func(p *Page) bool {
+	KindPage: func(p contenthub.Page) bool {
 		return p.Kind() == valueobject.KindPage
 	},
-	KindSection: func(p *Page) bool {
+	KindSection: func(p contenthub.Page) bool {
 		return p.Kind() == valueobject.KindSection
 	},
-	KindHome: func(p *Page) bool {
+	KindHome: func(p contenthub.Page) bool {
 		return p.Kind() == valueobject.KindHome
 	},
-	KindTerm: func(p *Page) bool {
+	KindTerm: func(p contenthub.Page) bool {
 		return p.Kind() == valueobject.KindTerm
 	},
-	ShouldListLocal: func(p *Page) bool {
-		return p.Meta.shouldList(false)
+	ShouldListLocal: func(p contenthub.Page) bool {
+		return p.ShouldList(false)
 	},
-	ShouldListGlobal: func(p *Page) bool {
-		return p.Meta.shouldList(true)
+	ShouldListGlobal: func(p contenthub.Page) bool {
+		return p.ShouldList(true)
 	},
-	ShouldListAny: func(p *Page) bool {
-		return p.Meta.shouldListAny()
+	ShouldListAny: func(p contenthub.Page) bool {
+		return p.ShouldListAny()
 	},
 	ShouldLink: func(p contenthub.Page) bool {
-		return !p.(*Page).Meta.noLink()
+		return !p.NoLink()
 	},
 }
 
@@ -65,7 +65,7 @@ type pageMapQueryPagesBelowPath struct {
 
 	// Page inclusion filter.
 	// May be nil.
-	Include predicate.P[*Page]
+	Include predicate.P[contenthub.Page]
 }
 
 func (q pageMapQueryPagesBelowPath) Key() string {

@@ -17,11 +17,11 @@ type Taxonomy struct {
 	viewsByTreeKey map[string]valueobject.ViewName
 }
 
-func (t Taxonomy) Views() []valueobject.ViewName {
+func (t *Taxonomy) Views() []valueobject.ViewName {
 	return t.views
 }
 
-func (t Taxonomy) SetupViews() {
+func (t *Taxonomy) SetupViews() {
 	var views []valueobject.ViewName
 	for k, v := range t.Taxonomies {
 		views = append(views, valueobject.ViewName{Singular: k, Plural: v, PluralTreeKey: cleanTreeKey(v)})

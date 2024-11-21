@@ -25,7 +25,7 @@ type Config struct {
 
 	MinifyC
 
-	Taxonomy
+	*Taxonomy
 }
 
 func (c *Config) Fs() afero.Fs {

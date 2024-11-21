@@ -43,6 +43,16 @@ func (t *Taxonomy) Assemble(pages *doctree.NodeShiftTree[*PageTreesNode], pb *Pa
 	return nil
 }
 
+func (t *Taxonomy) IsTaxonomyPath(p string) bool {
+	ta := t.getTaxonomy(p)
+
+	if ta == nil {
+		return false
+	}
+
+	return p == path.Join(t.PluralTreeKey(ta.Plural()), "_index.md")
+}
+
 func (t *Taxonomy) PluralTreeKey(plural string) string {
 	return cleanTreeKey(plural)
 }

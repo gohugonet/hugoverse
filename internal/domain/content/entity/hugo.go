@@ -77,6 +77,10 @@ func (h *Hugo) previewPath(fullPath string) (string, error) {
 		return "", fmt.Errorf("get relative path error: %v", err)
 	}
 
+	if !strings.HasPrefix(relPath, "/") {
+		relPath = "/" + relPath
+	}
+
 	return relPath, nil
 }
 

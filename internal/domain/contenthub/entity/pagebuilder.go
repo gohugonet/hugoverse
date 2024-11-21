@@ -284,7 +284,7 @@ func (b *PageBuilder) parseKind() error {
 				v := b.Taxonomy.getTaxonomy(path.Path())
 				if !b.Taxonomy.IsZero(v) {
 					// Either a taxonomy or a term.
-					if b.Taxonomy.PluralTreeKey(path.Path()) == path.Path() {
+					if b.Taxonomy.IsTaxonomyPath(path.Path()) {
 						kind = valueobject.KindTaxonomy
 					} else {
 						kind = valueobject.KindTerm

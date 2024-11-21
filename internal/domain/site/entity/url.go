@@ -91,7 +91,8 @@ func (s *Site) RelURL(in string) string {
 
 	u = s.URL.addContextRoot(u)
 	u = s.URL.handleRootSuffix(in, u)
-	u = s.URL.handlePrefix(u)
+
+	//u = s.URL.handlePrefix(u) // our use case include preview, just put it relative to the html file
 
 	return u
 }

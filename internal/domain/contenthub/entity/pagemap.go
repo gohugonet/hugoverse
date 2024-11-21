@@ -257,7 +257,7 @@ func (m *PageMap) getPagesInSection(langIndex int, q pageMapQueryPagesInSection)
 		w.Handle = func(key string, n *PageTreesNode, match doctree.DimensionFlag) (bool, error) {
 			if q.Recursive {
 				p, found := n.getPage()
-				if found && include(p.(*Page)) {
+				if found && include(p) {
 					pas = append(pas, p)
 				}
 
@@ -265,7 +265,7 @@ func (m *PageMap) getPagesInSection(langIndex int, q pageMapQueryPagesInSection)
 			}
 
 			p, found := n.getPage()
-			if found && include(p.(*Page)) {
+			if found && include(p) {
 				pas = append(pas, p)
 			}
 
@@ -285,7 +285,7 @@ func (m *PageMap) getPagesInSection(langIndex int, q pageMapQueryPagesInSection)
 			if q.IncludeSelf {
 				if n := tree.Get(q.Path); n != nil {
 					p, found := n.getPage()
-					if found && include(p.(*Page)) {
+					if found && include(p) {
 						pas = append(pas, p)
 					}
 				}
@@ -327,7 +327,7 @@ func (m *PageMap) getPagesWithTerm(q pageMapQueryPagesBelowPath) contenthub.Page
 			doctree.LockTypeNone,
 			paths.AddTrailingSlash(q.Path),
 			func(s string, n *WeightedTermTreeNode) (bool, error) {
-				if include(n.term.Page.(*Page)) {
+				if include(n.term.Page) {
 					pas = append(pas, n.term)
 				}
 

@@ -258,6 +258,10 @@ type PageMeta interface {
 	Description() string
 	Params() maps.Params
 	PageWeight() int
+
+	ShouldList(global bool) bool
+	ShouldListAny() bool
+	NoLink() bool
 }
 
 type PageOutput interface {
