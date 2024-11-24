@@ -54,6 +54,12 @@ func (c *Content) BuildTarget(contentType, id, status string) (string, error) {
 			return "", err
 		}
 
+		if err := c.writeSiteResource(site.ID, dir); err != nil {
+			c.Log.Errorf("failed to write site resources: %v", err)
+			writer.close()
+			return "", err
+		}
+
 		writer.close()
 
 		err = <-writer.errs
@@ -101,6 +107,34 @@ func (c *Content) writeSitePosts(siteId int, dir string, writerFiles chan *value
 
 		if len(post.Assets) > 0 {
 			go c.copyFiles(dir, getParentPath(sp.Path), post.Assets)
+		}
+	}
+
+	return nil
+}
+
+func (c *Content) writeSiteResource(siteId int, dir string) error {
+	q := fmt.Sprintf(`site%d`, siteId)
+	encodedQ := url.QueryEscape(q)
+
+	siteResources, err := c.search("SiteResource", fmt.Sprintf("slug:%s", encodedQ))
+	if err != nil {
+		return err
+	}
+
+	for _, data := range siteResources {
+		var sr valueobject.SiteResource
+		if err := json.Unmarshal(data, &sr); err != nil {
+			return err
+		}
+
+		res, err := c.getResource(sr.Resource)
+		if err != nil {
+			return err
+		}
+
+		if res.Asset != "" {
+			go c.copyFiles(dir, getParentPath(sr.Path), []string{res.Asset})
 		}
 	}
 
@@ -198,6 +232,25 @@ func (c *Content) getPost(rawURL string) (*valueobject.Post, error) {
 	}
 
 	post, ok := p.(*valueobject.Post)
+	if !ok {
+		return nil, errors.New("invalid post")
+	}
+
+	return post, nil
+}
+
+func (c *Content) getResource(rawURL string) (*valueobject.Resource, error) {
+	id, err := c.getIDByURL(rawURL)
+	if err != nil {
+		return nil, err
+	}
+
+	p, err := c.getContent("Resource", id)
+	if err != nil {
+		return nil, err
+	}
+
+	post, ok := p.(*valueobject.Resource)
 	if !ok {
 		return nil, errors.New("invalid post")
 	}

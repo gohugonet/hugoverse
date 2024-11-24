@@ -41,6 +41,12 @@ func (c *Content) PreviewTarget(contentType, id, status string) (string, string,
 			return "", "", err
 		}
 
+		if err := c.writeSiteResource(site.ID, dir); err != nil {
+			c.Log.Errorf("failed to write site resources: %v", err)
+			writer.close()
+			return "", "", err
+		}
+
 		writer.close()
 
 		err = <-writer.errs
