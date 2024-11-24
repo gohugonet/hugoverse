@@ -105,6 +105,22 @@ func (a Attribute) ValueString() string {
 	return cast.ToString(a.Value)
 }
 
+type attribute struct {
+	Attribute
+}
+
+func (a attribute) Name() string {
+	return a.Attribute.Name
+}
+
+func (a attribute) Value() any {
+	return a.Attribute.Value
+}
+
+func (a attribute) ValueString() string {
+	return a.Attribute.ValueString()
+}
+
 // EmptyAttr holds no attributes.
 var EmptyAttr = &AttributesHolder{}
 
@@ -144,12 +160,24 @@ func (a *AttributesHolder) Options() map[string]any {
 	return a.optionsMap
 }
 
-func (a *AttributesHolder) AttributesSlice() []Attribute {
-	return a.attributes
+func (a *AttributesHolder) AttributesSlice() []markdown.Attribute {
+	attrs := make([]markdown.Attribute, len(a.attributes))
+
+	for i, v := range a.attributes {
+		attrs[i] = attribute{Attribute: v}
+	}
+
+	return attrs
 }
 
-func (a *AttributesHolder) OptionsSlice() []Attribute {
-	return a.options
+func (a *AttributesHolder) OptionsSlice() []markdown.Attribute {
+	attrs := make([]markdown.Attribute, len(a.options))
+
+	for i, v := range a.options {
+		attrs[i] = attribute{Attribute: v}
+	}
+
+	return attrs
 }
 
 // RenderASTAttributes writes the AST attributes to the given as attributes to an HTML element.

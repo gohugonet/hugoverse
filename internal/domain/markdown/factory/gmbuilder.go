@@ -1,6 +1,7 @@
 package factory
 
 import (
+	"github.com/gohugonet/hugoverse/internal/domain/markdown"
 	"github.com/gohugonet/hugoverse/internal/domain/markdown/valueobject"
 	"github.com/yuin/goldmark"
 	emoji "github.com/yuin/goldmark-emoji"
@@ -13,6 +14,7 @@ import (
 
 type Builder struct {
 	cfg valueobject.GoldMarkConfig
+	markdown.Highlighter
 
 	rendererOptions    []renderer.Option
 	tocRendererOptions []renderer.Option
@@ -20,9 +22,10 @@ type Builder struct {
 	extensions         []goldmark.Extender
 }
 
-func NewGoldMarkBuilder(cfg valueobject.GoldMarkConfig) *Builder {
+func NewGoldMarkBuilder(cfg valueobject.GoldMarkConfig, highlighter markdown.Highlighter) *Builder {
 	return &Builder{
-		cfg: cfg,
+		cfg:         cfg,
+		Highlighter: highlighter,
 
 		rendererOptions:    []renderer.Option{},
 		tocRendererOptions: nil,
@@ -87,7 +90,7 @@ func (b *Builder) WithImage() {
 
 func (b *Builder) WithCodeFences() {
 	if b.cfg.Extensions.Highlight.CodeFences {
-		b.extensions = append(b.extensions, valueobject.NewCodeBlocksExt())
+		b.extensions = append(b.extensions, valueobject.NewCodeBlocksExt(b.Highlighter))
 	}
 }
 

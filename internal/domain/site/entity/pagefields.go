@@ -65,6 +65,15 @@ func (p *Page) Pages() []*Page {
 	return p.sitePages(ps)
 }
 
+func (p *Page) GetTerms(taxonomy string) []*Page {
+	ps := p.Page.Terms(p.Site.Language.CurrentLanguageIndex(), taxonomy)
+	if ps == nil {
+		return make([]*Page, 0)
+	}
+
+	return p.sitePages(ps)
+}
+
 func (p *Page) Translations() []*Page {
 	return p.sitePages(p.Page.Translations())
 }

@@ -11,6 +11,7 @@ import (
 	"github.com/gohugonet/hugoverse/pkg/loggers"
 	"github.com/gohugonet/hugoverse/pkg/paths"
 	"path"
+	"strings"
 )
 
 type PageMap struct {
@@ -331,6 +332,37 @@ func (m *PageMap) getPagesWithTerm(q pageMapQueryPagesBelowPath) contenthub.Page
 					pas = append(pas, n.term)
 				}
 
+				return false, nil
+			},
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		valueobject.SortByDefault(pas)
+
+		return pas, nil
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	return v
+}
+
+func (m *PageMap) getTermsForPageInTaxonomy(base, taxonomy string) contenthub.Pages {
+	prefix := paths.AddLeadingSlash(taxonomy)
+
+	v, err := m.Cache.CachePages1.GetOrCreate(prefix+base, func(string) (contenthub.Pages, error) {
+		var pas contenthub.Pages
+
+		err := m.TreeTaxonomyEntries.WalkPrefix(
+			doctree.LockTypeNone,
+			paths.AddTrailingSlash(prefix),
+			func(s string, n *WeightedTermTreeNode) (bool, error) {
+				if strings.HasSuffix(s, base) {
+					pas = append(pas, n.term)
+				}
 				return false, nil
 			},
 		)

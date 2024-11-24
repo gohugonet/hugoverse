@@ -82,7 +82,7 @@ func (s *Site) sitePage(p contenthub.Page) (*Page, error) {
 	}
 	po := pos[0] // TODO, check for multiple outputs
 
-	return &Page{
+	sp := &Page{
 		resSvc:    s.ResourcesSvc,
 		tmplSvc:   s.Template,
 		langSvc:   s.LanguageSvc,
@@ -92,5 +92,16 @@ func (s *Site) sitePage(p contenthub.Page) (*Page, error) {
 		Page:       p,
 		PageOutput: po,
 		Site:       s,
-	}, nil
+	}
+
+	sources, err := s.ContentSvc.GetPageSources(sp.Page)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := sp.processResources(sources); err != nil {
+		return nil, err
+	}
+
+	return sp, nil
 }

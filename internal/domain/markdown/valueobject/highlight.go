@@ -50,6 +50,10 @@ func init() {
 	}
 }
 
+func NewDefaultHighlighter() markdown.Highlighter {
+	return NewHighlighter(DefaultHighlightConfig)
+}
+
 func NewHighlighter(cfg HighlightConfig) markdown.Highlighter {
 	return chromaHighlighter{
 		cfg: cfg,

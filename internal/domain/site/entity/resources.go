@@ -19,7 +19,8 @@ func (r PageResources) ByType(typ any) PageResources {
 	var filtered PageResources
 
 	for _, resource := range r {
-		if resource.ResourceType() == tpstr {
+		rt := resource.ResourceType()
+		if rt == tpstr || strings.HasPrefix(rt, tpstr) {
 			filtered = append(filtered, resource)
 		}
 	}

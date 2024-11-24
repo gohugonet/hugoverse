@@ -14,6 +14,11 @@ var (
 // PageNop implements Page, but does nothing.
 type nopPage int
 
+func (p *nopPage) Terms(langIndex int, taxonomy string) contenthub.Pages {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (p *nopPage) ShouldList(global bool) bool {
 	//TODO implement me
 	panic("implement me")

@@ -51,6 +51,10 @@ func (p *Page) Pages(langIndex int) contenthub.Pages {
 	return nil
 }
 
+func (p *Page) Terms(langIndex int, taxonomy string) contenthub.Pages {
+	return p.pageMap.getTermsForPageInTaxonomy(p.Paths().Base(), taxonomy)
+}
+
 func (p *Page) Translations() contenthub.Pages {
 	key := p.Path() + "/" + p.PageLanguage() + "/" + "translations"
 	pages, err := p.pageMap.getOrCreatePagesFromCache(nil, key, func(string) (contenthub.Pages, error) {

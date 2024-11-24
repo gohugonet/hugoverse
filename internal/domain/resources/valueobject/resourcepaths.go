@@ -68,8 +68,8 @@ func (d ResourcePaths) join(p ...string) string {
 		s += pp
 
 	}
-	if !strings.HasPrefix(s, "/") {
-		s = "/" + s
+	if strings.HasPrefix(s, "/") {
+		s = paths.ToSlashTrimLeading(s)
 	}
 	return s
 }

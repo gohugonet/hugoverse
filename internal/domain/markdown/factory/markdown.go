@@ -12,12 +12,14 @@ var once sync.Once
 
 func NewMarkdown() markdown.Markdown {
 	once.Do(func() {
-		builder := NewGoldMarkBuilder(valueobject.DefaultGoldMarkConf)
+		hl := valueobject.NewDefaultHighlighter()
+
+		builder := NewGoldMarkBuilder(valueobject.DefaultGoldMarkConf, hl)
 		md := builder.Build()
 
 		instance = &entity.Markdown{
 			GoldMark:    md,
-			Highlighter: valueobject.NewHighlighter(valueobject.DefaultHighlightConfig),
+			Highlighter: hl,
 		}
 	})
 

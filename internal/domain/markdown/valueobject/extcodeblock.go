@@ -16,7 +16,6 @@ package valueobject
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/markdown"
 	"strings"
 	"sync"
@@ -32,12 +31,18 @@ import (
 )
 
 type (
-	codeBlocksExtension struct{}
-	htmlRenderer        struct{}
+	codeBlocksExtension struct {
+		markdown.Highlighter
+	}
+	htmlRenderer struct {
+		markdown.Highlighter
+	}
 )
 
-func NewCodeBlocksExt() goldmark.Extender {
-	return &codeBlocksExtension{}
+func NewCodeBlocksExt(highlighter markdown.Highlighter) goldmark.Extender {
+	return &codeBlocksExtension{
+		highlighter,
+	}
 }
 
 func (e *codeBlocksExtension) Extend(m goldmark.Markdown) {
@@ -47,12 +52,14 @@ func (e *codeBlocksExtension) Extend(m goldmark.Markdown) {
 		),
 	)
 	m.Renderer().AddOptions(renderer.WithNodeRenderers(
-		util.Prioritized(newHTMLRenderer(), 100),
+		util.Prioritized(newHTMLRenderer(e.Highlighter), 100),
 	))
 }
 
-func newHTMLRenderer() renderer.NodeRenderer {
-	r := &htmlRenderer{}
+func newHTMLRenderer(highlighter markdown.Highlighter) renderer.NodeRenderer {
+	r := &htmlRenderer{
+		highlighter,
+	}
 	return r
 }
 
@@ -69,9 +76,10 @@ func (r *htmlRenderer) renderCodeBlock(w util.BufWriter, src []byte, node ast.No
 
 	n := node.(*codeBlock)
 	lang := getLang(n.b, src)
-	renderer := ctx.RenderContext().GetRenderer(markdown.CodeBlockRendererType, lang)
-	if renderer == nil {
-		return ast.WalkStop, fmt.Errorf("no code renderer found for %q", lang)
+	cbRenderer := ctx.RenderContext().GetRenderer(markdown.CodeBlockRendererType, lang)
+	if cbRenderer == nil {
+		cbRenderer = r.Highlighter // use default highlighter code block renderer
+		//return ast.WalkStop, fmt.Errorf("no code renderer found for %q", lang)
 	}
 
 	ordinal := n.ordinal
@@ -92,7 +100,7 @@ func (r *htmlRenderer) renderCodeBlock(w util.BufWriter, src []byte, node ast.No
 	}
 
 	attrtp := AttributesOwnerCodeBlockCustom
-	if isd, ok := renderer.(markdown.IsDefaultCodeBlockRendererProvider); (ok && isd.IsDefaultCodeBlockRenderer()) || GetChromaLexer(lang) != nil {
+	if isd, ok := cbRenderer.(markdown.IsDefaultCodeBlockRendererProvider); (ok && isd.IsDefaultCodeBlockRenderer()) || GetChromaLexer(lang) != nil {
 		// We say that this is a Chroma code block if it's the default code block renderer
 		// or if the language is supported by Chroma.
 		attrtp = AttributesOwnerCodeBlockChroma
@@ -112,7 +120,7 @@ func (r *htmlRenderer) renderCodeBlock(w util.BufWriter, src []byte, node ast.No
 	}
 
 	cbctx.createPos = func() htext.Position {
-		if resolver, ok := renderer.(markdown.ElementPositionResolver); ok {
+		if resolver, ok := cbRenderer.(markdown.ElementPositionResolver); ok {
 			return resolver.ResolvePosition(cbctx)
 		}
 		return htext.Position{
@@ -122,7 +130,7 @@ func (r *htmlRenderer) renderCodeBlock(w util.BufWriter, src []byte, node ast.No
 		}
 	}
 
-	cr := renderer.(markdown.CodeBlockRenderer)
+	cr := cbRenderer.(markdown.CodeBlockRenderer)
 
 	err = cr.RenderCodeblock(
 		ctx.RenderContext().Ctx,

@@ -171,6 +171,8 @@ type ElementPositionResolver interface {
 // CodeblockContext is the context passed to a code block render hook.
 type CodeblockContext interface {
 	AttributesProvider
+	AttributesOptionsSliceProvider
+	
 	text.Positioner
 
 	// Chroma highlighting processing options. This will only be filled if Type is a known Chroma Lexer.

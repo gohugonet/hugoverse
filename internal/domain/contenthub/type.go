@@ -244,6 +244,7 @@ type Page interface {
 	PageOutputs() ([]PageOutput, error)
 
 	Pages(langIndex int) Pages
+	Terms(langIndex int, taxonomy string) Pages
 	Translations() Pages
 }
 

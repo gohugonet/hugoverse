@@ -50,12 +50,14 @@ func (t *Term) Assemble(pages *doctree.NodeShiftTree[*PageTreesNode],
 					}
 
 					viewTermKey := "/" + viewName.Plural() + "/" + v
-					term := pages.Get(viewTermKey)
+
+					fmi := t.FsSvc.NewFileMetaInfo(viewTermKey + "/_index.md")
+					f := valueobject.NewFileInfo(fmi)
+					pi := f.Paths()
+
+					term := pages.Get(pi.Base())
 
 					if term == nil {
-						fmi := t.FsSvc.NewFileMetaInfo(viewTermKey + "/_index.md")
-						f := valueobject.NewFileInfo(fmi)
-
 						ps, err := newPageSource(f, t.Cache)
 						if err != nil {
 							return false, err
@@ -67,7 +69,7 @@ func (t *Term) Assemble(pages *doctree.NodeShiftTree[*PageTreesNode],
 						}
 
 						pages.InsertIntoValuesDimension(viewTermKey, newPageTreesNode(p))
-						term = pages.Get(viewTermKey)
+						term = pages.Get(pi.Base())
 					} else {
 						tp, found := term.getPage()
 						if !found {
@@ -84,7 +86,7 @@ func (t *Term) Assemble(pages *doctree.NodeShiftTree[*PageTreesNode],
 						s = "/"
 					}
 
-					key := viewTermKey + s
+					key := pi.Base() + s
 
 					tp, found := term.getPage()
 					if !found {
