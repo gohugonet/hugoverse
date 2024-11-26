@@ -28,7 +28,7 @@ func (p *Page) Pages(langIndex int) contenthub.Pages {
 	case valueobject.KindTerm:
 		return p.pageMap.getPagesWithTerm(
 			pageMapQueryPagesBelowPath{
-				Path: p.Path(),
+				Path: p.Paths().Base(),
 			},
 		)
 	case valueobject.KindTaxonomy:
@@ -37,7 +37,7 @@ func (p *Page) Pages(langIndex int) contenthub.Pages {
 			pageMapQueryPagesInSection{
 				Index: langIndex,
 				pageMapQueryPagesBelowPath: pageMapQueryPagesBelowPath{
-					Path:    p.Path(),
+					Path:    p.Paths().Base(),
 					KeyPart: "term",
 					Include: pagePredicates.ShouldListLocal.And(pagePredicates.KindTerm),
 				},

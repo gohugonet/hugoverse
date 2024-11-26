@@ -1,7 +1,7 @@
 package entity
 
 import (
-	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
+	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/site/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/compare"
 	"sort"
@@ -29,7 +29,7 @@ type OrderedTaxonomy []OrderedTaxonomyEntry
 
 // getOneOPage returns one page in the taxonomy,
 // nil if there is none.
-func (t OrderedTaxonomy) getOneOPage() contenthub.Page {
+func (t OrderedTaxonomy) getOneOPage() *WeightedPage {
 	if len(t) == 0 {
 		return nil
 	}
@@ -38,16 +38,36 @@ func (t OrderedTaxonomy) getOneOPage() contenthub.Page {
 
 // WeightedPages is a list of Pages with their corresponding (and relative) weight
 // [{Weight: 30, Page: *1}, {Weight: 40, Page: *2}]
-type WeightedPages []contenthub.OrdinalWeightPage
+type WeightedPages []*WeightedPage
 
 // Page will return the Page (of Kind taxonomyList) that represents this set
 // of pages. This method will panic if p is empty, as that should never happen.
-func (p WeightedPages) Page() contenthub.Page {
+func (p WeightedPages) Page() *WeightedPage {
 	if len(p) == 0 {
-		panic("WeightedPages is empty")
+		_ = fmt.Errorf("page called on empty WeightedPages")
+		return nil
 	}
 
 	return p[0]
+}
+
+func (p WeightedPages) Pages() []*WeightedPage {
+	pages := make([]*WeightedPage, len(p))
+	for i := range p {
+		pages[i] = p[i]
+	}
+	return pages
+}
+
+func (p WeightedPages) Sort() { sort.Stable(p) }
+func (p WeightedPages) Count() int {
+	return len(p)
+}
+
+func (p WeightedPages) Len() int      { return len(p) }
+func (p WeightedPages) Swap(i, j int) { p[i], p[j] = p[j], p[i] }
+func (p WeightedPages) Less(i, j int) bool {
+	return p[i].Weight() <= p[j].Weight()
 }
 
 // OrderedTaxonomyEntry is similar to an element of a Taxonomy, but with the key embedded (as name)
@@ -55,6 +75,16 @@ func (p WeightedPages) Page() contenthub.Page {
 type OrderedTaxonomyEntry struct {
 	Name string
 	WeightedPages
+}
+
+// Count returns the count the pages in this taxonomy.
+func (ie OrderedTaxonomyEntry) Count() int {
+	return ie.WeightedPages.Count()
+}
+
+// Term returns the name given to this taxonomy.
+func (ie OrderedTaxonomyEntry) Term() string {
+	return ie.Name
 }
 
 // ByCount returns an ordered taxonomy sorted by # of pages per key.

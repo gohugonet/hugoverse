@@ -10,16 +10,12 @@ import (
 	bp "github.com/gohugonet/hugoverse/pkg/bufferpool"
 	"github.com/gohugonet/hugoverse/pkg/herrors"
 	"path"
+	"sync"
 )
 
-type Pages []Page
-
-// Len returns the number of pages in the list.
-func (p Pages) Len() int {
-	return len(p)
-}
-func (p Pages) String() string {
-	return fmt.Sprintf("Pages(%d)", len(p))
+type WeightedPage struct {
+	*Page
+	contenthub.OrdinalWeightPage
 }
 
 type Page struct {
@@ -36,6 +32,9 @@ type Page struct {
 	*Site
 
 	resources []resources.Resource
+
+	dataInit sync.Once
+	data     Data
 }
 
 func (p *Page) processResources(pageSources []contenthub.PageSource) error {

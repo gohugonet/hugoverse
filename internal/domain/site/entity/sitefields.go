@@ -105,3 +105,12 @@ func (s *Site) sitePage(p contenthub.Page) (*Page, error) {
 
 	return sp, nil
 }
+
+func (s *Site) siteWeightedPage(p contenthub.OrdinalWeightPage) (*WeightedPage, error) {
+	sp, err := s.sitePage(p)
+	if err != nil {
+		return nil, err
+	}
+
+	return &WeightedPage{sp, p}, nil
+}

@@ -18,6 +18,55 @@ func (c *pageCache) clear() {
 	c.m = make(map[string][]pageCacheEntry)
 }
 
+func (c *pageCache) get(key string, apply func(p Pages), pageLists ...Pages) (Pages, bool) {
+	return c.getP(key, func(p *Pages) {
+		if apply != nil {
+			apply(*p)
+		}
+	}, pageLists...)
+}
+
+func (c *pageCache) getP(key string, apply func(p *Pages), pageLists ...Pages) (Pages, bool) {
+	c.RLock()
+	if cached, ok := c.m[key]; ok {
+		for _, entry := range cached {
+			if entry.matches(pageLists) {
+				c.RUnlock()
+				return entry.out, true
+			}
+		}
+	}
+	c.RUnlock()
+
+	c.Lock()
+	defer c.Unlock()
+
+	// double-check
+	if cached, ok := c.m[key]; ok {
+		for _, entry := range cached {
+			if entry.matches(pageLists) {
+				return entry.out, true
+			}
+		}
+	}
+
+	p := pageLists[0]
+	pagesCopy := append(Pages(nil), p...)
+
+	if apply != nil {
+		apply(&pagesCopy)
+	}
+
+	entry := pageCacheEntry{in: pageLists, out: pagesCopy}
+	if v, ok := c.m[key]; ok {
+		c.m[key] = append(v, entry)
+	} else {
+		c.m[key] = []pageCacheEntry{entry}
+	}
+
+	return pagesCopy, false
+}
+
 type pageCacheEntry struct {
 	in  []Pages
 	out Pages

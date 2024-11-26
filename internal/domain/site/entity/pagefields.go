@@ -56,6 +56,20 @@ func (s *sites) First() *Site {
 	return s.site
 }
 
+func (p *Page) Data() any {
+	p.dataInit.Do(func() {
+		p.data = make(Data)
+
+		if p.Kind() == contenthub.KindPage {
+			return
+		}
+
+		p.data["pages"] = p.Pages
+	})
+
+	return p.data
+}
+
 func (p *Page) Pages() []*Page {
 	ps := p.Page.Pages(p.Site.Language.CurrentLanguageIndex())
 	if ps == nil {
@@ -81,10 +95,10 @@ func (p *Page) Translations() []*Page {
 func (p *Page) sitePages(ps contenthub.Pages) []*Page {
 	var pages []*Page
 	for _, cp := range ps {
-		np := p.clone()
-
-		np.Page = cp
-		np.PageOutput = p.getPageOutput(cp)
+		np, err := p.Site.sitePage(cp)
+		if err != nil {
+			continue
+		}
 
 		pages = append(pages, np)
 	}
@@ -107,10 +121,6 @@ func (p *Page) getPageOutput(chp contenthub.Page) contenthub.PageOutput {
 
 	p.Log.Errorln("getPageOutput", "no page output")
 	panic("no page output")
-}
-
-func (p *Page) Data() map[string]any {
-	return map[string]any{} //TODO for sitemap
 }
 
 func (p *Page) Content() (any, error) {

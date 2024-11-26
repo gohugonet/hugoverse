@@ -47,8 +47,6 @@ type PageInfo interface {
 	Buffer() *bytes.Buffer
 }
 
-//TODO remove unless we need to expose those kind for other domains
-
 const (
 	KindPage    = "page"
 	KindHome    = "home"

@@ -194,6 +194,8 @@ func (b *PageBuilder) buildTaxonomy() (*TaxonomyPage, error) {
 		return nil, err
 	}
 
+	tp.pageMap = b.PageMapper
+
 	if err := b.buildOutput(tp.Page); err != nil {
 		return nil, err
 	}
@@ -210,6 +212,8 @@ func (b *PageBuilder) buildTerm() (*TermPage, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	t.pageMap = b.PageMapper
 
 	if err := b.buildOutput(t.Page); err != nil {
 		return nil, err

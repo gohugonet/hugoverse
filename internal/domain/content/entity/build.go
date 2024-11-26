@@ -134,7 +134,23 @@ func (c *Content) writeSiteResource(siteId int, dir string) error {
 		}
 
 		if res.Asset != "" {
-			go c.copyFiles(dir, getParentPath(sr.Path), []string{res.Asset})
+			_, p, err := parseURL(res.Asset)
+			if err != nil {
+				c.Log.Printf("parse url %s failed: %v\n", res.Asset, err)
+				return err
+			}
+
+			src := path.Join(c.Hugo.DirService.UploadDir(), p)
+			dst := path.Join(dir, sr.Path)
+
+			if err := c.Hugo.Fs.MkdirAll(path.Join(dir, getParentPath(sr.Path)), 0755); err != nil {
+				c.Log.Printf("mkdir %s failed: %v\n", path.Join(dir, getParentPath(sr.Path)), err)
+				continue
+			}
+
+			if err := c.copyFile(src, dst); err != nil {
+				return err
+			}
 		}
 	}
 

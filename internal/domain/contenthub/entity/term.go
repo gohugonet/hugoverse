@@ -94,7 +94,7 @@ func (t *Term) Assemble(pages *doctree.NodeShiftTree[*PageTreesNode],
 					}
 
 					entries.Insert(key, &WeightedTermTreeNode{
-						PageTreesNode: term,
+						PageTreesNode: newPageTreesNode(ps),
 						term:          &ordinalWeightPage{Page: tp.(*TermPage), ordinal: i, weight: weight},
 					})
 				}

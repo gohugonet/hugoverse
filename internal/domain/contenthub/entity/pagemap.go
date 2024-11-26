@@ -328,14 +328,16 @@ func (m *PageMap) getPagesWithTerm(q pageMapQueryPagesBelowPath) contenthub.Page
 			doctree.LockTypeNone,
 			paths.AddTrailingSlash(q.Path),
 			func(s string, n *WeightedTermTreeNode) (bool, error) {
-				if include(n.term.Page) {
-					pas = append(pas, n.term)
+				p, found := n.getPage()
+				if found && include(p) {
+					pas = append(pas, p)
 				}
 
 				return false, nil
 			},
 		)
 		if err != nil {
+			m.Log.Errorf("getPagesWithTerm error: %v", err)
 			return nil, err
 		}
 
@@ -344,6 +346,7 @@ func (m *PageMap) getPagesWithTerm(q pageMapQueryPagesBelowPath) contenthub.Page
 		return pas, nil
 	})
 	if err != nil {
+		m.Log.Errorf("getPagesWithTerm: %v", err)
 		panic(err)
 	}
 

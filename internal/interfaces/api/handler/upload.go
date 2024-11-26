@@ -12,6 +12,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 // StoreFiles stores file uploads at paths like /YYYY/MM/filename.ext
@@ -68,10 +69,10 @@ func (s *Handler) StoreFiles(req *http.Request) (map[string]string, error) {
 		// support later : check if file at path exists, if so, add timestamp to file
 		absPath := filepath.Join(uploadDir, filename)
 
-		//if _, err := os.Stat(absPath); os.IsExist(err) {
-		//	filename = fmt.Sprintf("%d-%s", time.Now().Unix(), filename)
-		//	absPath = filepath.Join(uploadDir, filename)
-		//}
+		if _, err := os.Stat(absPath); err == nil {
+			filename = fmt.Sprintf("%d-%s", time.Now().UnixMilli(), filename)
+			absPath = filepath.Join(uploadDir, filename)
+		}
 
 		// save to disk
 		// (TODO: or check if S3 credentials exist, & save to cloud)

@@ -1,46 +1,113 @@
-# Hugoverse
+# Hugoverse: Headless CMS for Hugo
 
-Hugo headless CMS server
+**Hugoverse** is a headless CMS designed for Hugo, providing a seamless way to manage your static website content. With its powerful APIs, you can upload articles and resources like images, preview your site in real-time, and deploy it effortlessly to the cloud—all tailored to your selected Hugo theme.
 
-## Prerequisite
+---
 
-Take MacOS for example:
+## 🚀 Features
 
-- Go: 
-- Dart Sass： brew install sass/sass/sass
-- jq: brew install jq
+1. **Content Management API**  
+   Easily upload and manage articles, images, and other resources through Hugoverse's API.
 
-## PoC
+2. **Theme Compatibility**  
+   Automatically adapts to your chosen Hugo theme, ensuring your site looks great without additional configuration.
 
-- [x] DDD Ponzu to expose API
-- [x] DDD Hugo to get content info
-- [x] DDD Hugo to build site
-- [x] Load Hugo project from file system
-- [x] Manage Post through API
-- [x] Build Site through API
-- [x] Deploy Site through API
+3. **Live Preview**  
+   Preview your Hugo site in real-time to ensure your content and design align before deploying.
 
-## MVP
+4. **Cloud Deployment**  
+   Deploy your site with a single click to the cloud, making it live and accessible instantly.
 
-### 目标
+5. **Streamlined Resource Handling**  
+   Efficiently manage images and files for your Hugo website, ensuring all assets are properly organized and accessible.
 
-为敏捷UP主 [老袁讲敏捷](https://space.bilibili.com/36395967) 打造一体化的个人品牌官网，增强专业形象并提升影响力。
+---
 
-### 需要实现的功能
+## 🌟 Getting Started
 
-- [ ] Hugoverse Notion Plugin 
-  - [ ] 登陆Hugoverse服务
-  - [ ] 创建个人主页站点
-  - [ ] 创建商业服务站点 - 个人陪跑教练
-  - [ ] 创建Unfix敏捷小组介绍
-- [x] Hugoverse待补全功能
-  - [x] 注册用户
-  - [x] 多租户管理
+Follow these steps to start using Hugoverse for your Hugo project:
 
-## Next
+### Prerequisites
 
-- [ ] I18N
-- [ ] Sitemap
-- [ ] Inline shortcode
-- [ ] Output Format: connect page layouts and page outputs, should separate the config info service and business logic
-- [ ] Docs
+- Install [Hugo](https://gohugo.io/getting-started/installing/) on your machine.
+- Create or clone a Hugo site.
+
+### Installation
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/your-username/hugoverse.git
+   cd hugoverse
+   ```
+
+2. Install dependencies (if applicable):
+   ```bash
+   # Example: pipenv, npm, etc.
+   ```
+
+3. Start the Hugoverse server:
+   ```bash
+   hugoverse serve
+   ```
+
+### API Usage
+
+**Upload an Article:**  
+Use the API to upload a markdown file.
+```bash
+curl -X POST -F "file=@article.md" https://your-hugoverse-instance/api/upload
+```
+
+**Upload Resources (e.g., images):**
+```bash
+curl -X POST -F "file=@image.png" https://your-hugoverse-instance/api/resources
+```
+
+**Preview Your Site:**  
+Visit `https://your-hugoverse-instance/preview`.
+
+**Deploy Your Site to the Cloud:**
+```bash
+curl -X POST https://your-hugoverse-instance/api/deploy
+```
+
+---
+
+## 📄 Documentation
+
+Visit the [Hugoverse Documentation](https://hugoverse.example.com/docs) for detailed guides and API references.
+
+---
+
+## 🛠️ Contributing
+
+We welcome contributions from the community! Feel free to open issues, suggest features, or submit pull requests.
+
+1. Fork the repository.
+2. Create a feature branch:
+   ```bash
+   git checkout -b feature-name
+   ```
+3. Commit your changes:
+   ```bash
+   git commit -m "Add new feature"
+   ```
+4. Push the branch and open a pull request.
+
+---
+
+## 📝 License
+
+Hugoverse is licensed under the [MIT License](LICENSE).
+
+---
+
+## ✨ Contact
+
+For questions or support, feel free to reach out:
+
+- **Email:** support@hugoverse.com
+- **Website:** [hugoverse.com](https://hugoverse.com)
+- **GitHub Issues:** [Create an Issue](https://github.com/your-username/hugoverse/issues)
+
+Start building and managing your Hugo site effortlessly with **Hugoverse**! 🎉s

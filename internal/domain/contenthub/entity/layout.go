@@ -22,6 +22,7 @@ const (
 	TaxonomyList     = "taxonomy" + "/" + LayoutList
 
 	TermTerm = "term/term.html"
+	TermTag  = "taxonomy/tag.html"
 	TermList = "taxonomy" + "/" + LayoutList
 
 	Sitemap                = "sitemap.xml"
@@ -67,6 +68,7 @@ func (l *Layout) taxonomy() []string {
 
 func (l *Layout) term() []string {
 	return []string{
+		TermTag,
 		TermTerm,
 		TermList,
 		DefaultTerm,

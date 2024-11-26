@@ -125,6 +125,8 @@ func newTaxonomy(source *Source, content *Content, singular string) (*TaxonomyPa
 		singular: singular,
 	}
 
+	taxonomy.Page.title = singular
+
 	return taxonomy, nil
 }
 
@@ -139,6 +141,8 @@ func newTerm(source *Source, content *Content, singular string, term string) (*T
 		TaxonomyPage: taxonomy,
 		term:         term,
 	}
+
+	tp.TaxonomyPage.Page.title = term
 
 	return tp, nil
 }

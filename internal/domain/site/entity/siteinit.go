@@ -64,17 +64,25 @@ func (s *Site) PrepareLazyLoads() {
 					tax = make(Taxonomy)
 					s.Navigation.taxonomies[taxonomy] = tax
 				}
+
+				wp, err := s.siteWeightedPage(page)
+				if err != nil {
+					return err
+				}
+
 				weightedPages := tax[term]
 				if weightedPages == nil {
-					weightedPages = WeightedPages{page}
+					weightedPages = WeightedPages{wp}
 					tax[term] = weightedPages
+				} else {
+					tax[term] = append(weightedPages, wp)
 				}
-				tax[term] = append(weightedPages, page)
 
 				return nil
 			}); err != nil {
 			return nil, err
 		}
+
 		return s.Navigation.taxonomies, nil
 	})
 }
