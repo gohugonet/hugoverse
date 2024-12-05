@@ -8,6 +8,11 @@ import (
 	"strings"
 )
 
+// TODO: deployment belongs to admin
+// need netlify sub domain, and site id
+// need domain root, sub, and owner info
+// no need site info
+
 type SiteDeployment struct {
 	Item
 
@@ -52,6 +57,13 @@ func (s *SiteDeployment) MarshalEditor() ([]byte, error) {
 				"label":       "Domain",
 				"type":        "text",
 				"placeholder": "Enter the Customized sub domain here",
+			}),
+		},
+		editor.Field{
+			View: editor.Input("Root", s, map[string]string{
+				"label":       "Root",
+				"type":        "text",
+				"placeholder": "Enter the Customized root domain here",
 			}),
 		},
 		editor.Field{

@@ -184,6 +184,46 @@ func (s *Search) TypeQuery(typeName, query string, count, offset int) ([]content
 	return results, nil
 }
 
+func (s *Search) TermQuery(typeName string, keyValues map[string]string, count, offset int) ([]content.Identifier, error) {
+	// 获取索引
+	idx, err := s.getSearchIndex(typeName)
+	if err != nil {
+		s.Log.Debugln("Index for type ", typeName, " not found", err.Error())
+		return nil, content.ErrNoIndex
+	}
+
+	s.Log.Debugln("KeyValueQuery KeyValues: ", keyValues)
+
+	// 创建每个 Key-Value 的查询
+	var termQueries []bleve.Query
+	for key, value := range keyValues {
+		tq := bleve.NewTermQuery(value)
+		tq.SetField(key)
+
+		termQueries = append(termQueries, tq)
+	}
+
+	// 将查询组合成一个 ConjunctionQuery
+	finalQuery := bleve.NewConjunctionQuery(termQueries...)
+
+	// 创建搜索请求
+	req := bleve.NewSearchRequestOptions(finalQuery, count, offset, false)
+
+	// 执行搜索
+	res, err := idx.Search(req)
+	if err != nil {
+		return nil, err
+	}
+
+	// 处理搜索结果
+	var results []content.Identifier
+	for _, hit := range res.Hits {
+		results = append(results, valueobject.CreateIndex(hit.ID))
+	}
+
+	return results, nil
+}
+
 // UpdateIndex sets data into a content type's search index at the given
 // identifier
 func (s *Search) UpdateIndex(ns, id string, data []byte) error {

@@ -20,6 +20,27 @@ func (s *Handler) DeployContentHandler(res http.ResponseWriter, req *http.Reques
 		return
 	}
 
+	err := req.ParseForm()
+	if err != nil {
+		s.log.Errorf("Error parsing deploy form: %v", err)
+		res.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	netlify := req.PostForm.Get("netlify")
+	root := req.PostForm.Get("domain")
+	if netlify == "" || root == "" {
+		netlify = s.adminApp.Netlify.Token()
+		root = "app.mdfriday.com"
+	}
+
+	d, err := s.contentApp.ApplyDomain(id, root)
+	if err != nil {
+		s.log.Errorf("Error applying domain: %v", err)
+		res.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	pt, ok := s.contentApp.GetContentCreator(t)
 	if !ok {
 		res.WriteHeader(http.StatusNotFound)
@@ -34,7 +55,7 @@ func (s *Handler) DeployContentHandler(res http.ResponseWriter, req *http.Reques
 		return
 	}
 
-	t, err := s.contentApp.BuildTarget(t, id, status)
+	t, err = s.contentApp.BuildTarget(t, id, status)
 	if err != nil {
 		s.log.Errorf("Error building: %v", err)
 		res.WriteHeader(http.StatusInternalServerError)
@@ -48,14 +69,14 @@ func (s *Handler) DeployContentHandler(res http.ResponseWriter, req *http.Reques
 		return
 	}
 
-	sd, err := s.contentApp.GetDeployment(id)
+	sd, err := s.contentApp.GetDeployment(id, d)
 	if err != nil {
 		s.log.Errorf("Error getting deployment: %v", err)
 		res.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	err = application.DeployToNetlify(t, sd, s.adminApp.Netlify.Token())
+	err = application.DeployToNetlify(t, sd, netlify)
 	if err != nil {
 		s.log.Errorf("Error building: %v", err)
 		res.WriteHeader(http.StatusInternalServerError)

@@ -5,18 +5,17 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/content/valueobject"
-	"net/url"
 	"time"
 )
 
-func (c *Content) GetDeployment(siteId string) (*valueobject.SiteDeployment, error) {
+func (c *Content) GetDeployment(siteId string, domain *valueobject.Domain) (*valueobject.SiteDeployment, error) {
 	content, err := c.getContent("Site", siteId)
 	if err != nil {
 		return nil, err
 	}
 
 	if site, ok := content.(*valueobject.Site); ok {
-		sd, err := c.searchDeployment(siteId)
+		sd, err := c.searchDeployment(domain.Root, domain.Sub, domain.Owner)
 		if err != nil {
 			return nil, err
 		}
@@ -30,7 +29,7 @@ func (c *Content) GetDeployment(siteId string) (*valueobject.SiteDeployment, err
 			sd = &valueobject.SiteDeployment{
 				Item:    *item,
 				Site:    site.QueryString(),
-				Netlify: fmt.Sprintf("mdf-%d-%s", time.Now().Unix(), site.ItemSlug()),
+				Netlify: fmt.Sprintf("mdf-%d-%s", time.Now().UnixMilli(), site.ItemSlug()),
 				Domain:  site.ItemSlug(),
 				Status:  "Not Started",
 			}
@@ -47,27 +46,35 @@ func (c *Content) GetDeployment(siteId string) (*valueobject.SiteDeployment, err
 	return nil, errors.New("only site could be deployed")
 }
 
-func (c *Content) searchDeployment(siteId string) (*valueobject.SiteDeployment, error) {
-	q := fmt.Sprintf(`site%s`, siteId)
-	encodedQ := url.QueryEscape(q)
+func (c *Content) searchDeployment(root string, sub string, owner string) (*valueobject.SiteDeployment, error) {
+	conditions := map[string]string{
+		"root":   root,
+		"domain": sub,
+		"owner":  owner,
+	}
 
-	siteDeployments, err := c.search("SiteDeployment", fmt.Sprintf("slug:%s", encodedQ))
+	// 查询域名信息
+	deploys, err := c.termSearch("SiteDeployment", conditions)
 	if err != nil {
 		return nil, err
 	}
 
-	if len(siteDeployments) == 1 && siteDeployments[0] == nil {
+	// 如果返回仅一个结果且为 nil，返回 nil
+	if len(deploys) == 1 && deploys[0] == nil {
 		return nil, nil
 	}
 
-	for _, data := range siteDeployments {
-		var sd valueobject.SiteDeployment
-		if err := json.Unmarshal(data, &sd); err != nil {
+	// 遍历查询结果并解析
+	for _, data := range deploys {
+		var deployment valueobject.SiteDeployment
+		if err := json.Unmarshal(data, &deployment); err != nil {
 			return nil, err
 		}
 
-		return &sd, nil
+		// 返回匹配的域名对象
+		return &deployment, nil
 	}
 
+	// 未找到匹配结果
 	return nil, nil
 }

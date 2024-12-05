@@ -31,7 +31,7 @@ func DeployToNetlify(target string, deployment *valueobject.SiteDeployment, toke
 		SiteID:        deployment.NetlifySiteID,
 		Directory:     path.Join(target, "public"),
 		Draft:         false,
-		DeployMessage: "Deployed from Hugoverse",
+		DeployMessage: "Deployed by MDFriday",
 		LogLevel:      "debug",
 		LogFormat:     "text",
 	}

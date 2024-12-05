@@ -9,13 +9,13 @@ import (
 type Domain struct {
 	Item
 
-	Id    uint64 `json:"id"`
+	Root  string `json:"root"`
 	Sub   string `json:"sub"`
-	Email string `json:"email"`
+	Owner string `json:"owner"`
 }
 
 func (d *Domain) Name() string {
-	return d.Sub
+	return fmt.Sprintf("%s.%s - %s", d.Sub, d.Root, d.Owner)
 }
 
 // MarshalEditor writes a buffer of html to edit a Song within the CMS
@@ -23,17 +23,24 @@ func (d *Domain) Name() string {
 func (d *Domain) MarshalEditor() ([]byte, error) {
 	view, err := editor.Form(d,
 		editor.Field{
-			View: editor.Input("Sub", d, map[string]string{
-				"label":       "SubDomain",
+			View: editor.Input("Root", d, map[string]string{
+				"label":       "Root",
 				"type":        "text",
-				"placeholder": "Enter the subdomain here",
+				"placeholder": "Enter the root domain here",
 			}),
 		},
 		editor.Field{
-			View: editor.Input("Email", d, map[string]string{
-				"label":       "Email",
+			View: editor.Input("Sub", d, map[string]string{
+				"label":       "Sub",
 				"type":        "text",
-				"placeholder": "Enter the Email here",
+				"placeholder": "Enter the sub domain here",
+			}),
+		},
+		editor.Field{
+			View: editor.Input("Owner", d, map[string]string{
+				"label":       "Owner",
+				"type":        "text",
+				"placeholder": "Enter the Owner here",
 			}),
 		},
 	)
@@ -54,8 +61,9 @@ func (d *Domain) String() string { return d.Name() }
 func (d *Domain) Create(res http.ResponseWriter, req *http.Request) error {
 	// do form data validation for required fields
 	required := []string{
+		"root",
 		"sub",
-		"email",
+		"owner",
 	}
 
 	for _, r := range required {
@@ -124,4 +132,8 @@ func (d *Domain) AutoApprove(res http.ResponseWriter, req *http.Request) error {
 	// after the BeforeSave hook.
 
 	return nil
+}
+
+func (d *Domain) IndexContent() bool {
+	return true
 }
