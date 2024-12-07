@@ -121,6 +121,11 @@ type Sluggable interface {
 	ItemSlug() string
 }
 
+type Hashable interface {
+	SetHash()
+	ItemHash() string
+}
+
 // Searchable ...
 type Searchable interface {
 	SearchMapping() (*mapping.IndexMappingImpl, error)

@@ -49,6 +49,10 @@ func (a *Language) String() string {
 	return a.Code
 }
 
+func (a *Language) SetHash() {
+	a.Hash = Hash([]string{a.Name, a.Code})
+}
+
 func (a *Language) Create(res http.ResponseWriter, req *http.Request) error {
 	// do form data validation for required fields
 	required := []string{

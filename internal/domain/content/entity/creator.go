@@ -54,7 +54,7 @@ func (c *Content) newContent(contentType string, ci any) (string, error) {
 		return "", errors.New("content type does not implement Identifiable")
 	}
 
-	slug, err := Slug(cii)
+	slug, err := valueobject.Slug(cii)
 	if err != nil {
 		return "", err
 	}
@@ -78,6 +78,12 @@ func (c *Content) newContent(contentType string, ci any) (string, error) {
 		}
 	} else {
 		return "", errors.New("content type does not implement Statusable")
+	}
+
+	cih, ok := ci.(content.Hashable)
+	if ok {
+		cih.SetHash()
+		fmt.Println("--==--", cih.ItemHash())
 	}
 
 	b, err := c.Marshal(ci)

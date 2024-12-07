@@ -1,4 +1,4 @@
-package entity
+package valueobject
 
 import (
 	"github.com/gohugonet/hugoverse/internal/domain/content"
@@ -11,7 +11,7 @@ func Slug(i content.Identifiable) (string, error) {
 	name := strings.TrimSpace(i.String())
 
 	// filter out non-alphanumeric character or non-whitespace
-	slug, err := stringToSlug(name)
+	slug, err := StringToSlug(name)
 	if err != nil {
 		return "", err
 	}

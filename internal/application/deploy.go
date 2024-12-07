@@ -25,10 +25,10 @@ type netlifyConfig struct {
 	LogFormat     string `default:"text"`
 }
 
-func DeployToNetlify(target string, deployment *valueobject.SiteDeployment, token string) error {
+func DeployToNetlify(target string, deployment *valueobject.Deployment, domain *valueobject.Domain, token string) error {
 	c := &netlifyConfig{
 		AuthToken:     token,
-		SiteID:        deployment.NetlifySiteID,
+		SiteID:        deployment.SiteID,
 		Directory:     path.Join(target, "public"),
 		Draft:         false,
 		DeployMessage: "Deployed by MDFriday",
@@ -55,7 +55,7 @@ func DeployToNetlify(target string, deployment *valueobject.SiteDeployment, toke
 	client := setupNetlifyClient()
 	ctx := setupContext(c, logger)
 
-	fmt.Println("Deploying to Netlify...", deployment.Netlify, deployment.Domain)
+	fmt.Println("Deploying to Netlify...", deployment.SiteName, domain.FullDomain())
 
 	// 检查 SiteID 是否为空
 	if c.SiteID == "" {
@@ -63,8 +63,8 @@ func DeployToNetlify(target string, deployment *valueobject.SiteDeployment, toke
 		newSite, err := client.CreateSite(ctx, &models.SiteSetup{
 			Site: models.Site{
 				//AccountSlug:  "admin-zbpioce",
-				Name:         deployment.Netlify,
-				CustomDomain: fmt.Sprintf("%s.app.mdfriday.com", deployment.Domain),
+				Name:         deployment.SiteName,
+				CustomDomain: domain.FullDomain(),
 				Ssl:          true,
 			},
 			SiteSetupAllOf1: models.SiteSetupAllOf1{},
@@ -76,7 +76,8 @@ func DeployToNetlify(target string, deployment *valueobject.SiteDeployment, toke
 
 		// 更新 SiteID
 		c.SiteID = newSite.ID
-		deployment.NetlifySiteID = newSite.ID
+		deployment.SiteID = newSite.ID
+		deployment.Status = "deploying"
 		logger.Println("Created new site with ID: " + c.SiteID)
 	}
 

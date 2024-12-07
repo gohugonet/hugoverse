@@ -18,6 +18,10 @@ func (d *Domain) Name() string {
 	return fmt.Sprintf("%s.%s - %s", d.Sub, d.Root, d.Owner)
 }
 
+func (d *Domain) FullDomain() string {
+	return fmt.Sprintf("%s.%s", d.Sub, d.Root)
+}
+
 // MarshalEditor writes a buffer of html to edit a Song within the CMS
 // and implements editor.Editable
 func (d *Domain) MarshalEditor() ([]byte, error) {
@@ -54,6 +58,10 @@ func (d *Domain) MarshalEditor() ([]byte, error) {
 
 // String defines the display name of a Song in the CMS list-view
 func (d *Domain) String() string { return d.Name() }
+
+func (d *Domain) SetHash() {
+	d.Hash = Hash([]string{d.Sub, d.Root})
+}
 
 // Create implements api.Createable, and allows external POST requests from clients
 // to add content as long as the request contains the json tag names of the Song

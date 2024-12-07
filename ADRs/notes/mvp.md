@@ -105,3 +105,6 @@ curl -X POST "http://127.0.0.1:1314/api/deploy?type=Site&id=2" \
 
 curl -X GET "http://127.0.0.1:1314/api/search?type=SiteDeployment&q=slug:site2" \
 -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhdWQiOm51bGwsImV4cCI6IjIwMjQtMTItMDRUMDg6MTQ6NTIuNTk2MDI5KzA4OjAwIiwiaWF0IjpudWxsLCJpc3MiOm51bGwsImp0aSI6bnVsbCwibmJmIjpudWxsLCJzdWIiOm51bGwsInVzZXIiOiJtZUBzdW53ZWkueHl6In0.foManZwcdG0h52dCxeKY6jE6iTkdSZFcEbnGFanLZU0"
+
+curl -X GET "http://127.0.0.1:1314/api/search2?type=Language" \
+-H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhdWQiOm51bGwsImV4cCI6IjIwMjUtMDEtMDZUMDc6MTk6MzcuNDI2ODU4KzA4OjAwIiwiaWF0IjpudWxsLCJpc3MiOm51bGwsImp0aSI6bnVsbCwibmJmIjpudWxsLCJzdWIiOm51bGwsInVzZXIiOiJtZUBzdW53ZWkueHl6In0.wVsqhQc2G1n2berEIovbitzxftYWLPdq7x6rSwgCZ5c"

@@ -52,7 +52,7 @@ func prepareUserTypes(c *entity.Content) {
 	c.UserTypes["SiteLanguage"] = func() interface{} { return new(valueobject.SiteLanguage) }
 	c.UserTypes["SitePost"] = func() interface{} { return new(valueobject.SitePost) }
 	c.UserTypes["SiteResource"] = func() interface{} { return new(valueobject.SiteResource) }
-	c.UserTypes["SiteDeployment"] = func() interface{} { return new(valueobject.SiteDeployment) }
+	c.UserTypes["Deployment"] = func() interface{} { return new(valueobject.Deployment) }
 }
 
 func prepareAdminTypes(c *entity.Content) {

@@ -3,30 +3,38 @@ package entity
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/content/valueobject"
 )
 
-func (c *Content) ApplyDomain(siteId string, domain string) (*valueobject.Domain, error) {
+func (c *Content) ApplyDomain(siteId string, domain string) (*valueobject.Domain, bool, error) {
 	site, err := c.getContent("Site", siteId)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
 	if site, ok := site.(*valueobject.Site); ok {
-		slug, err := Slug(site)
+		slug, err := valueobject.Slug(site)
+		fmt.Println("-------- slug", slug, domain)
 		if err != nil {
-			return nil, err
+			return nil, false, err
 		}
 
-		sd, err := c.searchDomain(domain, slug, site.Owner)
+		sd, err := c.searchDomain(domain, slug)
 		if err != nil {
-			return nil, err
+			return nil, false, err
+		}
+
+		fmt.Println("-------- sd", sd)
+
+		if sd != nil && sd.Owner != site.Owner {
+			return nil, true, errors.New(fmt.Sprintf("domain %s already exists", sd.String()))
 		}
 
 		if sd == nil {
 			item, err := valueobject.NewItemWithNamespace("Domain")
 			if err != nil {
-				return nil, err
+				return nil, false, err
 			}
 
 			sd = &valueobject.Domain{
@@ -38,22 +46,20 @@ func (c *Content) ApplyDomain(siteId string, domain string) (*valueobject.Domain
 
 			_, err = c.newContent("Domain", sd)
 			if err != nil {
-				return nil, err
+				return nil, false, err
 			}
 		}
 
-		return sd, nil
+		return sd, false, nil
 	}
 
-	return nil, errors.New("only site could be deployed with domain")
+	return nil, false, errors.New("only site could be deployed with domain")
 }
 
-func (c *Content) searchDomain(root string, sub string, owner string) (*valueobject.Domain, error) {
+func (c *Content) searchDomain(root string, sub string) (*valueobject.Domain, error) {
 	// 构建精确匹配的查询条件
 	conditions := map[string]string{
-		"root":  root,
-		"sub":   sub,
-		"owner": owner,
+		"hash": valueobject.Hash([]string{sub, root}),
 	}
 
 	// 查询域名信息
@@ -66,6 +72,8 @@ func (c *Content) searchDomain(root string, sub string, owner string) (*valueobj
 	if len(domains) == 1 && domains[0] == nil {
 		return nil, nil
 	}
+
+	fmt.Println("-------- domains", len(domains))
 
 	// 遍历查询结果并解析
 	for _, data := range domains {

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/blevesearch/bleve"
+	"github.com/blevesearch/bleve/search/query"
 	"github.com/gohugonet/hugoverse/internal/domain/content"
 	"github.com/gohugonet/hugoverse/internal/domain/content/repository"
 	"github.com/gohugonet/hugoverse/internal/domain/content/valueobject"
@@ -192,19 +193,22 @@ func (s *Search) TermQuery(typeName string, keyValues map[string]string, count, 
 		return nil, content.ErrNoIndex
 	}
 
-	s.Log.Debugln("KeyValueQuery KeyValues: ", keyValues)
+	fmt.Println("KeyValueQuery KeyValues: ", keyValues)
 
-	// 创建每个 Key-Value 的查询
-	var termQueries []bleve.Query
+	var termQueries []query.Query
 	for key, value := range keyValues {
 		tq := bleve.NewTermQuery(value)
 		tq.SetField(key)
+
+		fmt.Printf("TermQuery 22 : %+v", tq)
 
 		termQueries = append(termQueries, tq)
 	}
 
 	// 将查询组合成一个 ConjunctionQuery
 	finalQuery := bleve.NewConjunctionQuery(termQueries...)
+
+	s.Log.Debugf("TermQuery: %+v", finalQuery)
 
 	// 创建搜索请求
 	req := bleve.NewSearchRequestOptions(finalQuery, count, offset, false)
@@ -246,6 +250,12 @@ func (s *Search) UpdateIndex(ns, id string, data []byte) error {
 
 	// add data to search index
 	i := valueobject.NewIndex(ns, id)
+
+	l, ok := p.(*valueobject.Language)
+	if ok {
+		fmt.Println("indexing ppp...:", l, l.Name, l.Code)
+	}
+
 	err = idx.Index(i.String(), p)
 
 	return err

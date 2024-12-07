@@ -2,15 +2,172 @@ package handler
 
 import (
 	"bytes"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"github.com/blevesearch/bleve"
+	"github.com/blevesearch/bleve/mapping"
+	"github.com/blevesearch/bleve/search/query"
 	"github.com/gohugonet/hugoverse/internal/domain/content"
+	"github.com/gohugonet/hugoverse/internal/domain/content/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/editor"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 )
+
+var indexMapping *mapping.IndexMappingImpl
+var exampleIndex bleve.Index
+var err error
+
+func ExampleNew() {
+	indexMapping = bleve.NewIndexMapping()
+	indexMapping.StoreDynamic = false
+
+	//docMapping := bleve.NewDocumentMapping()
+	//
+	//keywordFieldMapping := bleve.NewTextFieldMapping()
+	//keywordFieldMapping.Analyzer = keyword.Name
+	//
+	//// 为不同字段设置映射
+	//docMapping.AddFieldMappingsAt("Name", keywordFieldMapping)
+	//docMapping.AddFieldMappingsAt("Code", keywordFieldMapping)
+	//
+	//// 将文档映射添加到索引映射
+	//indexMapping.AddDocumentMapping("document", docMapping)
+
+	exampleIndex, err = bleve.New("/Users/sunwei/github/gohugonet/hugoverse/tmp", indexMapping)
+	if err != nil {
+		panic(err)
+	}
+	count, err := exampleIndex.DocCount()
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(count)
+	// Output:
+	// 0
+}
+
+type dodo struct {
+	Name string
+	Code string
+	Hash string
+}
+
+func (d *dodo) hash() {
+	// 拼接 Name 和 Code
+	data := d.Name + d.Code
+	// 使用 SHA-256 哈希函数
+	hash := sha256.Sum256([]byte(data))
+	// 返回哈希值
+	d.Hash = hex.EncodeToString(hash[:])
+}
+
+func newDodo(name, code string) *dodo {
+	d := &dodo{Name: name, Code: code}
+	d.hash()
+	return d
+}
+
+var data = newDodo("app.mdfriday.com", "Untitled Friday Site 299")
+var data2 = newDodo("app.mdfriday.com", "Untitled Friday Site 199")
+
+func ExampleIndex_indexing() {
+	// index some data
+	err = exampleIndex.Index("document id 1", &data)
+	if err != nil {
+		panic(err)
+	}
+	err = exampleIndex.Index("document id 2", &data2)
+	if err != nil {
+		panic(err)
+	}
+
+	// 2 documents have been indexed
+	count, err := exampleIndex.DocCount()
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(count)
+	// Output:
+	// 2
+}
+
+func (s *Handler) SearchContentHandler2(res http.ResponseWriter, req *http.Request) {
+	err = os.RemoveAll("/Users/sunwei/github/gohugonet/hugoverse/tmp")
+	if err != nil {
+		panic(err)
+	}
+
+	ExampleNew()
+	ExampleIndex_indexing()
+
+	fmt.Println("hash: ", data2.Hash)
+	var keyValues = map[string]string{"Hash": data2.Hash}
+
+	var termQueries []query.Query
+	for key, value := range keyValues {
+		tq := bleve.NewTermQuery(value)
+		tq.SetField(key)
+
+		termQueries = append(termQueries, tq)
+	}
+
+	// 将查询组合成一个 ConjunctionQuery
+	finalQuery := bleve.NewConjunctionQuery(termQueries...)
+	q := bleve.NewSearchRequestOptions(finalQuery, 10, 0, false)
+
+	indices, err := exampleIndex.Search(q)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("Search Results for conjunction:", len(indices.Hits))
+	for _, index := range indices.Hits {
+		fmt.Println(index)
+	}
+
+	//// Perform search for "en99"
+	//query := bleve.NewTermQuery("en99")
+	//query.SetField("Code")
+	//searchRequest := bleve.NewSearchRequest(query)
+	//searchResults, err := exampleIndex.Search(searchRequest)
+	//if err != nil {
+	//	panic(err)
+	//}
+	//fmt.Println("Search Results for en99:", len(searchResults.Hits)) // Expected output: 1
+	//
+	//// Perform search for "en-100"
+	//query2 := bleve.NewMatchQuery("Untitled Friday Site 199")
+	//query2.SetField("Code")
+	//searchRequest2 := bleve.NewSearchRequest(query2)
+	//searchResults2, err := exampleIndex.Search(searchRequest2)
+	//if err != nil {
+	//	panic(err)
+	//}
+	//fmt.Println("Search Results for en-100:", len(searchResults2.Hits))
+
+	qr, err := s.contentApp.Search.TermQuery("Language",
+		map[string]string{"hash": valueobject.Hash([]string{"English888", "en888"})}, 10, 0)
+	if errors.Is(err, content.ErrNoIndex) {
+		res.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	for _, index := range qr {
+		fmt.Println(index.ID(), index.ContentType())
+	}
+
+	fmt.Println("???---???", len(qr))
+
+	res.WriteHeader(http.StatusOK)
+}
 
 func (s *Handler) SearchContentHandler(res http.ResponseWriter, req *http.Request) {
 	qs := req.URL.Query()

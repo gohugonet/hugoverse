@@ -1,4 +1,4 @@
-package entity
+package valueobject
 
 import (
 	"golang.org/x/text/transform"
@@ -11,7 +11,7 @@ import (
 var rxList map[*regexp.Regexp][]byte
 
 func init() {
-	// Compile regex once to use in stringToSlug().
+	// Compile regex once to use in StringToSlug().
 	// We store the compiled regex as the key
 	// and assign the replacement as the map's value.
 	rxList = map[*regexp.Regexp][]byte{
@@ -26,8 +26,7 @@ func init() {
 	}
 }
 
-// modified version of: https://www.socketloop.com/tutorials/golang-format-strings-to-seo-friendly-url-example
-func stringToSlug(s string) (string, error) {
+func StringToSlug(s string) (string, error) {
 	src := []byte(strings.ToLower(s))
 
 	// Range over compiled regex and replacements from init().

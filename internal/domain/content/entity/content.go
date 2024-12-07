@@ -125,6 +125,11 @@ func (c *Content) UpdateContentObject(ci any) error {
 	}
 	status := cis.ItemStatus()
 
+	cih, ok := ci.(content.Hashable)
+	if ok {
+		cih.SetHash()
+	}
+
 	cii, ok := ci.(content.Identifiable)
 	if ok {
 		go func() {
@@ -226,5 +231,5 @@ func (c *Content) Unmarshal(data []byte, content any) error {
 }
 
 func (c *Content) NormalizeString(s string) (string, error) {
-	return stringToSlug(s)
+	return valueobject.StringToSlug(s)
 }

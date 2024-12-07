@@ -2,7 +2,6 @@ package handler
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/gohugonet/hugoverse/internal/application"
 	"github.com/gohugonet/hugoverse/internal/domain/content"
 	"log"
@@ -27,17 +26,23 @@ func (s *Handler) DeployContentHandler(res http.ResponseWriter, req *http.Reques
 		return
 	}
 
-	netlify := req.PostForm.Get("netlify")
+	hostName := req.PostForm.Get("host_name")
+	hostToken := req.PostForm.Get("host_token")
 	root := req.PostForm.Get("domain")
-	if netlify == "" || root == "" {
-		netlify = s.adminApp.Netlify.Token()
+	if hostToken == "" || root == "" {
+		hostName = "Netlify"
+		hostToken = s.adminApp.Netlify.Token()
 		root = "app.mdfriday.com"
 	}
 
-	d, err := s.contentApp.ApplyDomain(id, root)
-	if err != nil {
+	d, isTaken, err := s.contentApp.ApplyDomain(id, root)
+	if !isTaken && err != nil {
 		s.log.Errorf("Error applying domain: %v", err)
 		res.WriteHeader(http.StatusInternalServerError)
+		return
+	} else if isTaken {
+		s.log.Errorf("Domain already taken: %s", err.Error())
+		res.WriteHeader(http.StatusConflict)
 		return
 	}
 
@@ -69,14 +74,20 @@ func (s *Handler) DeployContentHandler(res http.ResponseWriter, req *http.Reques
 		return
 	}
 
-	sd, err := s.contentApp.GetDeployment(id, d)
+	sd, err := s.contentApp.GetDeployment(d, hostName)
 	if err != nil {
 		s.log.Errorf("Error getting deployment: %v", err)
 		res.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	err = application.DeployToNetlify(t, sd, netlify)
+	if hostName != "Netlify" {
+		s.log.Errorf("Error: Netlify only supported for now")
+		res.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	s.log.Infof("Deploying site %s to Netlify with token %s", id, hostToken)
+	err = application.DeployToNetlify(t, sd, d, hostToken)
 	if err != nil {
 		s.log.Errorf("Error building: %v", err)
 		res.WriteHeader(http.StatusInternalServerError)
@@ -89,7 +100,7 @@ func (s *Handler) DeployContentHandler(res http.ResponseWriter, req *http.Reques
 		return
 	}
 
-	jsonBytes, err := json.Marshal(fmt.Sprintf("https://%s.app.mdfriday.com", sd.Domain))
+	jsonBytes, err := json.Marshal(d.FullDomain())
 	if err != nil {
 		s.log.Errorf("Error marshalling token: %v", err)
 		return

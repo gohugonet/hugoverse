@@ -2,59 +2,48 @@ package entity
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/content/valueobject"
 	"time"
 )
 
-func (c *Content) GetDeployment(siteId string, domain *valueobject.Domain) (*valueobject.SiteDeployment, error) {
-	content, err := c.getContent("Site", siteId)
+func (c *Content) GetDeployment(domain *valueobject.Domain, hostName string) (*valueobject.Deployment, error) {
+	sd, err := c.searchDeployment(domain.QueryString(), hostName)
 	if err != nil {
 		return nil, err
 	}
 
-	if site, ok := content.(*valueobject.Site); ok {
-		sd, err := c.searchDeployment(domain.Root, domain.Sub, domain.Owner)
+	if sd == nil {
+		item, err := valueobject.NewItemWithNamespace("Deployment")
 		if err != nil {
 			return nil, err
 		}
 
-		if sd == nil {
-			item, err := valueobject.NewItemWithNamespace("SiteDeployment")
-			if err != nil {
-				return nil, err
-			}
-
-			sd = &valueobject.SiteDeployment{
-				Item:    *item,
-				Site:    site.QueryString(),
-				Netlify: fmt.Sprintf("mdf-%d-%s", time.Now().UnixMilli(), site.ItemSlug()),
-				Domain:  site.ItemSlug(),
-				Status:  "Not Started",
-			}
-
-			_, err = c.newContent("SiteDeployment", sd)
-			if err != nil {
-				return nil, err
-			}
+		sd = &valueobject.Deployment{
+			Item:     *item,
+			Domain:   domain.QueryString(),
+			SiteName: fmt.Sprintf("mdf-%d", time.Now().UnixMilli()),
+			HostName: hostName,
+			Status:   "pending",
 		}
 
-		return sd, nil
+		_, err = c.newContent("Deployment", sd)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	return nil, errors.New("only site could be deployed")
+	return sd, nil
 }
 
-func (c *Content) searchDeployment(root string, sub string, owner string) (*valueobject.SiteDeployment, error) {
+func (c *Content) searchDeployment(domainQueryStr string, hostName string) (*valueobject.Deployment, error) {
 	conditions := map[string]string{
-		"root":   root,
-		"domain": sub,
-		"owner":  owner,
+		"domain":    domainQueryStr,
+		"host_name": hostName,
 	}
 
 	// 查询域名信息
-	deploys, err := c.termSearch("SiteDeployment", conditions)
+	deploys, err := c.termSearch("Deployment", conditions)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +55,7 @@ func (c *Content) searchDeployment(root string, sub string, owner string) (*valu
 
 	// 遍历查询结果并解析
 	for _, data := range deploys {
-		var deployment valueobject.SiteDeployment
+		var deployment valueobject.Deployment
 		if err := json.Unmarshal(data, &deployment); err != nil {
 			return nil, err
 		}

@@ -11,6 +11,7 @@ func (s *Server) registerContentHandler() {
 	s.mux.HandleFunc("/api/content", s.wrapContentHandler(s.content.Handle(s.handler.ContentHandler)))
 
 	s.mux.HandleFunc("/api/search", s.wrapContentHandler(s.handler.SearchContentHandler))
+	s.mux.HandleFunc("/api/search2", s.wrapContentHandler(s.handler.SearchContentHandler2))
 
 	s.mux.HandleFunc("/api/preview", s.wrapContentHandler(s.handler.PreviewContentHandler))
 	s.mux.HandleFunc("/api/build", s.wrapContentHandler(s.handler.BuildContentHandler))

@@ -8,62 +8,60 @@ import (
 	"strings"
 )
 
-// TODO: deployment belongs to admin
-// need netlify sub domain, and site id
-// need domain root, sub, and owner info
-// no need site info
-
-type SiteDeployment struct {
+type Deployment struct {
 	Item
 
-	Site          string `json:"site"`
-	Netlify       string `json:"netlify"`
-	NetlifySiteID string `json:"netlify_site_id"`
-	Domain        string `json:"domain"`
-	Status        string `json:"status"`
+	Domain string `json:"domain"`
+
+	SiteID   string `json:"site_id"`
+	SiteName string `json:"site_name"`
+	SitePath string `json:"site_path"`
+	HostName string `json:"host_name"`
+
+	Status string `json:"status"`
 
 	refSelData map[string][][]byte
 }
 
 // MarshalEditor writes a buffer of html to edit a Song within the CMS
 // and implements editor.Editable
-func (s *SiteDeployment) MarshalEditor() ([]byte, error) {
+func (s *Deployment) MarshalEditor() ([]byte, error) {
 	view, err := editor.Form(s,
 		editor.Field{
-			View: editor.RefSelect("Site", s, map[string]string{
-				"label": "Site",
+			View: editor.RefSelect("Domain", s, map[string]string{
+				"label": "Domain",
 			},
-				"Site",
-				`{{ .title }} `,
-				s.refSelData["Site"],
+				"Domain",
+				`{{ .sub }}.{{ .root }}`,
+				s.refSelData["Domain"],
 			),
 		},
 		editor.Field{
-			View: editor.Input("Netlify", s, map[string]string{
-				"label":       "Netlify",
+			View: editor.Input("SiteID", s, map[string]string{
+				"label":       "SiteID",
 				"type":        "text",
-				"placeholder": "Enter the Netlify site url here",
+				"placeholder": "Enter the site id here",
 			}),
 		},
 		editor.Field{
-			View: editor.Input("NetlifySiteID", s, map[string]string{
-				"label":       "NetlifySiteID",
+			View: editor.Input("SiteName", s, map[string]string{
+				"label":       "SiteName",
 				"type":        "text",
-				"placeholder": "Enter the Netlify site id here",
+				"placeholder": "Enter the site name here",
 			}),
 		},
 		editor.Field{
-			View: editor.Input("Domain", s, map[string]string{
-				"label":       "Domain",
+			View: editor.Input("SitePath", s, map[string]string{
+				"label":       "SitePath",
 				"type":        "text",
-				"placeholder": "Enter the Customized sub domain here",
+				"placeholder": "Enter the site path here",
 			}),
 		},
 		editor.Field{
-			View: editor.Input("Root", s, map[string]string{
-				"label":       "Root",
+			View: editor.Input("HostName", s, map[string]string{
+				"label":       "HostName",
 				"type":        "text",
-				"placeholder": "Enter the Customized root domain here",
+				"placeholder": "Enter the host name here",
 			}),
 		},
 		editor.Field{
@@ -82,30 +80,29 @@ func (s *SiteDeployment) MarshalEditor() ([]byte, error) {
 	return view, nil
 }
 
-func (s *SiteDeployment) SetSelectData(data map[string][][]byte) {
+func (s *Deployment) SetSelectData(data map[string][][]byte) {
 	s.refSelData = data
 }
 
-func (s *SiteDeployment) SelectContentTypes() []string {
-	return []string{"Site", "Post"}
+func (s *Deployment) SelectContentTypes() []string {
+	return []string{"Domain"}
 }
 
 // String defines the display name of a Song in the CMS list-view
-func (s *SiteDeployment) String() string {
-	t, _ := extractTypeAndID(s.Site)
+func (s *Deployment) String() string {
+	d, _ := extractTypeAndID(s.Domain)
 
-	return strings.Join([]string{t, s.Domain}, " - ")
+	return strings.Join([]string{d, s.HostName}, " - ")
 }
 
 // Create implements api.Createable, and allows external POST requests from clients
 // to add content as long as the request contains the json tag names of the Song
 // struct fields, and is multipart encoded
-func (s *SiteDeployment) Create(res http.ResponseWriter, req *http.Request) error {
+func (s *Deployment) Create(res http.ResponseWriter, req *http.Request) error {
 	// do form data validation for required fields
 	required := []string{
-		"site",
-		"netlify",
 		"domain",
+		"host_name",
 	}
 
 	for _, r := range required {
@@ -121,7 +118,7 @@ func (s *SiteDeployment) Create(res http.ResponseWriter, req *http.Request) erro
 // BeforeAPICreate is only called if the Song type implements api.Createable
 // It is called before Create, and returning an error will cancel the request
 // causing the system to reject the data sent in the POST
-func (s *SiteDeployment) BeforeAPICreate(res http.ResponseWriter, req *http.Request) error {
+func (s *Deployment) BeforeAPICreate(res http.ResponseWriter, req *http.Request) error {
 	// do initial user authentication here on the request, checking for a
 	// token or cookie, or that certain form fields are set and valid
 
@@ -140,9 +137,9 @@ func (s *SiteDeployment) BeforeAPICreate(res http.ResponseWriter, req *http.Requ
 // notifications, etc. after the data is saved to the database, etc.
 // The request has a context containing the databse 'target' affected by the
 // request. Ex. Song__pending:3 or Song:8 depending if Song implements api.Trustable
-func (s *SiteDeployment) AfterAPICreate(res http.ResponseWriter, req *http.Request) error {
+func (s *Deployment) AfterAPICreate(res http.ResponseWriter, req *http.Request) error {
 	addr := req.RemoteAddr
-	log.Println("AfterAPICreate: SitePost sent by:", addr, "titled:", req.PostFormValue("title"))
+	log.Println("AfterAPICreate: Deployment sent by:", addr, "titled:", req.PostFormValue("title"))
 
 	return nil
 }
@@ -152,7 +149,7 @@ func (s *SiteDeployment) AfterAPICreate(res http.ResponseWriter, req *http.Reque
 // is approved, it is waiting in the Pending bucket, and can only be approved in
 // the CMS if the Mergeable interface is satisfied. If not, you will not see this
 // content show up in the CMS.
-func (s *SiteDeployment) Approve(res http.ResponseWriter, req *http.Request) error {
+func (s *Deployment) Approve(res http.ResponseWriter, req *http.Request) error {
 	return nil
 }
 
@@ -168,7 +165,7 @@ func (s *SiteDeployment) Approve(res http.ResponseWriter, req *http.Request) err
 // when using AutoApprove, because content will immediately be available through
 // your public content API. If the Trustable interface is satisfied, the AfterApprove
 // method is bypassed. The
-func (s *SiteDeployment) AutoApprove(res http.ResponseWriter, req *http.Request) error {
+func (s *Deployment) AutoApprove(res http.ResponseWriter, req *http.Request) error {
 	// Use AutoApprove to check for trust-specific headers or whitelisted IPs,
 	// etc. Remember, you will not be able to Approve or Reject content that
 	// is auto-approved. You could add a field to Song, i.e.
@@ -179,6 +176,6 @@ func (s *SiteDeployment) AutoApprove(res http.ResponseWriter, req *http.Request)
 	return nil
 }
 
-func (s *SiteDeployment) IndexContent() bool {
+func (s *Deployment) IndexContent() bool {
 	return true
 }

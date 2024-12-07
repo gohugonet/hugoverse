@@ -20,6 +20,7 @@ type Item struct {
 	Namespace string         `json:"namespace"`
 	ID        int            `json:"id"`
 	Slug      string         `json:"slug"`
+	Hash      string         `json:"hash"`
 	Timestamp int64          `json:"timestamp"`
 	Updated   int64          `json:"updated"`
 }
@@ -36,6 +37,7 @@ func NewItem() (*Item, error) {
 		UUID:      uid,
 		ID:        -1,
 		Slug:      "",
+		Hash:      "",
 		Timestamp: nowMillis,
 		Updated:   nowMillis,
 	}, nil
@@ -68,6 +70,11 @@ func (i *Item) SetSlug(slug string) {
 // ItemSlug sets the item's slug for its URL
 func (i *Item) ItemSlug() string {
 	return i.Slug
+}
+
+// ItemHash gets the item's hash
+func (i *Item) ItemHash() string {
+	return i.Hash
 }
 
 // ItemID gets the *Item's ID field
