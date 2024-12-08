@@ -83,7 +83,6 @@ func (c *Content) newContent(contentType string, ci any) (string, error) {
 	cih, ok := ci.(content.Hashable)
 	if ok {
 		cih.SetHash()
-		fmt.Println("--==--", cih.ItemHash())
 	}
 
 	b, err := c.Marshal(ci)

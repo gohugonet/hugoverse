@@ -17,7 +17,6 @@ func init() {
 	rxList = map[*regexp.Regexp][]byte{
 		regexp.MustCompile("`[-]+`"):                  []byte("-"),
 		regexp.MustCompile("[[:space:]]"):             []byte("-"),
-		regexp.MustCompile("[[:blank:]]"):             []byte(""),
 		regexp.MustCompile("`[^a-z0-9]`i"):            []byte("-"),
 		regexp.MustCompile("[!/:-@[-`{-~]"):           []byte(""),
 		regexp.MustCompile("/[^\x20-\x7F]/"):          []byte(""),

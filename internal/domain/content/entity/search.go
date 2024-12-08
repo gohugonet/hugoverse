@@ -193,22 +193,16 @@ func (s *Search) TermQuery(typeName string, keyValues map[string]string, count, 
 		return nil, content.ErrNoIndex
 	}
 
-	fmt.Println("KeyValueQuery KeyValues: ", keyValues)
-
 	var termQueries []query.Query
 	for key, value := range keyValues {
 		tq := bleve.NewTermQuery(value)
 		tq.SetField(key)
-
-		fmt.Printf("TermQuery 22 : %+v", tq)
 
 		termQueries = append(termQueries, tq)
 	}
 
 	// 将查询组合成一个 ConjunctionQuery
 	finalQuery := bleve.NewConjunctionQuery(termQueries...)
-
-	s.Log.Debugf("TermQuery: %+v", finalQuery)
 
 	// 创建搜索请求
 	req := bleve.NewSearchRequestOptions(finalQuery, count, offset, false)

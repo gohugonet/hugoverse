@@ -15,7 +15,6 @@ func (c *Content) ApplyDomain(siteId string, domain string) (*valueobject.Domain
 
 	if site, ok := site.(*valueobject.Site); ok {
 		slug, err := valueobject.Slug(site)
-		fmt.Println("-------- slug", slug, domain)
 		if err != nil {
 			return nil, false, err
 		}
@@ -24,8 +23,6 @@ func (c *Content) ApplyDomain(siteId string, domain string) (*valueobject.Domain
 		if err != nil {
 			return nil, false, err
 		}
-
-		fmt.Println("-------- sd", sd)
 
 		if sd != nil && sd.Owner != site.Owner {
 			return nil, true, errors.New(fmt.Sprintf("domain %s already exists", sd.String()))
@@ -72,8 +69,6 @@ func (c *Content) searchDomain(root string, sub string) (*valueobject.Domain, er
 	if len(domains) == 1 && domains[0] == nil {
 		return nil, nil
 	}
-
-	fmt.Println("-------- domains", len(domains))
 
 	// 遍历查询结果并解析
 	for _, data := range domains {

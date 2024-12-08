@@ -86,7 +86,6 @@ func (s *Handler) DeployContentHandler(res http.ResponseWriter, req *http.Reques
 		res.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	s.log.Infof("Deploying site %s to Netlify with token %s", id, hostToken)
 	err = application.DeployToNetlify(t, sd, d, hostToken)
 	if err != nil {
 		s.log.Errorf("Error building: %v", err)

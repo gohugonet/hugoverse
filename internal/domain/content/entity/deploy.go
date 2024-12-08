@@ -38,8 +38,7 @@ func (c *Content) GetDeployment(domain *valueobject.Domain, hostName string) (*v
 
 func (c *Content) searchDeployment(domainQueryStr string, hostName string) (*valueobject.Deployment, error) {
 	conditions := map[string]string{
-		"domain":    domainQueryStr,
-		"host_name": hostName,
+		"hash": valueobject.Hash([]string{domainQueryStr, hostName}),
 	}
 
 	// 查询域名信息

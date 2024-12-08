@@ -95,6 +95,10 @@ func (s *Deployment) String() string {
 	return strings.Join([]string{d, s.HostName}, " - ")
 }
 
+func (s *Deployment) SetHash() {
+	s.Hash = Hash([]string{s.Domain, s.HostName})
+}
+
 // Create implements api.Createable, and allows external POST requests from clients
 // to add content as long as the request contains the json tag names of the Song
 // struct fields, and is multipart encoded

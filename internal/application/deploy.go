@@ -55,7 +55,7 @@ func DeployToNetlify(target string, deployment *valueobject.Deployment, domain *
 	client := setupNetlifyClient()
 	ctx := setupContext(c, logger)
 
-	fmt.Println("Deploying to Netlify...", deployment.SiteName, domain.FullDomain())
+	logger.Println("Deploying to Netlify...", deployment.SiteName, domain.FullDomain())
 
 	// 检查 SiteID 是否为空
 	if c.SiteID == "" {
@@ -92,6 +92,8 @@ func DeployToNetlify(target string, deployment *valueobject.Deployment, domain *
 		logger.Errorf("failed to deploy site: %s", err)
 		return err
 	}
+
+	deployment.Status = "success"
 
 	// Print the site URL
 	if resp.DeploySslURL != "" {
