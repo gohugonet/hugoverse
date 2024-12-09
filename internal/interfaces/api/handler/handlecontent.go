@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/content"
+	apiFrom "github.com/gohugonet/hugoverse/internal/interfaces/api/form"
 	"github.com/gohugonet/hugoverse/internal/interfaces/api/query"
 	"github.com/gohugonet/hugoverse/pkg/db"
 	"github.com/gohugonet/hugoverse/pkg/form"
@@ -194,7 +195,7 @@ func (s *Handler) getContent(res http.ResponseWriter, req *http.Request) {
 }
 
 func (s *Handler) postContent(res http.ResponseWriter, req *http.Request) {
-	err := req.ParseMultipartForm(1024 * 1024 * 4) // maxMemory 4MB
+	err := req.ParseMultipartForm(apiFrom.MaxMemory) // maxMemory 4MB
 	if err != nil {
 		s.log.Errorf("Error parsing multipart form: %v", err)
 		res.WriteHeader(http.StatusInternalServerError)

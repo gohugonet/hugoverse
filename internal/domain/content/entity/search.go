@@ -244,12 +244,6 @@ func (s *Search) UpdateIndex(ns, id string, data []byte) error {
 
 	// add data to search index
 	i := valueobject.NewIndex(ns, id)
-
-	l, ok := p.(*valueobject.Language)
-	if ok {
-		fmt.Println("indexing ppp...:", l, l.Name, l.Code)
-	}
-
 	err = idx.Index(i.String(), p)
 
 	return err

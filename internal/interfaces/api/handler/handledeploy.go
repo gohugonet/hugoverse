@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/gohugonet/hugoverse/internal/application"
 	"github.com/gohugonet/hugoverse/internal/domain/content"
+	"github.com/gohugonet/hugoverse/internal/interfaces/api/form"
 	"log"
 	"net/http"
 )
@@ -19,16 +20,17 @@ func (s *Handler) DeployContentHandler(res http.ResponseWriter, req *http.Reques
 		return
 	}
 
-	err := req.ParseForm()
+	err := req.ParseMultipartForm(form.MaxMemory)
 	if err != nil {
 		s.log.Errorf("Error parsing deploy form: %v", err)
 		res.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	hostName := req.PostForm.Get("host_name")
-	hostToken := req.PostForm.Get("host_token")
-	root := req.PostForm.Get("domain")
+	hostName := req.FormValue("host_name")
+	hostToken := req.FormValue("host_token")
+	root := req.FormValue("domain")
+
 	if hostToken == "" || root == "" {
 		hostName = "Netlify"
 		hostToken = s.adminApp.Netlify.Token()
@@ -99,7 +101,7 @@ func (s *Handler) DeployContentHandler(res http.ResponseWriter, req *http.Reques
 		return
 	}
 
-	jsonBytes, err := json.Marshal(d.FullDomain())
+	jsonBytes, err := json.Marshal("https://" + d.FullDomain())
 	if err != nil {
 		s.log.Errorf("Error marshalling token: %v", err)
 		return
