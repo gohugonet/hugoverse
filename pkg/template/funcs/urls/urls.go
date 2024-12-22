@@ -15,7 +15,6 @@
 package urls
 
 import (
-	"errors"
 	"fmt"
 	"net/url"
 
@@ -23,15 +22,17 @@ import (
 )
 
 // New returns a new instance of the urls-namespaced template functions.
-func New(u URL) *Namespace {
+func New(u URL, r RefSource) *Namespace {
 	return &Namespace{
 		url: u,
+		ref: r,
 	}
 }
 
 // Namespace provides template functions for the "urls" namespace.
 type Namespace struct {
 	url URL
+	ref RefSource
 }
 
 // AbsURL takes the string s and converts it to an absolute URL.
@@ -77,30 +78,22 @@ func (ns *Namespace) URLize(s any) (string, error) {
 
 // Ref returns the absolute URL path to a given content item from Page p.
 func (ns *Namespace) Ref(p any, args any) (string, error) {
-	pp, ok := p.(RefLinker)
-	if !ok {
-		return "", errors.New("invalid Page received in Ref")
-	}
 	argsm, err := ns.refArgsToMap(args)
 	if err != nil {
 		return "", err
 	}
-	s, err := pp.Ref(argsm)
+	s, err := ns.ref.RelRefFrom(argsm, p)
 	return s, err
 }
 
 // RelRef returns the relative URL path to a given content item from Page p.
 func (ns *Namespace) RelRef(p any, args any) (string, error) {
-	pp, ok := p.(RefLinker)
-	if !ok {
-		return "", errors.New("invalid Page received in RelRef")
-	}
 	argsm, err := ns.refArgsToMap(args)
 	if err != nil {
 		return "", err
 	}
 
-	s, err := pp.RelRef(argsm)
+	s, err := ns.ref.RelRefFrom(argsm, p)
 	return s, err
 }
 

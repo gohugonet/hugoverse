@@ -26,6 +26,13 @@ type FrontMatter struct {
 	Params maps.Params
 }
 
+func NewFrontMatter() *FrontMatter {
+	return &FrontMatter{
+		Terms:  map[string][]string{},
+		Params: maps.Params{},
+	}
+}
+
 type FrontMatterParser struct {
 	Params      maps.Params
 	LangSvc     contenthub.LangService

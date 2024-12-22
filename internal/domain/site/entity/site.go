@@ -29,6 +29,7 @@ type Site struct {
 	Title string
 
 	*URL
+	*Ref
 	*Language
 	*Navigation
 
@@ -112,6 +113,12 @@ func (s *Site) renderPages() error {
 			Page: p,
 			Site: s,
 		}
+
+		po, err := s.pageOutput(p)
+		if err != nil {
+			return err
+		}
+		sitePage.PageOutput = po
 
 		sources, err := s.ContentSvc.GetPageSources(sitePage.Page)
 		if err != nil {

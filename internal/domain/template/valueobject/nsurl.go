@@ -7,9 +7,9 @@ import (
 
 const nsUrls = "urls"
 
-func registerUrls(url urls.URL) {
+func registerUrls(url urls.URL, ref urls.RefSource) {
 	f := func() *TemplateFuncsNamespace {
-		ctx := urls.New(url)
+		ctx := urls.New(url, ref)
 
 		ns := &TemplateFuncsNamespace{
 			Name:    nsUrls,

@@ -68,6 +68,7 @@ type ParseInfo interface {
 type CustomizedFunctions interface {
 	transform.Markdown
 	urls.URL
+	urls.RefSource
 	compare.TimeZone
 	collections.Language
 	strings.Title

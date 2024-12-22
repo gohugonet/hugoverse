@@ -138,8 +138,12 @@ func (h *Hugo) loadPosts() error {
 			if p.PageIdentity().PageLanguage() != code {
 				return nil
 			}
-			h.Log.Printf("Loading post: %s, %s-%s\n",
-				p.PageFile().FileInfo().RelativeFilename(), code, p.PageIdentity().PageLanguage())
+
+			relName, err := p.PageFile().FileInfo().RelativeFilename()
+			if err != nil {
+				return err
+			}
+			h.Log.Printf("Loading post: %s, %s-%s\n", relName, code, p.PageIdentity().PageLanguage())
 
 			i, err := valueobject.NewItemWithNamespace("Post")
 			if err != nil {
@@ -172,11 +176,16 @@ func (h *Hugo) loadPosts() error {
 				return err
 			}
 
+			relName, err = p.PageFile().FileInfo().RelativeFilename()
+			if err != nil {
+				return err
+			}
+
 			sitePost := &valueobject.SitePost{
 				Item: *spi,
 				Post: post.QueryString(),
 				Site: h.site.QueryString(),
-				Path: path.Join(p.PageFile().FileInfo().Root(), p.PageFile().FileInfo().RelativeFilename()),
+				Path: path.Join(p.PageFile().FileInfo().Root(), relName),
 			}
 			_, err = h.contentSvc.newContent("SitePost", sitePost)
 			if err != nil {

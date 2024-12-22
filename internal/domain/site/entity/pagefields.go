@@ -106,6 +106,24 @@ func (p *Page) sitePages(ps contenthub.Pages) []*Page {
 	return pages
 }
 
+func (p *Page) Parent() *Page {
+	if p.IsHome() {
+		return nil
+	}
+
+	page := p.Page.Parent()
+	if page == nil {
+		return p.Site.home
+	}
+
+	sp, err := p.sitePage(page)
+	if err != nil {
+		return nil
+	}
+
+	return sp
+}
+
 func (p *Page) getPageOutput(chp contenthub.Page) contenthub.PageOutput {
 	pos, err := chp.PageOutputs()
 	if err != nil {
@@ -125,6 +143,11 @@ func (p *Page) getPageOutput(chp contenthub.Page) contenthub.PageOutput {
 
 func (p *Page) Content() (any, error) {
 	return p.PageOutput.Content()
+}
+
+func (p *Page) Plain() string {
+	// TODO
+	return p.Page.RawContent()
 }
 
 func (p *Page) IsAncestor(other any) bool {

@@ -45,8 +45,8 @@ func (l *Layout) section(section string) []string {
 		fmt.Sprintf("%s/%s", section, LayoutSection),
 		fmt.Sprintf("%s/%s", section, LayoutList),
 		DefaultSection,
-		DefaultIndex,
 		DefaultList,
+		DefaultIndex,
 	}
 }
 
@@ -61,8 +61,8 @@ func (l *Layout) taxonomy() []string {
 	return []string{
 		TaxonomyTaxonomy,
 		TaxonomyList,
-		DefaultTaxonomy,
 		DefaultList,
+		DefaultTaxonomy,
 	}
 }
 
@@ -71,8 +71,8 @@ func (l *Layout) term() []string {
 		TermTag,
 		TermTerm,
 		TermList,
-		DefaultTerm,
 		DefaultList,
+		DefaultTerm,
 	}
 }
 

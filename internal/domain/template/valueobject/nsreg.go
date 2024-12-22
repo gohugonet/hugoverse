@@ -38,7 +38,7 @@ func RegisterCallbackNamespaces(cb func(ctx context.Context, name string, data a
 func RegisterExtendedNamespaces(functions template.CustomizedFunctions) {
 	registerCompare(functions)
 	registerTransform(functions)
-	registerUrls(functions)
+	registerUrls(functions, functions)
 	registerStrings(functions)
 	registerResources(functions)
 	registerOs(functions)

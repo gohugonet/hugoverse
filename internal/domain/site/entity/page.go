@@ -1,12 +1,14 @@
 package entity
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
 	"github.com/gohugonet/hugoverse/internal/domain/resources"
 	"github.com/gohugonet/hugoverse/internal/domain/site"
 	"github.com/gohugonet/hugoverse/internal/domain/site/valueobject"
+	"github.com/gohugonet/hugoverse/internal/domain/template"
 	bp "github.com/gohugonet/hugoverse/pkg/bufferpool"
 	"github.com/gohugonet/hugoverse/pkg/herrors"
 	"path"
@@ -83,10 +85,6 @@ func (p *Page) renderPage() error {
 
 	for _, o := range outputs {
 		p.PageOutput = o
-		if err := p.tmplSvc.ExecuteWithContext(context.Background(), tmpl, renderBuffer, p); err != nil {
-			p.Log.Errorf("failed to execute template: %s", err)
-			return err
-		}
 
 		var targetFilenames []string
 
@@ -99,12 +97,34 @@ func (p *Page) renderPage() error {
 
 		targetFilenames = append(targetFilenames, path.Join(prefix, o.TargetFilePath()))
 
-		if err := p.publisher.PublishSource(renderBuffer, targetFilenames...); err != nil {
-			return p.errorf(err, "failed to publish page")
+		if err := p.renderAndWritePage(tmpl, renderBuffer, targetFilenames); err != nil {
+			return err
 		}
 
-		renderBuffer.Reset()
+		if p.Current() != nil {
+			for current := p.Current().Next(); current != nil; current = current.Next() {
+				p.SetCurrent(current)
+
+				targetFilenames = []string{path.Join(prefix, current.URL(), o.TargetFileBase())}
+				if err := p.renderAndWritePage(tmpl, renderBuffer, targetFilenames); err != nil {
+					return err
+				}
+			}
+		}
 	}
+
+	return nil
+}
+
+func (p *Page) renderAndWritePage(tmpl template.Preparer, renderBuffer *bytes.Buffer, targetFilenames []string) error {
+	if err := p.tmplSvc.ExecuteWithContext(context.Background(), tmpl, renderBuffer, p); err != nil {
+		p.Log.Errorf("failed to execute template: %s", err)
+		return err
+	}
+	if err := p.publisher.PublishSource(renderBuffer, targetFilenames...); err != nil {
+		return p.errorf(err, "failed to publish page")
+	}
+	renderBuffer.Reset()
 
 	return nil
 }

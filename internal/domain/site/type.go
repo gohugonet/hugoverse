@@ -45,10 +45,12 @@ type LanguageService interface {
 type ContentService interface {
 	WalkPages(langIndex int, walker contenthub.WalkFunc) error
 	GetPageSources(page contenthub.Page) ([]contenthub.PageSource, error)
-	GetPageFromPath(path string) (contenthub.Page, error)
 	WalkTaxonomies(langIndex int, walker contenthub.WalkTaxonomyFunc) error
 	GlobalPages() contenthub.Pages
 	GlobalRegularPages() contenthub.Pages
+
+	GetPageFromPath(path string) (contenthub.Page, error)
+	GetPageRef(context contenthub.Page, ref string, home contenthub.Page) (contenthub.Page, error)
 }
 
 type ResourceService interface {

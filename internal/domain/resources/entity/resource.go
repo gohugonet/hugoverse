@@ -64,23 +64,24 @@ func (l *Resource) Permalink() string {
 
 func (l *Resource) publish() {
 	l.PublisherInit.Do(func() {
+		// TODO, if the file is exist, need to think about overwriting or not
+
 		publicw, err := l.publisher.OpenPublishFileForWriting(l.paths.TargetPath())
 		if err != nil {
-			fmt.Println("publish", l.paths.TargetPath(), err)
+			fmt.Println("publish OpenPublishFileForWriting", l.paths.TargetPath(), err)
 			return
 		}
 		defer publicw.Close()
 
 		r, err := l.ReadSeekCloser()
 		if err != nil {
-			fmt.Println("publish", l.paths.TargetPath(), err)
+			fmt.Println("publish ReadSeekCloser", l.paths.TargetPath(), err)
 			return
 		}
-		defer r.Close()
 
 		_, err = io.Copy(publicw, r)
 		if err != nil {
-			fmt.Println("publish", l.paths.TargetPath(), err)
+			fmt.Println("publish Copy", l.paths.TargetPath(), err)
 			return
 		}
 	})
@@ -107,7 +108,6 @@ func (l *Resource) Content(context.Context) (any, error) {
 	if err != nil {
 		return "", err
 	}
-	defer r.Close()
 
 	return pio.ReadString(r)
 }

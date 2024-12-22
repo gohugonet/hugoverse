@@ -69,7 +69,7 @@ func (p *Source) readSourceAll() ([]byte, error) {
 	return sio.ReadAll(r)
 }
 
-func (p *Source) posOffset(offset int) text.Position {
+func (p *Source) PosOffset(offset int) text.Position {
 	s, err := p.contentSource()
 	if err != nil {
 		panic(fmt.Sprintf("failed to read content source for %q: %s", p.File.FileName(), err))

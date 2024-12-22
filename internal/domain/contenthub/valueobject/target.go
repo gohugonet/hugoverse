@@ -21,6 +21,10 @@ type Target struct {
 	Format output.Format
 }
 
+func (t *Target) TargetFileBase() string {
+	return path.Base(t.FilePath)
+}
+
 func (t *Target) TargetFilePath() string {
 	return t.FilePath
 }

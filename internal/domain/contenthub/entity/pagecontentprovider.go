@@ -78,7 +78,7 @@ func (c *ContentProvider) Content() (any, error) {
 
 func (c *ContentProvider) ContentSummary() (valueobject.ContentSummary, error) {
 	v, err := c.cache.CacheContentRendered.GetOrCreate(c.cacheKey(), func(string) (*stale.Value[valueobject.ContentSummary], error) {
-		if c.content == nil {
+		if c.content.IsEmpty() {
 			return &stale.Value[valueobject.ContentSummary]{
 				Value: valueobject.NewEmptyContentSummary(),
 				IsStaleFunc: func() bool {
@@ -365,7 +365,7 @@ func (c *ContentProvider) doRenderShortcode(sc *valueobject.Shortcode, parent *S
 	if err != nil && sc.IsInline {
 		fe := herrors.NewFileErrorFromName(err, c.source.File.Filename())
 		pos := fe.Position()
-		pos.LineNumber += c.page.source.posOffset(sc.Pos).LineNumber
+		pos.LineNumber += c.page.source.PosOffset(sc.Pos).LineNumber
 		fe = fe.UpdatePosition(pos)
 		return valueobject.ZeroShortcode, fe
 	}

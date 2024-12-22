@@ -18,11 +18,52 @@ type PageMap struct {
 	// Main storage for all pages.
 	*PageTrees
 
+	// Used for simple page lookups by name, e.g. "mypage.md" or "mypage".
+	pageReverseIndex *contentTreeReverseIndex
+
 	Cache *Cache
 
 	PageBuilder *PageBuilder
 
 	Log loggers.Logger
+}
+
+func (m *PageMap) SetupReverseIndex() {
+	m.pageReverseIndex = &contentTreeReverseIndex{
+		initFn: func(rm map[any]*PageTreesNode) {
+			add := func(k string, n *PageTreesNode) {
+				existing, found := rm[k]
+				if found && existing != ambiguousContentNode {
+					rm[k] = ambiguousContentNode
+				} else if !found {
+					rm[k] = n
+				}
+			}
+
+			w := &doctree.NodeShiftTreeWalker[*PageTreesNode]{
+				Tree:     m.TreePages,
+				LockType: doctree.LockTypeRead,
+				Handle: func(s string, n *PageTreesNode, match doctree.DimensionFlag) (bool, error) {
+					if n != nil {
+						p, found := n.getPage()
+						if !found {
+							return false, nil
+						}
+						if p.PageFile() != nil {
+							add(p.Paths().BaseNameNoIdentifier(), n)
+						}
+					}
+
+					return false, nil
+				},
+			}
+
+			if err := w.Walk(context.Background()); err != nil {
+				panic(err)
+			}
+		},
+		contentTreeReverseIndexMap: &contentTreeReverseIndexMap{},
+	}
 }
 
 func (m *PageMap) InsertResourceNode(key string, node *PageTreesNode) {

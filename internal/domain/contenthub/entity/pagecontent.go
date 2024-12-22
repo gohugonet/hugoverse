@@ -31,8 +31,16 @@ func NewContent(source []byte) *Content {
 	return &Content{rawSource: source, items: make([]any, 0)}
 }
 
+func (c *Content) IsEmpty() bool {
+	return c.rawSource == nil || len(c.rawSource) == 0
+}
+
 func (c *Content) SetSummaryDivider() {
 	c.hasSummaryDivider = true
+}
+
+func (c *Content) Truncated() bool {
+	return c.summaryTruncated
 }
 
 func (c *Content) SetSummaryTruncated() {

@@ -13,6 +13,7 @@ import (
 	"github.com/gohugonet/hugoverse/pkg/media"
 	"github.com/gohugonet/hugoverse/pkg/output"
 	"github.com/gohugonet/hugoverse/pkg/paths"
+	"github.com/gohugonet/hugoverse/pkg/text"
 	"github.com/spf13/afero"
 	goTmpl "html/template"
 	"io"
@@ -71,6 +72,7 @@ type FsService interface {
 	ContentFs() afero.Fs
 
 	WalkContent(start string, cb fs.WalkCallback, conf fs.WalkwayConfig) error
+	ReverseLookupContent(filename string, checkExists bool) ([]fs.ComponentPath, error)
 }
 
 type LangService interface {
@@ -221,7 +223,29 @@ type FileWithoutOverlap interface {
 	FileInfo() fs.FileMetaInfo
 }
 
+type PageGroups []PageGroup
+
+func (p PageGroups) Len() int { return len(p) }
+
+type PageGroup interface {
+	Key() string
+	Pages() Pages
+	Append(page Page) Pages
+}
+
 type Pages []Page
+
+func (p Pages) Len() int { return len(p) }
+
+type PageWrapper interface {
+	UnwrapPage() Page
+}
+
+// PageContext provides contextual information about this page, for error
+// logging and similar.
+type PageContext interface {
+	PosOffset(offset int) text.Position
+}
 
 // Page is the core interface in Hugo.
 type Page interface {
@@ -229,6 +253,7 @@ type Page interface {
 
 	PageSource
 	PageMeta
+	PagerManager
 
 	Title() string
 	Kind() string
@@ -240,8 +265,11 @@ type Page interface {
 
 	Layouts() []string
 	PageOutputs() ([]PageOutput, error)
+	Truncated() bool
 
+	Parent() Page
 	Pages(langIndex int) Pages
+	RegularPages() Pages
 	Terms(langIndex int, taxonomy string) Pages
 	Translations() Pages
 }
@@ -264,6 +292,7 @@ type PageMeta interface {
 }
 
 type PageOutput interface {
+	TargetFileBase() string
 	TargetFilePath() string
 	TargetSubResourceDir() string
 	TargetPrefix() string
@@ -272,6 +301,26 @@ type PageOutput interface {
 	Content() (any, error)
 	Summary() goTmpl.HTML
 	TableOfContents() goTmpl.HTML
+}
+
+type PagerManager interface {
+	Current() Pager
+	SetCurrent(current Pager)
+
+	Paginator() (Pager, error)
+	Paginate(groups PageGroups) (Pager, error)
+}
+
+type Pager interface {
+	PageNumber() int
+	TotalPages() int
+
+	URL() string
+	Pages() Pages
+	HasPrev() bool
+	Prev() Pager
+	HasNext() bool
+	Next() Pager
 }
 
 type WalkFunc func(Page) error

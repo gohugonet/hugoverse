@@ -14,6 +14,41 @@ var (
 // PageNop implements Page, but does nothing.
 type nopPage int
 
+func (p *nopPage) Truncated() bool {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (p *nopPage) Current() contenthub.Pager {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (p *nopPage) SetCurrent(current contenthub.Pager) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (p *nopPage) Paginator() (contenthub.Pager, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (p *nopPage) Paginate(groups contenthub.PageGroups) (contenthub.Pager, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (p *nopPage) RegularPages() contenthub.Pages {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (p *nopPage) Parent() contenthub.Page {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (p *nopPage) Terms(langIndex int, taxonomy string) contenthub.Pages {
 	//TODO implement me
 	panic("implement me")

@@ -55,6 +55,20 @@ func (f *Fs) ContentFs() afero.Fs {
 	return f.Content
 }
 
+func (f *Fs) ReverseLookupContent(filename string, checkExists bool) ([]fs.ComponentPath, error) {
+	cps, err := f.Content.ReverseLookup(filename, checkExists)
+	if err != nil {
+		return nil, err
+	}
+
+	var fcps []fs.ComponentPath
+	for _, cp := range cps {
+		fcps = append(fcps, cp)
+	}
+
+	return fcps, err
+}
+
 func (f *Fs) AssetsFs() afero.Fs {
 	return f.Assets
 }

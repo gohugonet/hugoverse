@@ -23,6 +23,7 @@ type PageBuilder struct {
 	Standalone *Standalone
 
 	ConvertProvider *ContentSpec
+	ContentHub      *ContentHub
 
 	source          *Source
 	sourceByte      []byte
@@ -86,6 +87,7 @@ func (b *PageBuilder) KindBuild() (contenthub.Page, error) {
 	}
 
 	b.fm = &valueobject.FrontMatter{}
+	b.c = NewContent([]byte{})
 
 	return b.build()
 }
@@ -109,6 +111,32 @@ func (b *PageBuilder) build() (contenthub.Page, error) {
 	default:
 		return nil, fmt.Errorf("unknown kind %q", b.kind)
 	}
+}
+
+type svc struct {
+	ch *ContentHub
+}
+
+func (s *svc) PageSize() int {
+	return 10
+}
+
+func (s *svc) GlobalRegularPages() contenthub.Pages {
+	return s.ch.GlobalRegularPages()
+}
+
+func (b *PageBuilder) buildPagination(p *Page) error {
+	svc := &svc{ch: b.ContentHub}
+	p.PagerManager = NewPaginator(svc, p)
+
+	return nil
+}
+
+func (b *PageBuilder) adaptPagination(p *Page) error {
+	p.PagerManager = valueobject.PaginatorEmpty(func() error {
+		return fmt.Errorf("pagination not supported for this page: %s", p.Paths().Path())
+	})
+	return nil
 }
 
 func (b *PageBuilder) buildOutput(p *Page) error {
@@ -136,6 +164,10 @@ func (b *PageBuilder) buildPage() (*Page, error) {
 	}
 	p.pageMap = b.PageMapper
 	if err := b.buildOutput(p); err != nil {
+		return nil, err
+	}
+
+	if err := b.adaptPagination(p); err != nil {
 		return nil, err
 	}
 
@@ -172,19 +204,55 @@ func (b *PageBuilder) applyFrontMatter(p *Page) error {
 }
 
 func (b *PageBuilder) buildHome() (*Page, error) {
-	return b.buildPageWithKind(valueobject.KindHome)
+	p, err := b.buildPageWithKind(valueobject.KindHome)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := b.buildPagination(p); err != nil {
+		return nil, err
+	}
+
+	return p, nil
 }
 
 func (b *PageBuilder) buildSection() (*Page, error) {
-	return b.buildPageWithKind(valueobject.KindSection)
+	p, err := b.buildPageWithKind(valueobject.KindSection)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := b.buildPagination(p); err != nil {
+		return nil, err
+	}
+
+	return p, nil
 }
 
 func (b *PageBuilder) build404() (*Page, error) {
-	return b.buildPageWithKind(valueobject.KindStatus404)
+	p, err := b.buildPageWithKind(valueobject.KindStatus404)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := b.adaptPagination(p); err != nil {
+		return nil, err
+	}
+
+	return p, nil
 }
 
 func (b *PageBuilder) buildSitemap() (*Page, error) {
-	return b.buildPageWithKind(valueobject.KindSitemap)
+	p, err := b.buildPageWithKind(valueobject.KindSitemap)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := b.adaptPagination(p); err != nil {
+		return nil, err
+	}
+
+	return p, nil
 }
 
 func (b *PageBuilder) buildTaxonomy() (*TaxonomyPage, error) {
@@ -197,6 +265,10 @@ func (b *PageBuilder) buildTaxonomy() (*TaxonomyPage, error) {
 	tp.pageMap = b.PageMapper
 
 	if err := b.buildOutput(tp.Page); err != nil {
+		return nil, err
+	}
+
+	if err := b.buildPagination(tp.Page); err != nil {
 		return nil, err
 	}
 
@@ -216,6 +288,10 @@ func (b *PageBuilder) buildTerm() (*TermPage, error) {
 	t.pageMap = b.PageMapper
 
 	if err := b.buildOutput(t.Page); err != nil {
+		return nil, err
+	}
+
+	if err := b.buildPagination(t.Page); err != nil {
 		return nil, err
 	}
 
@@ -333,8 +409,10 @@ func (b *PageBuilder) parseLanguage() error {
 
 func (b *PageBuilder) parseFrontMatter() error {
 	if b.fmParser == nil {
-		return fmt.Errorf("front matter parser is nil")
+		b.fm = valueobject.NewFrontMatter()
+		return nil
 	}
+
 	fm, err := b.fmParser.Parse()
 	if err != nil {
 		return err

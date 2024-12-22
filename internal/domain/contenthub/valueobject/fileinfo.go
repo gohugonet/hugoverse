@@ -22,11 +22,16 @@ type File struct {
 	lazyInit sync.Once
 }
 
-func NewFileInfo(fi fs.FileMetaInfo) *File {
+func NewFileInfo(fi fs.FileMetaInfo) (*File, error) {
+	relName, err := fi.RelativeFilename()
+	if err != nil {
+		return nil, err
+	}
+
 	f := &File{
 		FileMetaInfo: fi,
 
-		path:       paths.Parse(files.ComponentFolderContent, fi.RelativeFilename()),
+		path:       paths.Parse(files.ComponentFolderContent, relName),
 		BundleType: BundleTypeFile,
 	}
 
@@ -43,7 +48,7 @@ func NewFileInfo(fi fs.FileMetaInfo) *File {
 		}
 	}
 
-	return f
+	return f, nil
 }
 
 func (fi *File) PageFile() contenthub.File {
@@ -95,6 +100,13 @@ func (fi *File) ContentBaseName() string {
 // Section returns a file's section.
 func (fi *File) Section() string {
 	return fi.p().Section()
+}
+
+func (fi *File) Type() string {
+	if sect := fi.Section(); sect != "" {
+		return sect
+	}
+	return "page"
 }
 
 // UniqueID returns a file's unique, MD5 hash identifier.

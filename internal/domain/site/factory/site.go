@@ -37,6 +37,12 @@ func New(services site.Services) *entity.Site {
 			Base:      services.BaseUrl(),
 			Canonical: true,
 		},
+
+		Ref: &entity.Ref{
+			ContentSvc:  services,
+			NotFoundURL: "/404.html",
+			ErrorLogger: log.Error(),
+		},
 		Language: &entity.Language{
 			LangSvc: services,
 		},
@@ -46,6 +52,7 @@ func New(services site.Services) *entity.Site {
 	}
 
 	s.PrepareLazyLoads()
+	s.Ref.Site = s
 
 	return s
 }

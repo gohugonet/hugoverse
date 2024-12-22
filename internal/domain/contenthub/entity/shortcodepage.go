@@ -1,9 +1,7 @@
 package entity
 
 import (
-	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
-	"github.com/gohugonet/hugoverse/internal/domain/contenthub/valueobject"
 	bp "github.com/gohugonet/hugoverse/pkg/bufferpool"
 	"github.com/gohugonet/hugoverse/pkg/maps"
 	"github.com/gohugonet/hugoverse/pkg/text"
@@ -17,7 +15,7 @@ import (
 type ShortcodeWithPage struct {
 	Params        any
 	Inner         template.HTML
-	Page          contenthub.Page // TODO, check if this is needed
+	Page          contenthub.Page
 	Parent        *ShortcodeWithPage
 	Name          string
 	IsNamedParams bool
@@ -65,27 +63,11 @@ func (scp *ShortcodeWithPage) InnerDeindent() template.HTML {
 // may be expensive to calculate, so only use this in error situations.
 func (scp *ShortcodeWithPage) Position() text.Position {
 	scp.posInit.Do(func() {
-		if p, ok := valueobject.MustUnwrapPage(scp.Page).(pageContext); ok {
-			scp.pos = p.posOffset(scp.posOffset)
+		if p, ok := scp.Page.(contenthub.PageContext); ok {
+			scp.pos = p.PosOffset(scp.posOffset)
 		}
 	})
 	return scp.pos
-}
-
-// Ref is a shortcut to the Ref method on Page. It passes itself as a context
-// to get better error messages.
-func (scp *ShortcodeWithPage) Ref(args map[string]any) (string, error) {
-	//TODO: Fix this
-	fmt.Println(scp.Name, "Ref", args)
-	return "", nil
-}
-
-// RelRef is a shortcut to the RelRef method on Page. It passes itself as a context
-// to get better error messages.
-func (scp *ShortcodeWithPage) RelRef(args map[string]any) (string, error) {
-	//TODO: Fix this
-	fmt.Println(scp.Name, "RelRef", args)
-	return "", nil
 }
 
 // Scratch returns a scratch-pad scoped for this shortcode. This can be used
@@ -140,7 +122,6 @@ func (scp *ShortcodeWithPage) Get(key any) any {
 	return x.Interface()
 }
 
-// For internal use only.
-func (scp *ShortcodeWithPage) Unwrapv() any {
+func (scp *ShortcodeWithPage) UnwrapPage() contenthub.Page {
 	return scp.Page
 }

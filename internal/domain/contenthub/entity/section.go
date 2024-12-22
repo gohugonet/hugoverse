@@ -71,7 +71,10 @@ func (s *Section) Assemble(pages *doctree.NodeShiftTree[*PageTreesNode], pb *Pag
 			sectionUnnormalized := p.Unnormalized().Section()
 
 			fmi := s.FsSvc.NewFileMetaInfo("/" + sectionUnnormalized + "/_index.md")
-			f := valueobject.NewFileInfo(fmi)
+			f, err := valueobject.NewFileInfo(fmi)
+			if err != nil {
+				return false, err
+			}
 
 			sectionSource, err := newPageSource(f, s.Cache)
 			if err != nil {
@@ -116,7 +119,10 @@ func (s *Section) Assemble(pages *doctree.NodeShiftTree[*PageTreesNode], pb *Pag
 
 func (s *Section) CreateHome(pb *PageBuilder) error {
 	fmi := s.FsSvc.NewFileMetaInfo("/_index.md")
-	f := valueobject.NewFileInfo(fmi)
+	f, err := valueobject.NewFileInfo(fmi)
+	if err != nil {
+		return err
+	}
 
 	homeSource, err := newPageSource(f, s.Cache)
 	if err != nil {

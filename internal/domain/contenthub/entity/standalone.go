@@ -37,7 +37,10 @@ func (s *Standalone) Assemble(pages *doctree.NodeShiftTree[*PageTreesNode], pb *
 
 func (s *Standalone) addStandalone(key string, format output.Format, pb *PageBuilder) (contenthub.Page, error) {
 	fmi := s.FsSvc.NewFileMetaInfo(key + format.MediaType.FirstSuffix.FullSuffix)
-	f := valueobject.NewFileInfo(fmi)
+	f, err := valueobject.NewFileInfo(fmi)
+	if err != nil {
+		return nil, err
+	}
 
 	ps, err := newPageSource(f, s.Cache)
 	if err != nil {

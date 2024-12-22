@@ -25,6 +25,12 @@ type PathFs interface {
 	ContentFs() afero.Fs
 }
 
+type ComponentPath interface {
+	GetComponent() string
+	GetPath() string
+	GetLang() string
+}
+
 // OriginFs holds the core filesystems used by Hugo.
 type OriginFs interface {
 	// Origin is Hugo's source file system.
@@ -63,7 +69,7 @@ type FileMeta interface {
 	Open() (afero.File, error)
 
 	FileName() string
-	RelativeFilename() string
+	RelativeFilename() (string, error)
 	Component() string
 	Root() string
 }

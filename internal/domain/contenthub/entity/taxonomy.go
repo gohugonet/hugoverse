@@ -24,7 +24,10 @@ func (t *Taxonomy) Assemble(pages *doctree.NodeShiftTree[*PageTreesNode], pb *Pa
 		if v := pages.Get(key); v == nil {
 
 			fmi := t.FsSvc.NewFileMetaInfo(key + "/_index.md")
-			f := valueobject.NewFileInfo(fmi)
+			f, err := valueobject.NewFileInfo(fmi)
+			if err != nil {
+				return err
+			}
 
 			ps, err := newPageSource(f, t.Cache)
 			if err != nil {

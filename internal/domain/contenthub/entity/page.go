@@ -12,6 +12,7 @@ type Page struct {
 
 	*Layout
 	*Output
+	contenthub.PagerManager
 
 	title   string
 	kind    string

@@ -122,7 +122,11 @@ func (c *pagesCollector) collectDirDir(path string, root fs.FileMetaInfo) error 
 				continue
 			}
 
-			if err := c.g.Enqueue(valueobject.NewFileInfo(fi)); err != nil {
+			file, err := valueobject.NewFileInfo(fi)
+			if err != nil {
+				return nil, err
+			}
+			if err := c.g.Enqueue(file); err != nil {
 				return nil, err
 			}
 		}
@@ -154,7 +158,10 @@ func (c *pagesCollector) handleBundleLeaf(dir fs.FileMetaInfo, bundle *valueobje
 			return nil
 		}
 
-		f := valueobject.NewFileInfo(info)
+		f, err := valueobject.NewFileInfo(info)
+		if err != nil {
+			return err
+		}
 
 		if info != bundle.FileMetaInfo {
 			// Everything inside a leaf bundle is a Resource,

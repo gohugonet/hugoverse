@@ -55,13 +55,20 @@ func New(services contenthub.Services) (*entity.ContentHub, error) {
 			Cache: cache,
 			Log:   log,
 		},
+		PageFinder: &entity.PageFinder{
+			Fs: services,
+		},
+
 		Title: &entity.Title{
 			Style: entity.StyleAP,
 		},
 		Log: log,
 	}
 
+	ch.PageMap.SetupReverseIndex()
 	ch.PageBuilder.PageMapper = ch.PageMap
+	ch.PageBuilder.ContentHub = ch
+	ch.PageFinder.PageMapper = ch.PageMap
 
 	return ch, nil
 }

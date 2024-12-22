@@ -12,7 +12,11 @@ type FileManager struct {
 func NewFsManager(fis []fs.FileMetaInfo) *FileManager {
 	var fsFiles []*File
 	for _, f := range fis {
-		fsFiles = append(fsFiles, NewFileInfo(f))
+		file, err := NewFileInfo(f)
+		if err != nil {
+			panic(err)
+		}
+		fsFiles = append(fsFiles, file)
 	}
 
 	fsm := &FileManager{

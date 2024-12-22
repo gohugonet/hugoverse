@@ -72,7 +72,7 @@ func (s *Site) RegularPages() []*Page {
 
 }
 
-func (s *Site) sitePage(p contenthub.Page) (*Page, error) {
+func (s *Site) pageOutput(p contenthub.Page) (contenthub.PageOutput, error) {
 	pos, err := p.PageOutputs()
 	if err != nil {
 		return nil, err
@@ -81,6 +81,15 @@ func (s *Site) sitePage(p contenthub.Page) (*Page, error) {
 		return nil, fmt.Errorf("expected 1 page output, got %d", len(pos))
 	}
 	po := pos[0] // TODO, check for multiple outputs
+
+	return po, nil
+}
+
+func (s *Site) sitePage(p contenthub.Page) (*Page, error) {
+	po, err := s.pageOutput(p)
+	if err != nil {
+		return nil, err
+	}
 
 	sp := &Page{
 		resSvc:    s.ResourcesSvc,

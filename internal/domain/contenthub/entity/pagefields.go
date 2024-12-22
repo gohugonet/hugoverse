@@ -51,6 +51,33 @@ func (p *Page) Pages(langIndex int) contenthub.Pages {
 	return nil
 }
 
+func (p *Page) RegularPages() contenthub.Pages {
+	switch p.Kind() {
+	case valueobject.KindPage:
+	case valueobject.KindSection, valueobject.KindHome, valueobject.KindTaxonomy:
+		return p.pageMap.getPagesInSection(
+			p.PageIdentity().PageLanguageIndex(),
+			pageMapQueryPagesInSection{
+				Index: p.PageIdentity().PageLanguageIndex(),
+				pageMapQueryPagesBelowPath: pageMapQueryPagesBelowPath{
+					Path:    p.Paths().Base(),
+					Include: pagePredicates.ShouldListLocal.And(pagePredicates.KindPage),
+				},
+			},
+		)
+	case valueobject.KindTerm:
+		return p.pageMap.getPagesWithTerm(
+			pageMapQueryPagesBelowPath{
+				Path:    p.Paths().Base(),
+				Include: pagePredicates.ShouldListLocal.And(pagePredicates.KindPage),
+			},
+		)
+	default:
+		return nil
+	}
+	return nil
+}
+
 func (p *Page) Terms(langIndex int, taxonomy string) contenthub.Pages {
 	return p.pageMap.getTermsForPageInTaxonomy(p.Paths().Base(), taxonomy)
 }
@@ -109,4 +136,41 @@ func (p *Page) IsAncestor(other contenthub.Page) bool {
 
 func (p *Page) Title() string {
 	return p.title
+}
+
+func (p *Page) Parent() contenthub.Page {
+	if p.IsHome() {
+		return nil
+	}
+
+	dir := p.Paths().ContainerDir()
+
+	if dir == "" {
+		return nil
+	}
+
+	for {
+		_, n := p.pageMap.TreePages.LongestPrefix(dir, true, nil)
+		if n == nil {
+			return nil
+		}
+
+		pg, found := n.getPage()
+		if p.IsBundled() {
+			if found {
+				return pg
+			}
+
+			return nil
+		}
+
+		if !pg.IsPage() {
+			if found {
+				return pg
+			}
+			return nil
+		}
+
+		dir = paths.Dir(dir)
+	}
 }
