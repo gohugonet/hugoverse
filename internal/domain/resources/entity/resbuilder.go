@@ -11,7 +11,6 @@ import (
 	"github.com/gohugonet/hugoverse/pkg/paths"
 	"mime"
 	"os"
-	"path"
 )
 
 type resourceBuilder struct {
@@ -27,6 +26,7 @@ type resourceBuilder struct {
 	cache     *Cache
 	imageSvc  resources.ImageConfig
 	imageProc *valueobject.ImageProcessor
+	urlSvc    resources.URLConfig
 }
 
 func newResourceBuilder(relPathname string, openReadSeekCloser io.OpenReadSeekCloser) *resourceBuilder {
@@ -43,6 +43,11 @@ func (rs *resourceBuilder) withPublisher(publisher *Publisher) *resourceBuilder 
 
 func (rs *resourceBuilder) withImageService(imageSvc resources.ImageConfig) *resourceBuilder {
 	rs.imageSvc = imageSvc
+	return rs
+}
+
+func (rs *resourceBuilder) withURLService(svc resources.URLConfig) *resourceBuilder {
+	rs.urlSvc = svc
 	return rs
 }
 
@@ -83,20 +88,7 @@ func (rs *resourceBuilder) build() (resources.Resource, error) {
 
 func (rs *resourceBuilder) buildResPaths() error {
 	rs.relPathname = paths.ToSlashPreserveLeading(rs.relPathname)
-
-	dir, name := path.Split(rs.relPathname)
-	dir = paths.ToSlashPreserveLeading(dir)
-	if dir == "/" {
-		dir = ""
-	}
-
-	rs.resPaths = valueobject.ResourcePaths{
-		Dir:           dir,
-		BaseDirLink:   "",
-		BaseDirTarget: "",
-
-		File: name,
-	}
+	rs.resPaths = valueobject.NewResourcePaths(rs.relPathname, rs.urlSvc)
 
 	return nil
 }
@@ -155,6 +147,7 @@ func (rs *resourceBuilder) buildResource() (resources.Resource, error) {
 
 			publisher: rs.publisher,
 			mediaSvc:  rs.mediaSvc,
+			urlSvc:    rs.urlSvc,
 
 			resourceTransformations: &resourceTransformations{},
 

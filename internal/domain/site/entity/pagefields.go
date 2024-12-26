@@ -20,7 +20,7 @@ func (p *Page) Resources() PageResources {
 }
 
 func (p *Page) Date() time.Time {
-	return time.Now()
+	return p.Page.PageDate()
 }
 
 func (p *Page) PublishDate() time.Time {
@@ -42,18 +42,6 @@ func (p *Page) File() contenthub.File {
 func (p *Page) OutputFormats() valueobject.OutputFormats {
 	// TODO
 	return make(valueobject.OutputFormats, 0)
-}
-
-func (p *Page) Sites() *sites {
-	return &sites{site: p.Site}
-}
-
-type sites struct {
-	site *Site
-}
-
-func (s *sites) First() *Site {
-	return s.site
 }
 
 func (p *Page) Data() any {

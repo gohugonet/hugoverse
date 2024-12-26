@@ -19,7 +19,6 @@ func AddTemplateFuncsNamespace(ns func() *TemplateFuncsNamespace) {
 func RegisterNamespaces() {
 	registerCast()
 	registerFmt()
-	registerLang()
 	registerSafe()
 	registerCrypto()
 	registerPath()
@@ -36,11 +35,13 @@ func RegisterCallbackNamespaces(cb func(ctx context.Context, name string, data a
 }
 
 func RegisterExtendedNamespaces(functions template.CustomizedFunctions) {
+	registerLang(functions)
 	registerCompare(functions)
 	registerTransform(functions)
 	registerUrls(functions, functions)
 	registerStrings(functions)
 	registerResources(functions)
+	registerCss(functions)
 	registerOs(functions)
 	registerSite(functions)
 	registerHugo(functions)

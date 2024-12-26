@@ -12,10 +12,11 @@ import (
 )
 
 type Site struct {
-	ConfigSvc    site.ConfigService
-	ContentSvc   site.ContentService
-	ResourcesSvc site.ResourceService
-	LanguageSvc  site.LanguageService
+	ConfigSvc      site.ConfigService
+	ContentSvc     site.ContentService
+	TranslationSvc site.TranslationService
+	ResourcesSvc   site.ResourceService
+	LanguageSvc    site.LanguageService
 
 	GitSvc *valueobject.GitMap
 

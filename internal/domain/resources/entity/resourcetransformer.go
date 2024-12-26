@@ -20,6 +20,7 @@ type ResourceTransformer struct {
 
 	publisher *Publisher
 	mediaSvc  resources.MediaTypesConfig
+	urlSvc    resources.URLConfig
 
 	TransformationCache *Cache
 
@@ -49,6 +50,7 @@ func (r *ResourceTransformer) TransformWithContext(ctx context.Context, t ...Res
 		Resource:                *res,
 		publisher:               r.publisher,
 		mediaSvc:                r.mediaSvc,
+		urlSvc:                  r.urlSvc,
 		TransformationCache:     r.TransformationCache,
 		resourceTransformations: &resourceTransformations{},
 	}, nil
@@ -97,10 +99,15 @@ func (r *ResourceTransformer) getFromFile(key string) (*Resource, error) {
 	r2 := r.Resource.clone()
 
 	r2.mediaType = m
-	r2.paths = valueobject.NewResourcePaths(meta.Target)
+	r2.paths = valueobject.NewResourcePaths(meta.Target, r.urlSvc)
 	r2.mergeData(meta.MetaData)
+
+	content, err := io.ReadAll(f)
+	if err != nil {
+		return nil, err
+	}
 	r2.openReadSeekCloser = func() (pio.ReadSeekCloser, error) {
-		return f.(pio.ReadSeekCloser), nil
+		return pio.NewReadSeekerNoOpCloserFromString(string(content)), nil
 	}
 
 	return r2, nil
@@ -162,7 +169,7 @@ func (r *ResourceTransformer) transform(key string) (*Resource, error) {
 
 	updates.mediaType = tctx.Source.InMediaType
 	updates.data = tctx.Data
-	updates.paths = valueobject.NewResourcePaths(tctx.Source.InPath)
+	updates.paths = valueobject.NewResourcePaths(tctx.Source.InPath, r.urlSvc)
 
 	var publishwriters []io.WriteCloser
 	//publicw, err := r.publisher.OpenPublishFileForWriting(updates.paths.TargetPath())

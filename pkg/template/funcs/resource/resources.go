@@ -124,6 +124,10 @@ func (ns *Namespace) Fingerprint(args ...any) (resources.Resource, error) {
 	return ns.resourceService.Fingerprint(r, algo)
 }
 
+func (ns *Namespace) Sass(args ...any) (resources.Resource, error) {
+	return ns.ToCSS(args...)
+}
+
 // ToCSS converts the given Resource to CSS. You can optional provide an Options object
 // as second argument. As an option, you can e.g. specify e.g. the target path (string)
 // for the converted CSS resource.

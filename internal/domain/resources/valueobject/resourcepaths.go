@@ -14,6 +14,7 @@
 package valueobject
 
 import (
+	"github.com/gohugonet/hugoverse/internal/domain/resources"
 	"github.com/gohugonet/hugoverse/pkg/paths"
 	"path"
 	"path/filepath"
@@ -40,8 +41,9 @@ type ResourcePaths struct {
 	File string
 }
 
-func NewResourcePaths(targetPath string) ResourcePaths {
+func NewResourcePaths(targetPath string, svc resources.URLConfig) ResourcePaths {
 	targetPath = filepath.ToSlash(targetPath)
+
 	dir, file := path.Split(targetPath)
 	dir = paths.ToSlashPreserveLeading(dir)
 	if dir == "/" {
@@ -51,8 +53,8 @@ func NewResourcePaths(targetPath string) ResourcePaths {
 	return ResourcePaths{
 		Dir:           dir,
 		File:          file,
-		BaseDirLink:   "",
-		BaseDirTarget: "",
+		BaseDirLink:   svc.BaseUrl(),
+		BaseDirTarget: svc.BaseUrl(),
 	}
 }
 

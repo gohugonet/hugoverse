@@ -30,28 +30,36 @@ import (
 )
 
 // New returns a new instance of the lang-namespaced template functions.
-func New() *Namespace {
+func New(svc Translator) *Namespace {
 	return &Namespace{
-		translator: translators.GetTranslator("en"), // TODO, make it more extensible
+		translator:     translators.GetTranslator("en"), // TODO, make it more extensible
+		translationSvc: svc,
 	}
 }
 
 // Namespace provides template functions for the "lang" namespace.
 type Namespace struct {
-	translator locales.Translator
+	translator     locales.Translator
+	translationSvc Translator
 }
 
 // Translate returns a translated string for id.
 func (ns *Namespace) Translate(ctx context.Context, id any, args ...any) (string, error) {
-	sid, err := cast.ToStringE(id)
-	if err != nil {
-		return "", nil
+	var templateData any
+
+	if len(args) > 0 {
+		if len(args) > 1 {
+			return "", fmt.Errorf("wrong number of arguments, expecting at most 2, got %d", len(args)+1)
+		}
+		templateData = args[0]
 	}
 
-	// TODO, make it more extensible with real translator
-	// missing i18n, and translation provider
+	sid, err := cast.ToStringE(id)
+	if err != nil {
+		return "", err
+	}
 
-	return sid, nil
+	return ns.translationSvc.Translate(ctx, sid, templateData), nil
 }
 
 // FormatNumber formats number with the given precision for the current language.

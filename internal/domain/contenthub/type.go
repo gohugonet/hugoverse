@@ -17,6 +17,7 @@ import (
 	"github.com/spf13/afero"
 	goTmpl "html/template"
 	"io"
+	"time"
 )
 
 type ContentHub interface {
@@ -72,6 +73,7 @@ type FsService interface {
 	ContentFs() afero.Fs
 
 	WalkContent(start string, cb fs.WalkCallback, conf fs.WalkwayConfig) error
+	WalkI18n(start string, cb fs.WalkCallback, conf fs.WalkwayConfig) error
 	ReverseLookupContent(filename string, checkExists bool) ([]fs.ComponentPath, error)
 }
 
@@ -285,6 +287,7 @@ type PageMeta interface {
 	Description() string
 	Params() maps.Params
 	PageWeight() int
+	PageDate() time.Time
 
 	ShouldList(global bool) bool
 	ShouldListAny() bool

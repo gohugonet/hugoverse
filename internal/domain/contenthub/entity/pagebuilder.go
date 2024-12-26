@@ -199,6 +199,7 @@ func (b *PageBuilder) applyFrontMatter(p *Page) error {
 	p.title = b.fm.Title
 	p.Meta.Weight = b.fm.Weight
 	p.Meta.Parameters = b.fm.Params
+	p.Meta.Date = b.fm.Date
 
 	return nil
 }

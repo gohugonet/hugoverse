@@ -16,6 +16,7 @@ import (
 
 type Services interface {
 	ContentService
+	TranslationService
 	ResourceService
 	LanguageService
 	FsService
@@ -51,6 +52,10 @@ type ContentService interface {
 
 	GetPageFromPath(path string) (contenthub.Page, error)
 	GetPageRef(context contenthub.Page, ref string, home contenthub.Page) (contenthub.Page, error)
+}
+
+type TranslationService interface {
+	Translate(ctx context.Context, lang string, translationID string, templateData any) string
 }
 
 type ResourceService interface {

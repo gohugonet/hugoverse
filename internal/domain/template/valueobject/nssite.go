@@ -9,11 +9,7 @@ const nsSite = "site"
 
 func registerSite(svc site.Service) {
 	f := func() *TemplateFuncsNamespace {
-		s, err := site.New(svc)
-		if err != nil {
-			// TODO(bep) no panic.
-			panic(err)
-		}
+		s := site.New(svc)
 
 		ns := &TemplateFuncsNamespace{
 			Name: nsSite,

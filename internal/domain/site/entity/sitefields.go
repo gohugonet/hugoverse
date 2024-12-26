@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"context"
 	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
 	"github.com/gohugonet/hugoverse/pkg/maps"
@@ -122,4 +123,8 @@ func (s *Site) siteWeightedPage(p contenthub.OrdinalWeightPage) (*WeightedPage, 
 	}
 
 	return &WeightedPage{sp, p}, nil
+}
+
+func (s *Site) Translate(ctx context.Context, translationID string, templateData any) string {
+	return s.TranslationSvc.Translate(ctx, s.Language.currentLanguage, translationID, templateData)
 }

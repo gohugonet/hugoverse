@@ -17,6 +17,7 @@ type ContentHub struct {
 	TemplateExecutor contenthub.Template
 
 	*Cache
+	*Translator
 
 	*PageMap
 	*PageFinder

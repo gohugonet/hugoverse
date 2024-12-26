@@ -28,6 +28,8 @@ type Resources struct {
 	ImageService resources.ImageConfig
 	ImageProc    *valueobject.ImageProcessor
 
+	URLService resources.URLConfig
+
 	*MinifierClient
 	*TemplateClient
 	*IntegrityClient
@@ -46,7 +48,7 @@ func (rs *Resources) GetResourceWithOpener(pathname string, opener io.OpenReadSe
 		rsb := newResourceBuilder(pathname, opener)
 		rsb.withCache(rs.Cache).withMediaService(rs.MediaService).
 			withImageService(rs.ImageService).withImageProcessor(rs.ImageProc).
-			withPublisher(rs.Publisher)
+			withPublisher(rs.Publisher).withURLService(rs.URLService)
 
 		return rsb.build()
 	})
@@ -77,7 +79,7 @@ func (rs *Resources) GetResource(pathname string) (resources.Resource, error) {
 		})
 		rsb.withCache(rs.Cache).withMediaService(rs.MediaService).
 			withImageService(rs.ImageService).withImageProcessor(rs.ImageProc).
-			withPublisher(rs.Publisher)
+			withPublisher(rs.Publisher).withURLService(rs.URLService)
 
 		return rsb.build()
 	})
@@ -107,7 +109,7 @@ func (rs *Resources) match(name, pattern string, matchFunc func(r resources.Reso
 			})
 			rsb.withCache(rs.Cache).withMediaService(rs.MediaService).
 				withImageService(rs.ImageService).withImageProcessor(rs.ImageProc).
-				withPublisher(rs.Publisher)
+				withPublisher(rs.Publisher).withURLService(rs.URLService)
 
 			r, err := rsb.build()
 			if err != nil {

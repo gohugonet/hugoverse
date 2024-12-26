@@ -152,7 +152,7 @@ func (pp *PathParser) doParse(component, s string, p *Path) (*Path, error) {
 				} else {
 					high = len(p.s)
 				}
-				id := types.LowHigh{Low: i + 1, High: high}
+				id := types.LowHigh[string]{Low: i + 1, High: high}
 				if len(p.identifiers) == 0 {
 					p.identifiers = append(p.identifiers, id)
 				} else if len(p.identifiers) == 1 {
@@ -238,7 +238,7 @@ type Path struct {
 	component  string
 	bundleType PathType
 
-	identifiers []types.LowHigh
+	identifiers []types.LowHigh[string]
 
 	posIdentifierLanguage int
 	disabled              bool

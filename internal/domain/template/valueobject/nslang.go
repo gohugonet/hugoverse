@@ -7,9 +7,9 @@ import (
 
 const nsLang = "lang"
 
-func registerLang() {
+func registerLang(translator lang.Translator) {
 	f := func() *TemplateFuncsNamespace {
-		ctx := lang.New()
+		ctx := lang.New(translator)
 
 		ns := &TemplateFuncsNamespace{
 			Name:    nsLang,

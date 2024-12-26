@@ -1,6 +1,9 @@
 package entity
 
-import "github.com/gohugonet/hugoverse/pkg/maps"
+import (
+	"github.com/gohugonet/hugoverse/pkg/maps"
+	"time"
+)
 
 const (
 	Never       = "never"
@@ -13,6 +16,8 @@ type Meta struct {
 	List       string
 	Parameters maps.Params
 	Weight     int
+
+	Date time.Time
 }
 
 func (m *Meta) Description() string {
@@ -25,6 +30,10 @@ func (m *Meta) Params() maps.Params {
 
 func (m *Meta) PageWeight() int {
 	return m.Weight
+}
+
+func (m *Meta) PageDate() time.Time {
+	return m.Date
 }
 
 func (m *Meta) ShouldList(global bool) bool {

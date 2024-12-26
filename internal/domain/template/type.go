@@ -6,6 +6,7 @@ import (
 	"github.com/gohugonet/hugoverse/pkg/template/funcs/collections"
 	"github.com/gohugonet/hugoverse/pkg/template/funcs/compare"
 	"github.com/gohugonet/hugoverse/pkg/template/funcs/hugo"
+	"github.com/gohugonet/hugoverse/pkg/template/funcs/lang"
 	"github.com/gohugonet/hugoverse/pkg/template/funcs/os"
 	"github.com/gohugonet/hugoverse/pkg/template/funcs/resource"
 	"github.com/gohugonet/hugoverse/pkg/template/funcs/site"
@@ -75,5 +76,6 @@ type CustomizedFunctions interface {
 	resource.Resource
 	os.Os
 	site.Service
-	hugo.Version
+	hugo.Info
+	lang.Translator
 }

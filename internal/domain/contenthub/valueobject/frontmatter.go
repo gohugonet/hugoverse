@@ -21,6 +21,8 @@ type FrontMatter struct {
 	Title  string
 	Weight int
 
+	Date time.Time
+
 	Terms map[string][]string
 
 	Params maps.Params
@@ -65,11 +67,24 @@ func (b *FrontMatterParser) Parse() (*FrontMatter, error) {
 		return nil, err
 	}
 
+	if err := b.parseDate(fm); err != nil {
+		return nil, err
+	}
+
 	return fm, nil
 }
 
+func (b *FrontMatterParser) parseDate(fm *FrontMatter) error {
+	fm.Date = time.Now()
+	if v, found := b.Params["date"]; found {
+		fm.Date = cast.ToTime(v)
+	}
+
+	return nil
+}
+
 func (b *FrontMatterParser) parseWeight(fm *FrontMatter) error {
-	fm.Weight = 0
+	fm.Weight = 10000
 	if v, found := b.Params["weight"]; found {
 		fm.Weight = cast.ToInt(v)
 	}

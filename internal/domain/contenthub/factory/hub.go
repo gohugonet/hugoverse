@@ -1,19 +1,37 @@
 package factory
 
 import (
+	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub/entity"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub/valueobject"
+	"github.com/gohugonet/hugoverse/internal/domain/fs"
 	"github.com/gohugonet/hugoverse/pkg/cache/dynacache"
 	"github.com/gohugonet/hugoverse/pkg/cache/stale"
 	"github.com/gohugonet/hugoverse/pkg/doctree"
+	"github.com/gohugonet/hugoverse/pkg/helpers"
+	"github.com/gohugonet/hugoverse/pkg/herrors"
 	"github.com/gohugonet/hugoverse/pkg/loggers"
+	"github.com/gohugonet/hugoverse/pkg/paths"
+	"golang.org/x/text/language"
+	"strings"
+
+	"encoding/json"
+	"github.com/gohugoio/go-i18n/v2/i18n"
+	toml "github.com/pelletier/go-toml/v2"
+	yaml "gopkg.in/yaml.v2"
 )
 
 func New(services contenthub.Services) (*entity.ContentHub, error) {
 	log := loggers.NewDefault()
+	valueobject.SetupDefaultContentTypes()
 
 	cs, err := newContentSpec()
+	if err != nil {
+		return nil, err
+	}
+
+	t, err := newTranslator(services, log)
 	if err != nil {
 		return nil, err
 	}
@@ -24,6 +42,8 @@ func New(services contenthub.Services) (*entity.ContentHub, error) {
 		Cache:            cache,
 		Fs:               services,
 		TemplateExecutor: nil,
+		Translator:       t,
+
 		PageMap: &entity.PageMap{
 			PageTrees: newPageTree(),
 
@@ -180,4 +200,94 @@ func newConverterRegistry() (contenthub.ConverterRegistry, error) {
 	return &valueobject.ConverterRegistry{
 		Converters: converters,
 	}, nil
+}
+
+func newTranslator(services contenthub.Services, log loggers.Logger) (*entity.Translator, error) {
+	defaultLangTag, err := language.Parse(services.DefaultLanguage())
+	if err != nil {
+		defaultLangTag = language.English
+	}
+	bundle := i18n.NewBundle(defaultLangTag)
+
+	bundle.RegisterUnmarshalFunc("toml", toml.Unmarshal)
+	bundle.RegisterUnmarshalFunc("yaml", yaml.Unmarshal)
+	bundle.RegisterUnmarshalFunc("yml", yaml.Unmarshal)
+	bundle.RegisterUnmarshalFunc("json", json.Unmarshal)
+
+	if err := services.WalkI18n("", fs.WalkCallback{
+		HookPre: nil,
+		WalkFn: func(path string, info fs.FileMetaInfo) error {
+			if info.IsDir() {
+				return nil
+			}
+			file, err := valueobject.NewFileInfo(info)
+			if err != nil {
+				return err
+			}
+			return addTranslationFile(bundle, file)
+		},
+		HookPost: nil,
+	}, fs.WalkwayConfig{}); err != nil {
+		if !herrors.IsNotExist(err) {
+			return nil, err
+		}
+	}
+
+	t := &entity.Translator{
+		ContentLanguage: services.DefaultLanguage(),
+		TranslateFuncs:  make(map[string]entity.TranslateFunc),
+
+		Log: log,
+	}
+	t.SetupTranslateFuncs(bundle)
+
+	return t, err
+}
+
+func addTranslationFile(bundle *i18n.Bundle, r *valueobject.File) error {
+	f, err := r.Open()
+	if err != nil {
+		return fmt.Errorf("failed to open translations file %q:: %w", r.LogicalName(), err)
+	}
+
+	b := helpers.ReaderToBytes(f)
+	f.Close()
+
+	name := r.LogicalName()
+	lang := paths.Filename(name)
+	tag := language.Make(lang)
+	if tag == language.Und {
+		try := entity.ArtificialLangTagPrefix + lang
+		_, err = language.Parse(try)
+		if err != nil {
+			return fmt.Errorf("%q: %s", try, err)
+		}
+		name = entity.ArtificialLangTagPrefix + name
+	}
+
+	_, err = bundle.ParseMessageFileBytes(b, name)
+	if err != nil {
+		if strings.Contains(err.Error(), "no plural rule") {
+			// https://github.com/gohugoio/hugo/issues/7798
+			name = entity.ArtificialLangTagPrefix + name
+			_, err = bundle.ParseMessageFileBytes(b, name)
+			if err == nil {
+				return nil
+			}
+		}
+		return errWithFileContext(fmt.Errorf("failed to load translations: %w", err), r)
+	}
+
+	return nil
+}
+
+func errWithFileContext(inerr error, r *valueobject.File) error {
+	realFilename := r.Filename()
+	f, err := r.Open()
+	if err != nil {
+		return inerr
+	}
+	defer f.Close()
+
+	return herrors.NewFileErrorFromName(inerr, realFilename).UpdateContent(f, nil)
 }

@@ -151,8 +151,11 @@ func (c *ContentProvider) ContentSummary() (valueobject.ContentSummary, error) {
 			}
 		}
 
-		v.SummaryTruncated = c.content.summaryTruncated
 		v.Content = helpers.BytesToHTML(b)
+		if v.IsSummaryEmpty() {
+			v.ExtractSummary(b, c.f.MediaType)
+			c.content.summaryTruncated = v.SummaryTruncated
+		}
 
 		return &stale.Value[valueobject.ContentSummary]{
 			Value: v,

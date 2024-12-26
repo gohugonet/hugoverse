@@ -18,10 +18,11 @@ func New(services site.Services) *entity.Site {
 	}
 
 	s := &entity.Site{
-		ConfigSvc:    services,
-		ContentSvc:   services,
-		ResourcesSvc: services,
-		LanguageSvc:  services,
+		ConfigSvc:      services,
+		ContentSvc:     services,
+		TranslationSvc: services,
+		ResourcesSvc:   services,
+		LanguageSvc:    services,
 
 		GitSvc: git,
 

@@ -51,7 +51,15 @@ func Unwrapv(v any) any {
 }
 
 // LowHigh is typically used to represent a slice boundary.
-type LowHigh struct {
+type LowHigh[S ~[]byte | string] struct {
 	Low  int
 	High int
+}
+
+func (l LowHigh[S]) IsZero() bool {
+	return l.Low < 0 || (l.Low == 0 && l.High == 0)
+}
+
+func (l LowHigh[S]) Value(source S) S {
+	return source[l.Low:l.High]
 }

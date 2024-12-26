@@ -1,10 +1,10 @@
 package site
 
 // New returns a new instance of the resources-namespaced template functions.
-func New(svc Service) (*Namespace, error) {
+func New(svc Service) *Namespace {
 	return &Namespace{
 		Service: svc,
-	}, nil
+	}
 }
 
 // Namespace provides template functions for the "resources" namespace.

@@ -26,6 +26,11 @@ type Workspace interface {
 	SecurityConfig
 	OutputFormatsConfig
 	MinifyConfig
+	URLConfig
+}
+
+type URLConfig interface {
+	BaseUrl() string
 }
 
 type OutputFormatsConfig interface {

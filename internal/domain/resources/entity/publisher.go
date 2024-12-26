@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"github.com/gohugonet/hugoverse/internal/domain/resources"
 	"github.com/gohugonet/hugoverse/internal/domain/resources/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/helpers"
 	"github.com/spf13/afero"
@@ -8,7 +9,8 @@ import (
 )
 
 type Publisher struct {
-	PubFs afero.Fs
+	PubFs  afero.Fs
+	URLSvc resources.URLConfig
 }
 
 func (p *Publisher) PublishContentToTarget(content, target string) error {
@@ -24,6 +26,6 @@ func (p *Publisher) PublishContentToTarget(content, target string) error {
 }
 
 func (p *Publisher) OpenPublishFileForWriting(relTargetPath string) (io.WriteCloser, error) {
-	filenames := valueobject.NewResourcePaths(relTargetPath).TargetFilenames()
+	filenames := valueobject.NewResourcePaths(relTargetPath, p.URLSvc).TargetFilenames()
 	return helpers.OpenFilesForWriting(p.PubFs, filenames...)
 }

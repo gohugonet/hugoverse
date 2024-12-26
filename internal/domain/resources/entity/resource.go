@@ -78,6 +78,7 @@ func (l *Resource) publish() {
 			fmt.Println("publish ReadSeekCloser", l.paths.TargetPath(), err)
 			return
 		}
+		defer r.Close()
 
 		_, err = io.Copy(publicw, r)
 		if err != nil {

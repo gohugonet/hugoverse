@@ -34,8 +34,12 @@ type BuiltinTypes struct {
 	OpenTypeFontType Type
 
 	// Common document types
-	PDFType      Type
-	MarkdownType Type
+	PDFType              Type
+	MarkdownType         Type
+	EmacsOrgModeType     Type
+	AsciiDocType         Type
+	PandocType           Type
+	ReStructuredTextType Type
 
 	// Common video types
 	AVIType  Type

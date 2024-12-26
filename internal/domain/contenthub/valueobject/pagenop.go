@@ -5,6 +5,7 @@ import (
 	pio "github.com/gohugonet/hugoverse/pkg/io"
 	"github.com/gohugonet/hugoverse/pkg/maps"
 	"github.com/gohugonet/hugoverse/pkg/paths"
+	"time"
 )
 
 var (
@@ -13,6 +14,11 @@ var (
 
 // PageNop implements Page, but does nothing.
 type nopPage int
+
+func (p *nopPage) PageDate() time.Time {
+	//TODO implement me
+	panic("implement me")
+}
 
 func (p *nopPage) Truncated() bool {
 	//TODO implement me
