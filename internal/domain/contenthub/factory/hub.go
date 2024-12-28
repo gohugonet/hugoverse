@@ -157,16 +157,16 @@ func newContentSpec() (*entity.ContentSpec, error) {
 }
 
 func newPageTree() *entity.PageTrees {
-	treeConfig := doctree.Config[*entity.PageTreesNode]{
-		Shifter: &entity.SourceShifter{},
-	}
-
 	pageTrees := &entity.PageTrees{
 		TreePages: doctree.New(
-			treeConfig,
+			doctree.Config[*entity.PageTreesNode]{
+				Shifter: &entity.PageShifter{Shifter: &entity.Shifter{}},
+			},
 		),
 		TreeResources: doctree.New(
-			treeConfig,
+			doctree.Config[*entity.PageTreesNode]{
+				Shifter: &entity.SourceShifter{Shifter: &entity.Shifter{}},
+			},
 		),
 		TreeTaxonomyEntries: doctree.NewTreeShiftTree[*entity.WeightedTermTreeNode](
 			doctree.DimensionLanguage.Index(), 2), // TODO: get this from config

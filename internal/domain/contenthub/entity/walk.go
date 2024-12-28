@@ -66,8 +66,16 @@ func (ch *ContentHub) WalkTaxonomies(langIndex int, walker contenthub.WalkTaxono
 						doctree.LockTypeRead,
 						paths.AddTrailingSlash(s),
 						func(ss string, wn *WeightedTermTreeNode) (bool, error) {
+							sp, found := wn.getPage()
+							if !found {
+								return false, nil
+							}
 
-							if err := walker(viewName.Plural(), k, wn.term); err != nil {
+							if err := walker(viewName.Plural(), k,
+								&weightPage{
+									ordinalWeightPage: wn.term,
+									page:              sp},
+							); err != nil {
 								return false, err
 							}
 

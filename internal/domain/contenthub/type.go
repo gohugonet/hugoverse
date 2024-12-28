@@ -279,8 +279,8 @@ type Page interface {
 type OrdinalWeightPage interface {
 	Weight() int
 	Ordinal() int
-
-	Page
+	Page() Page
+	Owner() Page
 }
 
 type PageMeta interface {

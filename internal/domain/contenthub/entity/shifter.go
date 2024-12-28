@@ -4,14 +4,14 @@ import (
 	"github.com/gohugonet/hugoverse/pkg/doctree"
 )
 
-type SourceShifter struct{}
+type Shifter struct{}
 
-func (s *SourceShifter) Delete(n *PageTreesNode, dimension doctree.Dimension) (bool, bool) {
+func (s *Shifter) Delete(n *PageTreesNode, dimension doctree.Dimension) (bool, bool) {
 	wasDeleted := n.delete(dimension[doctree.DimensionLanguage.Index()])
 	return wasDeleted, n.isEmpty()
 }
 
-func (s *SourceShifter) Shift(n *PageTreesNode, dimension doctree.Dimension, exact bool) (*PageTreesNode, bool, doctree.DimensionFlag) {
+func (s *Shifter) Shift(n *PageTreesNode, dimension doctree.Dimension, exact bool) (*PageTreesNode, bool, doctree.DimensionFlag) {
 	newNode, found := n.shift(dimension[doctree.DimensionLanguage.Index()], exact)
 	if newNode != nil {
 		if found {
@@ -23,17 +23,17 @@ func (s *SourceShifter) Shift(n *PageTreesNode, dimension doctree.Dimension, exa
 	return nil, false, doctree.DimensionNone
 }
 
-func (s *SourceShifter) ForEachInDimension(n *PageTreesNode, d int, f func(*PageTreesNode) bool) {
+func (s *Shifter) ForEachInDimension(n *PageTreesNode, d int, f func(*PageTreesNode) bool) {
 	if d != doctree.DimensionLanguage.Index() {
 		panic("only language dimension supported")
 	}
 	f(n)
 }
 
-func (s *SourceShifter) InsertInto(old, new *PageTreesNode, dimension doctree.Dimension) *PageTreesNode {
+func (s *Shifter) InsertInto(old, new *PageTreesNode, dimension doctree.Dimension) *PageTreesNode {
 	return old.mergeWithLang(new, dimension[doctree.DimensionLanguage.Index()])
 }
 
-func (s *SourceShifter) Insert(old, new *PageTreesNode) *PageTreesNode {
+func (s *Shifter) Insert(old, new *PageTreesNode) *PageTreesNode {
 	return old.merge(new)
 }

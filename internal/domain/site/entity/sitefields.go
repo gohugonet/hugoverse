@@ -117,7 +117,7 @@ func (s *Site) sitePage(p contenthub.Page) (*Page, error) {
 }
 
 func (s *Site) siteWeightedPage(p contenthub.OrdinalWeightPage) (*WeightedPage, error) {
-	sp, err := s.sitePage(p)
+	sp, err := s.sitePage(p.Page())
 	if err != nil {
 		return nil, err
 	}

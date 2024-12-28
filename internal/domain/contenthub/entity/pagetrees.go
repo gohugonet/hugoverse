@@ -40,6 +40,19 @@ func (t *PageTrees) CreateMutableTrees() {
 	}
 }
 
+type weightPage struct {
+	*ordinalWeightPage
+	page contenthub.Page
+}
+
+func (n *weightPage) Page() contenthub.Page {
+	return n.page
+}
+
+func (n *weightPage) Owner() contenthub.Page {
+	return n.ordinalWeightPage.Page
+}
+
 type ordinalWeightPage struct {
 	ordinal int
 	weight  int
