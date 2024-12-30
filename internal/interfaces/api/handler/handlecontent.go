@@ -142,7 +142,13 @@ func (s *Handler) getContent(res http.ResponseWriter, req *http.Request) {
 	}
 
 	p := pt()
-	err = json.Unmarshal(post, p)
+
+	unmarshal, ok := p.(content.Unmarshalable)
+	if ok {
+		err = unmarshal.UnmarshalJSON(post)
+	} else {
+		err = json.Unmarshal(post, p)
+	}
 	if err != nil {
 		s.log.Errorf("Error unmarshalling content: %v", err)
 		res.WriteHeader(http.StatusInternalServerError)

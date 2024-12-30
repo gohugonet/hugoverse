@@ -2,8 +2,10 @@ package valueobject
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"github.com/gohugonet/hugoverse/pkg/editor"
+	"github.com/gohugonet/hugoverse/pkg/language"
 	"net/http"
 	"text/template"
 )
@@ -11,13 +13,14 @@ import (
 type Site struct {
 	Item
 
-	Title       string `json:"title"`
-	Description string `json:"description"`
-	BaseURL     string `json:"base_url"`
-	Theme       string `json:"theme"`
-	Params      string `json:"params"`
-	Owner       string `json:"owner"`
-	WorkingDir  string `json:"working_dir"`
+	Title       string   `json:"title"`
+	Description string   `json:"description"`
+	BaseURL     string   `json:"base_url"`
+	Theme       string   `json:"theme"`
+	Params      string   `json:"params"`
+	Owner       string   `json:"owner"`
+	WorkingDir  string   `json:"working_dir"`
+	Languages   []string `json:"languages"`
 }
 
 // MarshalEditor writes a buffer of html to edit a Song within the CMS
@@ -71,6 +74,13 @@ func (s *Site) MarshalEditor() ([]byte, error) {
 				"label":       "WorkingDir",
 				"type":        "text",
 				"placeholder": "Enter the project file system dir here",
+			}),
+		},
+		editor.Field{
+			View: editor.Input("Languages", s, map[string]string{
+				"label":       "Languages",
+				"type":        "text",
+				"placeholder": "Enter the Languages here",
 			}),
 		},
 	)
@@ -186,11 +196,28 @@ owner = "{{.Owner}}"
   [[module.imports]]
     path = "{{.Theme}}"
 
+{{- if .IsMultiLanguages}}
+[languages]
+{{- range $index, $lang := .Languages }}
+  [languages.{{ $lang }}]
+  languageName = '{{ getLanguageName $lang }}'
+  contentDir = 'content.{{ $lang }}'
+  weight = {{ add $index 1 }}
+{{- end }}
+{{- end }}
+
 [params]
 {{.Params}}
 
 `
-	tmpl, err := template.New("toml").Parse(tomlTemplate)
+	funcMap := template.FuncMap{
+		"add": func(a, b int) int {
+			return a + b
+		},
+		"getLanguageName": language.GetLanguageName,
+	}
+
+	tmpl, err := template.New("toml").Funcs(funcMap).Parse(tomlTemplate)
 	if err != nil {
 		return nil, fmt.Errorf("parse toml template error : %v", err)
 	}
@@ -201,4 +228,43 @@ owner = "{{.Owner}}"
 	}
 
 	return result.Bytes(), nil
+}
+
+func (s *Site) IsMultiLanguages() bool {
+	return len(s.Languages) > 1
+}
+
+func (s *Site) UnmarshalJSON(data []byte) error {
+	// Create a temporary struct with the same fields
+	type Alias Site
+	temp := &struct {
+		Languages interface{} `json:"languages"`
+		*Alias
+	}{
+		Alias: (*Alias)(s),
+	}
+
+	// Unmarshal the JSON into the temp struct
+	if err := json.Unmarshal(data, &temp); err != nil {
+		return err
+	}
+
+	// Handle the "languages" field
+	switch v := temp.Languages.(type) {
+	case nil:
+		// If it's nil or an empty string, set Languages as an empty array
+		s.Languages = []string{}
+	case string:
+		// If it's a single string, wrap it in an array
+		s.Languages = []string{v}
+	case []interface{}:
+		// If it's an array, convert it into a slice of strings
+		for _, item := range v {
+			if str, ok := item.(string); ok {
+				s.Languages = append(s.Languages, str)
+			}
+		}
+	}
+
+	return nil
 }

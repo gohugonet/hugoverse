@@ -53,6 +53,10 @@ const (
 	Pending Status = "pending"
 )
 
+type Unmarshalable interface {
+	UnmarshalJSON([]byte) error
+}
+
 // Hideable lets a user keep items hidden
 type Hideable interface {
 	Hide(http.ResponseWriter, *http.Request) error
