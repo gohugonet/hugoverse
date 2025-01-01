@@ -169,19 +169,25 @@ func (c *Content) SortContent(contentType string) error {
 	all := c.Repo.AllContent(contentType)
 
 	var posts valueobject.SortableContent
+	var err error
 	// decode each (json) into type to then sort
 	for i := range all {
 		j := all[i]
 		if j == nil {
-			log.Println("Error decoding json while sorting", contentType, ": nil")
+			c.Log.Errorln("Error decoding json while sorting", contentType, ": nil")
 			continue
 		}
 
 		post := t()
-		err := json.Unmarshal(j, &post)
+		unmarshal, ok := post.(content.Unmarshalable)
+		if ok {
+			err = unmarshal.UnmarshalJSON(j)
+		} else {
+			err = json.Unmarshal(j, &post)
+		}
 		if err != nil {
-			log.Println("Error decoding json while sorting", contentType, ":", err)
-			return err
+			c.Log.Errorln("Error decoding json while sorting", contentType, ":", err)
+			continue
 		}
 
 		posts = append(posts, post.(content.Sortable))
