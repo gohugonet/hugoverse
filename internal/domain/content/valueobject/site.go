@@ -7,6 +7,7 @@ import (
 	"github.com/gohugonet/hugoverse/pkg/editor"
 	"github.com/gohugonet/hugoverse/pkg/language"
 	"net/http"
+	"strings"
 	"text/template"
 )
 
@@ -21,6 +22,7 @@ type Site struct {
 	Owner       string   `json:"owner"`
 	WorkingDir  string   `json:"working_dir"`
 	Languages   []string `json:"languages"`
+	Menus       []string `json:"menus"`
 }
 
 // MarshalEditor writes a buffer of html to edit a Song within the CMS
@@ -81,6 +83,13 @@ func (s *Site) MarshalEditor() ([]byte, error) {
 				"label":       "Languages",
 				"type":        "text",
 				"placeholder": "Enter the Languages here",
+			}),
+		},
+		editor.Field{
+			View: editor.Input("Menus", s, map[string]string{
+				"label":       "Menus",
+				"type":        "text",
+				"placeholder": "Enter the Menus here",
 			}),
 		},
 	)
@@ -196,6 +205,7 @@ owner = "{{.Owner}}"
   [[module.imports]]
     path = "{{.Theme}}"
 
+
 {{- if .IsMultiLanguages}}
 [languages]
 {{- range $index, $lang := .Languages }}
@@ -206,6 +216,18 @@ owner = "{{.Owner}}"
 {{- end }}
 {{- end }}
 
+
+{{- if .HasMenus }}
+[menu]
+{{- range $index, $menu := .Menus }}
+  [[menu.after]]
+    name = "{{ index (split $menu ",") 0 }}"
+    url = "{{ index (split $menu ",") 1 }}"
+    weight = {{ add $index 1 }}
+{{- end }}
+{{- end }}
+
+
 [params]
 {{.Params}}
 
@@ -214,6 +236,7 @@ owner = "{{.Owner}}"
 		"add": func(a, b int) int {
 			return a + b
 		},
+		"split":           strings.Split,
 		"getLanguageName": language.GetLanguageName,
 	}
 
@@ -234,11 +257,16 @@ func (s *Site) IsMultiLanguages() bool {
 	return len(s.Languages) > 1
 }
 
+func (s *Site) HasMenus() bool {
+	return len(s.Menus) > 0
+}
+
 func (s *Site) UnmarshalJSON(data []byte) error {
 	// Create a temporary struct with the same fields
 	type Alias Site
 	temp := &struct {
 		Languages interface{} `json:"languages"`
+		Menus     interface{} `json:"menus"`
 		*Alias
 	}{
 		Alias: (*Alias)(s),
@@ -262,6 +290,23 @@ func (s *Site) UnmarshalJSON(data []byte) error {
 		for _, item := range v {
 			if str, ok := item.(string); ok {
 				s.Languages = append(s.Languages, str)
+			}
+		}
+	}
+
+	// Handle the "menus" field
+	switch v := temp.Menus.(type) {
+	case nil:
+		// If it's nil or an empty string, set Menus as an empty array
+		s.Menus = []string{}
+	case string:
+		// If it's a single string, wrap it in an array
+		s.Menus = []string{v}
+	case []interface{}:
+		// If it's an array, convert it into a slice of strings
+		for _, item := range v {
+			if str, ok := item.(string); ok {
+				s.Menus = append(s.Menus, str)
 			}
 		}
 	}

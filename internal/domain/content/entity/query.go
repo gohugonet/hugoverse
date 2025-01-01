@@ -7,26 +7,45 @@ import (
 )
 
 func (c *Content) search(contentType string, query string) ([][]byte, error) {
-	// execute search for query provided, if no index for type send 404
-	indices, err := c.Search.TypeQuery(contentType, query, 10, 0)
-	if errors.Is(err, content.ErrNoIndex) {
-		c.Log.Errorf("Index for type %s not found", contentType)
+	const pageSize = 100 // 每页最大查询数量
+	offset := 0
 
-		return nil, err
-	}
-	if err != nil {
-		c.Log.Errorf("Error searching for type %s: %v", contentType, err)
-		return nil, err
+	var allResults [][]byte
+
+	for {
+		// execute search for query provided, if no index for type send 404
+		indices, err := c.Search.TypeQuery(contentType, query, pageSize, offset)
+		if errors.Is(err, content.ErrNoIndex) {
+			c.Log.Errorf("Index for type %s not found", contentType)
+
+			return nil, err
+		}
+		if err != nil {
+			c.Log.Errorf("Error searching for type %s: %v", contentType, err)
+			return nil, err
+		}
+
+		if len(indices) == 0 {
+			break
+		}
+
+		// respond with json formatted results
+		bb, err := c.GetContents(indices)
+		if err != nil {
+			c.Log.Errorf("Error getting content: %v", err)
+			return nil, err
+		}
+
+		allResults = append(allResults, bb...)
+
+		if len(indices) < pageSize {
+			break
+		}
+
+		offset += pageSize
 	}
 
-	// respond with json formatted results
-	bb, err := c.GetContents(indices)
-	if err != nil {
-		c.Log.Errorf("Error getting content: %v", err)
-		return nil, err
-	}
-
-	return bb, nil
+	return allResults, nil
 }
 
 func (c *Content) termSearch(contentType string, keyValue map[string]string) ([][]byte, error) {
