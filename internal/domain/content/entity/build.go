@@ -82,6 +82,8 @@ func (c *Content) writeSitePosts(siteId int, dir string, writerFiles chan *value
 		return err
 	}
 
+	c.Log.Printf("sitePosts len: %d", len(sitePosts))
+
 	for _, data := range sitePosts {
 		var sp valueobject.SitePost
 		if err := json.Unmarshal(data, &sp); err != nil {
