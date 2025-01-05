@@ -2,6 +2,7 @@ package valueobject
 
 import (
 	"bytes"
+	"github.com/gohugonet/hugoverse/internal/domain/markdown"
 	"github.com/gohugonet/hugoverse/pkg/helpers"
 	"github.com/gohugonet/hugoverse/pkg/media"
 	"github.com/gohugonet/hugoverse/pkg/types"
@@ -38,6 +39,8 @@ type ContentSummary struct {
 	Summary             template.HTML
 	SummaryTruncated    bool
 	TableOfContentsHTML template.HTML
+
+	MarkdownResult markdown.Result
 }
 
 func NewEmptyContentSummary() ContentSummary {
@@ -46,7 +49,19 @@ func NewEmptyContentSummary() ContentSummary {
 		Summary:             "",
 		SummaryTruncated:    false,
 		TableOfContentsHTML: "",
+
+		MarkdownResult: nil,
 	}
+}
+
+func (c *ContentSummary) MarkdownHeadersName() []string {
+	var names []string
+	if c.MarkdownResult != nil {
+		for _, h := range c.MarkdownResult.Headers() {
+			names = append(names, h.Name())
+		}
+	}
+	return names
 }
 
 func (c *ContentSummary) IsSummaryEmpty() bool {

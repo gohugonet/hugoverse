@@ -76,6 +76,15 @@ func (c *ContentProvider) Content() (any, error) {
 	return cs.Content, err
 }
 
+func (c *ContentProvider) MarkdownHeaders() []string {
+	cs, err := c.ContentSummary()
+	if err != nil {
+		c.log.Errorln("MarkdownHeaders", err)
+		return []string{}
+	}
+	return cs.MarkdownHeadersName()
+}
+
 func (c *ContentProvider) ContentSummary() (valueobject.ContentSummary, error) {
 	v, err := c.cache.CacheContentRendered.GetOrCreate(c.cacheKey(), func(string) (*stale.Value[valueobject.ContentSummary], error) {
 		if c.content.IsEmpty() {
@@ -112,6 +121,7 @@ func (c *ContentProvider) ContentSummary() (valueobject.ContentSummary, error) {
 
 		b := res.Bytes()
 		v := valueobject.NewEmptyContentSummary()
+		v.MarkdownResult = res
 		v.TableOfContentsHTML = res.TableOfContents().ToHTML(
 			valueobject.DefaultTocConfig.StartLevel,
 			valueobject.DefaultTocConfig.EndLevel,

@@ -17,11 +17,16 @@ type Markdown interface {
 
 // Result represents the minimum returned from Convert.
 type Result interface {
-	RenderResult
+	RenderingResult
+	ParsingResult
+}
+
+type ParsingResult interface {
+	Headers() []Header
 	TableOfContentsProvider
 }
 
-type RenderResult interface {
+type RenderingResult interface {
 	Bytes() []byte
 }
 
@@ -83,12 +88,6 @@ const (
 type GetRendererFunc func(t RendererType, id any) any
 
 var DefaultRendererFunc = func(t RendererType, id any) any { return nil }
-
-// ResultParse represents the minimum returned from Parse.
-type ResultParse interface {
-	Doc() any
-	TableOfContentsProvider
-}
 
 type ContextData interface {
 	RenderContext() RenderContext
@@ -172,7 +171,7 @@ type ElementPositionResolver interface {
 type CodeblockContext interface {
 	AttributesProvider
 	AttributesOptionsSliceProvider
-	
+
 	text.Positioner
 
 	// Chroma highlighting processing options. This will only be filled if Type is a known Chroma Lexer.
@@ -193,4 +192,16 @@ type CodeblockContext interface {
 
 type CodeBlockRenderer interface {
 	RenderCodeblock(cctx context.Context, w pio.FlexiWriter, ctx CodeblockContext) error
+}
+
+type Header interface {
+	Name() string
+	Level() int
+
+	Links() []Link
+}
+
+type Link interface {
+	Text() string
+	URL() string
 }
