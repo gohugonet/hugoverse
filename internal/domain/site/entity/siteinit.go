@@ -27,18 +27,15 @@ func (s *Site) PrepareLazyLoads() {
 	var init lazy.Init
 
 	s.lazy.menus = init.Branch(func() (any, error) {
-		menus := valueobject.Menus{}
+		menus := valueobject.NewEmptyMenus()
 
 		menusConf := s.ConfigSvc.Menus()
-
 		for name, menu := range menusConf {
-			menus[name] = valueobject.Menu{}
+			if menus[name] == nil {
+				menus[name] = valueobject.Menu{}
+			}
 
 			for _, entry := range menu {
-				if menus[name] == nil {
-					menus[name] = valueobject.Menu{}
-				}
-
 				menus[name] = menus[name].Add(&valueobject.MenuEntry{
 					MenuConfig: valueobject.MenuConfig{
 						Name:   entry.Name(),
@@ -49,6 +46,29 @@ func (s *Site) PrepareLazyLoads() {
 				})
 			}
 		}
+
+		lp, err := s.GetPage(valueobject.ReservedLinksFile)
+
+		if lp != nil && err == nil {
+			hs := lp.Result().Headers()
+			for _, h := range hs {
+				if h.Name() == valueobject.ReservedLinksMenuSection {
+					for i, l := range h.Links() {
+						menus[valueobject.MenusAfter] = menus[valueobject.MenusAfter].Add(&valueobject.MenuEntry{
+							MenuConfig: valueobject.MenuConfig{
+								Name:   l.Text(), // TODO, relative path
+								URL:    l.URL(),
+								Weight: valueobject.ReservedLinksWeight + i,
+							},
+							Menu: valueobject.MenusAfter,
+						})
+					}
+				}
+			}
+		} else if err != nil {
+			s.Log.Errorf("Reserved links Menus: %v", err)
+		}
+
 		s.Navigation.menus = menus
 
 		return nil, nil

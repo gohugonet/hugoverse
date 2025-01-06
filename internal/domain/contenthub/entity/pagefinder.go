@@ -19,9 +19,11 @@ type PageFinder struct {
 	PageMapper *PageMap
 }
 
-func (pf *PageFinder) GetPageFromPath(path string) (contenthub.Page, error) {
+func (pf *PageFinder) GetPageFromPath(langIndex int, path string) (contenthub.Page, error) {
 	p := paths.Parse(files.ComponentFolderContent, path)
-	n := pf.PageMapper.TreePages.Get(p.Base()) // TODO, shape?
+
+	tree := pf.PageMapper.TreePages.Shape(0, langIndex)
+	n := tree.Get(p.Base())
 
 	if n != nil {
 		ps, found := n.getPage()

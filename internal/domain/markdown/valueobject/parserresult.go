@@ -8,12 +8,14 @@ import (
 type ParserResult struct {
 	doc ast.Node
 	toc markdown.TocFragments
+	src []byte
 }
 
-func NewParserResult(doc ast.Node, toc markdown.TocFragments) *ParserResult {
+func NewParserResult(doc ast.Node, toc markdown.TocFragments, src []byte) *ParserResult {
 	return &ParserResult{
 		doc: doc,
 		toc: toc,
+		src: src,
 	}
 }
 
@@ -33,11 +35,13 @@ func (p *ParserResult) Headers() []markdown.Header {
 	walk = func(node ast.Node) {
 		for child := node.FirstChild(); child != nil; child = child.NextSibling() {
 			if heading, ok := child.(*ast.Heading); ok {
-				text := extractTextFromNode(heading)
+				text := extractTextFromNode(heading, p.src)
 				headers = append(headers, &HeaderNode{
 					text:  text,
 					level: heading.Level,
-					node:  heading,
+
+					node: heading,
+					src:  p.src,
 				})
 			}
 			walk(child) // 递归子节点
@@ -48,11 +52,11 @@ func (p *ParserResult) Headers() []markdown.Header {
 	return headers
 }
 
-func extractTextFromNode(node ast.Node) string {
+func extractTextFromNode(node ast.Node, src []byte) string {
 	var text string
 	for child := node.FirstChild(); child != nil; child = child.NextSibling() {
 		if segment, ok := child.(*ast.Text); ok {
-			text += string(segment.Segment.Value([]byte{}))
+			text += string(segment.Segment.Value(src))
 		}
 	}
 	return text

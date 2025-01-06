@@ -50,7 +50,7 @@ type ContentService interface {
 	GlobalPages() contenthub.Pages
 	GlobalRegularPages() contenthub.Pages
 
-	GetPageFromPath(path string) (contenthub.Page, error)
+	GetPageFromPath(langIndex int, path string) (contenthub.Page, error)
 	GetPageRef(context contenthub.Page, ref string, home contenthub.Page) (contenthub.Page, error)
 }
 

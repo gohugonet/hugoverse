@@ -81,8 +81,18 @@ var defaultMenuEntrySort = func(m1, m2 *MenuEntry) bool {
 	return m1.Weight < m2.Weight
 }
 
+const MenusAfter = "after"
+const MenusBefore = "before"
+
 // Menus is a dictionary of menus.
 type Menus map[string]Menu
+
+func NewEmptyMenus() Menus {
+	return Menus{
+		MenusBefore: Menu{},
+		MenusAfter:  Menu{},
+	}
+}
 
 // MenuConfig holds the configuration for a menu.
 type MenuConfig struct {

@@ -76,13 +76,13 @@ func (c *ContentProvider) Content() (any, error) {
 	return cs.Content, err
 }
 
-func (c *ContentProvider) MarkdownHeaders() []string {
+func (c *ContentProvider) Result() markdown.Result {
 	cs, err := c.ContentSummary()
 	if err != nil {
 		c.log.Errorln("MarkdownHeaders", err)
-		return []string{}
+		return nil
 	}
-	return cs.MarkdownHeadersName()
+	return cs.MarkdownResult
 }
 
 func (c *ContentProvider) ContentSummary() (valueobject.ContentSummary, error) {

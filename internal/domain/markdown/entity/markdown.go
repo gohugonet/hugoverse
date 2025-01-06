@@ -44,7 +44,7 @@ func (md *Markdown) parse(ctx markdown.RenderContext) (*valueobject.ParserResult
 		parser.WithContext(pctx),
 	)
 
-	return valueobject.NewParserResult(doc, pctx.TableOfContents()), nil
+	return valueobject.NewParserResult(doc, pctx.TableOfContents(), ctx.Src), nil
 }
 
 func (md *Markdown) render(rctx markdown.RenderContext, dctx markdown.DocumentContext, doc ast.Node) (markdown.RenderingResult, error) {

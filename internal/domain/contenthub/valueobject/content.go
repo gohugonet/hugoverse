@@ -54,16 +54,6 @@ func NewEmptyContentSummary() ContentSummary {
 	}
 }
 
-func (c *ContentSummary) MarkdownHeadersName() []string {
-	var names []string
-	if c.MarkdownResult != nil {
-		for _, h := range c.MarkdownResult.Headers() {
-			names = append(names, h.Name())
-		}
-	}
-	return names
-}
-
 func (c *ContentSummary) IsSummaryEmpty() bool {
 	return c.Summary == ""
 }

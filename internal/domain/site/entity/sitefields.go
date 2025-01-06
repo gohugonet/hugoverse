@@ -34,9 +34,13 @@ func (s *Site) GetPage(ref ...string) (*Page, error) {
 		key = "/" + key
 	}
 
-	p, err := s.ContentSvc.GetPageFromPath(key)
+	p, err := s.ContentSvc.GetPageFromPath(s.CurrentLanguageIndex(), key)
 	if err != nil {
 		return nil, err
+	}
+
+	if p == nil {
+		return nil, nil
 	}
 
 	return s.sitePage(p)

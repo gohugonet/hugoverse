@@ -304,6 +304,7 @@ type PageOutput interface {
 	Content() (any, error)
 	Summary() goTmpl.HTML
 	TableOfContents() goTmpl.HTML
+	Result() markdown.Result
 }
 
 type PagerManager interface {
