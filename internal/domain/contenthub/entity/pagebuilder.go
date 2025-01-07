@@ -32,6 +32,7 @@ type PageBuilder struct {
 	kind     string
 	singular string
 	term     string
+	langIdx  int
 
 	fm       *valueobject.FrontMatter
 	fmParser *valueobject.FrontMatterParser
@@ -50,9 +51,16 @@ func (b *PageBuilder) WithSource(source *Source) *PageBuilder {
 	return &cloneBuilder
 }
 
+func (b *PageBuilder) WithLangIdx(idx int) *PageBuilder {
+	b.langIdx = idx
+
+	return b
+}
+
 func (b *PageBuilder) reset() {
 	b.c = nil
 	b.kind = ""
+	b.langIdx = -1
 }
 
 func (b *PageBuilder) Build() (contenthub.Page, error) {
@@ -82,8 +90,14 @@ func (b *PageBuilder) KindBuild() (contenthub.Page, error) {
 		return nil, err
 	}
 
-	if err := b.parseLanguageByDefault(); err != nil {
-		return nil, err
+	if b.langIdx == -1 {
+		if err := b.parseLanguageByDefault(); err != nil {
+			return nil, err
+		}
+	} else {
+		if err := b.parseLanguageByIdx(b.langIdx); err != nil {
+			return nil, err
+		}
 	}
 
 	b.fm = &valueobject.FrontMatter{}
@@ -389,6 +403,14 @@ func (b *PageBuilder) parseLanguageByDefault() error {
 
 	b.source.Identity.Lang = dl
 	b.source.Identity.LangIdx = idx
+	return nil
+}
+
+func (b *PageBuilder) parseLanguageByIdx(langIdx int) error {
+	dl := b.LangSvc.GetLanguageByIndex(langIdx)
+
+	b.source.Identity.Lang = dl
+	b.source.Identity.LangIdx = langIdx
 	return nil
 }
 

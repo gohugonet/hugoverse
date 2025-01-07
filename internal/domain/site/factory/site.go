@@ -47,7 +47,7 @@ func New(services site.Services) *entity.Site {
 		Language: &entity.Language{
 			LangSvc: services,
 		},
-		Navigation: &entity.Navigation{},
+		Navigation: entity.NewNavigation(services),
 
 		Log: loggers.NewDefault(),
 	}

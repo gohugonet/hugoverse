@@ -81,7 +81,9 @@ type LangService interface {
 	IsLanguageValid(lang string) bool
 	GetSourceLang(source string) (string, bool)
 	GetLanguageIndex(lang string) (int, error)
+	GetLanguageByIndex(idx int) string
 	DefaultLanguage() string
+	LanguageIndexes() []int
 }
 
 type Taxonomy interface {

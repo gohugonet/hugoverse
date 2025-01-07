@@ -85,6 +85,14 @@ func (l *Language) LanguageKeys() []string {
 	return l.indices
 }
 
+func (l *Language) LanguageIndexes() []int {
+	var indexes []int
+	for i, _ := range l.indices {
+		indexes = append(indexes, i)
+	}
+	return indexes
+}
+
 func (l *Language) GetLanguageIndex(lang string) (int, error) {
 	for i, v := range l.indices {
 		if v == lang {
@@ -92,6 +100,10 @@ func (l *Language) GetLanguageIndex(lang string) (int, error) {
 		}
 	}
 	return -1, errors.New("language not found in indices")
+}
+
+func (l *Language) GetLanguageByIndex(idx int) string {
+	return l.indices[idx]
 }
 
 func (l *Language) GetLanguageName(lang string) string {

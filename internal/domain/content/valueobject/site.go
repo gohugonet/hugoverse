@@ -14,15 +14,17 @@ import (
 type Site struct {
 	Item
 
-	Title       string   `json:"title"`
-	Description string   `json:"description"`
-	BaseURL     string   `json:"base_url"`
-	Theme       string   `json:"theme"`
-	Params      string   `json:"params"`
-	Owner       string   `json:"owner"`
-	WorkingDir  string   `json:"working_dir"`
-	Languages   []string `json:"languages"`
-	Menus       []string `json:"menus"`
+	Title                  string   `json:"title"`
+	Description            string   `json:"description"`
+	BaseURL                string   `json:"base_url"`
+	Theme                  string   `json:"theme"`
+	Params                 string   `json:"params"`
+	Owner                  string   `json:"owner"`
+	WorkingDir             string   `json:"working_dir"`
+	GoogleAnalytics        string   `json:"google_analytics"`
+	DefaultContentLanguage string   `json:"default_content_language"`
+	Languages              []string `json:"languages"`
+	Menus                  []string `json:"menus"`
 }
 
 // MarshalEditor writes a buffer of html to edit a Song within the CMS
@@ -76,6 +78,20 @@ func (s *Site) MarshalEditor() ([]byte, error) {
 				"label":       "WorkingDir",
 				"type":        "text",
 				"placeholder": "Enter the project file system dir here",
+			}),
+		},
+		editor.Field{
+			View: editor.Input("GoogleAnalytics", s, map[string]string{
+				"label":       "GoogleAnalytics",
+				"type":        "text",
+				"placeholder": "Enter the GoogleAnalytics here",
+			}),
+		},
+		editor.Field{
+			View: editor.Input("DefaultLanguage", s, map[string]string{
+				"label":       "DefaultLanguage",
+				"type":        "text",
+				"placeholder": "Enter the DefaultLanguage here",
 			}),
 		},
 		editor.Field{
@@ -200,6 +216,9 @@ func (s *Site) Toml() ([]byte, error) {
 description = "{{.Description}}"
 baseURL = "{{.BaseURL}}"
 owner = "{{.Owner}}"
+
+defaultContentLanguage = "{{.DefaultContentLanguage}}"
+googleAnalytics = "{{.GoogleAnalytics}}"
 
 [module]
   [[module.imports]]

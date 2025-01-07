@@ -2,6 +2,7 @@ package entity
 
 import (
 	"fmt"
+	"github.com/gohugonet/hugoverse/internal/domain/site"
 	"github.com/gohugonet/hugoverse/internal/domain/site/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/compare"
 	"sort"
@@ -9,7 +10,18 @@ import (
 
 type Navigation struct {
 	taxonomies TaxonomyList
-	menus      valueobject.Menus
+	menus      map[string]valueobject.Menus
+}
+
+func NewNavigation(langSvc site.LanguageService) *Navigation {
+	n := &Navigation{
+		taxonomies: make(TaxonomyList),
+		menus:      make(map[string]valueobject.Menus),
+	}
+	for _, l := range langSvc.LanguageKeys() {
+		n.menus[l] = valueobject.NewEmptyMenus()
+	}
+	return n
 }
 
 // The TaxonomyList is a list of all taxonomies and their values

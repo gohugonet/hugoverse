@@ -187,8 +187,11 @@ func (m *PageMap) assembleStructurePages() error {
 		return err
 	}
 
-	if err := m.PageBuilder.Section.Assemble(m.TreePages, m.PageBuilder); err != nil {
-		return err
+	for _, idx := range m.PageBuilder.LangSvc.LanguageIndexes() {
+		tree := m.TreePages.Shape(0, idx)
+		if err := m.PageBuilder.Section.Assemble(tree, m.PageBuilder, idx); err != nil {
+			return err
+		}
 	}
 
 	if err := m.addMissingStandalone(); err != nil {

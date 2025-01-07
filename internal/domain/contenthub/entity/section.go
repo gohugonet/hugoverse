@@ -30,7 +30,7 @@ func (s *Section) isSectionExist(section string) bool {
 	return false
 }
 
-func (s *Section) Assemble(pages *doctree.NodeShiftTree[*PageTreesNode], pb *PageBuilder) error {
+func (s *Section) Assemble(pages *doctree.NodeShiftTree[*PageTreesNode], pb *PageBuilder, langIdx int) error {
 	s.seen = make(map[string]bool)
 
 	var w *doctree.NodeShiftTreeWalker[*PageTreesNode]
@@ -85,7 +85,7 @@ func (s *Section) Assemble(pages *doctree.NodeShiftTree[*PageTreesNode], pb *Pag
 			nn := w.Tree.Get(sectionBase)
 
 			if nn == nil {
-				sectionPage, err := pb.WithSource(sectionSource).KindBuild()
+				sectionPage, err := pb.WithSource(sectionSource).WithLangIdx(langIdx).KindBuild()
 				if err != nil {
 					return false, err
 				}

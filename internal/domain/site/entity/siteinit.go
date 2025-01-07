@@ -10,23 +10,21 @@ import (
 type siteInit struct {
 	prevNext          *lazy.Init
 	prevNextInSection *lazy.Init
-	menus             *lazy.Init
+	menus             map[string]*lazy.Init
 	taxonomies        *lazy.Init
 }
 
 func (init *siteInit) Reset() {
 	init.prevNext.Reset()
 	init.prevNextInSection.Reset()
-	init.menus.Reset()
+	for k := range init.menus {
+		init.menus[k].Reset()
+	}
 	init.taxonomies.Reset()
 }
 
 func (s *Site) PrepareLazyLoads() {
-	s.lazy = &siteInit{}
-
-	var init lazy.Init
-
-	s.lazy.menus = init.Branch(func() (any, error) {
+	initMenu := func() (any, error) {
 		menus := valueobject.NewEmptyMenus()
 
 		menusConf := s.ConfigSvc.Menus()
@@ -69,10 +67,18 @@ func (s *Site) PrepareLazyLoads() {
 			s.Log.Errorf("Reserved links Menus: %v", err)
 		}
 
-		s.Navigation.menus = menus
-
+		s.Navigation.menus[s.Language.currentLanguage] = menus
 		return nil, nil
-	})
+	}
+
+	s.lazy = &siteInit{
+		menus: map[string]*lazy.Init{},
+	}
+
+	var init lazy.Init
+	for _, lang := range s.LanguageSvc.LanguageKeys() {
+		s.lazy.menus[lang] = init.Branch(initMenu)
+	}
 
 	s.lazy.taxonomies = init.Branch(func() (any, error) {
 		s.Navigation.taxonomies = make(TaxonomyList)
@@ -115,9 +121,14 @@ func (s *Site) Taxonomies() TaxonomyList {
 }
 
 func (s *Site) Menus() valueobject.Menus {
-	if _, err := s.lazy.menus.Do(); err != nil {
-		s.Log.Errorf("Menus: %v", err)
+	init, ok := s.lazy.menus[s.Language.currentLanguage]
+	if ok {
+		if _, err := init.Do(); err != nil {
+			s.Log.Errorf("Menus: %v", err)
+		}
+	} else {
+		s.Log.Errorf("Menus: no init for %s", s.Language.currentLanguage)
 	}
 
-	return s.Navigation.menus
+	return s.Navigation.menus[s.Language.currentLanguage]
 }

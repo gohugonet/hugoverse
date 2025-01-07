@@ -1,6 +1,8 @@
 package entity
 
-import "github.com/gohugonet/hugoverse/internal/domain/config/valueobject"
+import (
+	"github.com/gohugonet/hugoverse/internal/domain/config/valueobject"
+)
 
 type Service struct {
 	valueobject.ServiceConfig
