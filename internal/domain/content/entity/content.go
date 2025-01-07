@@ -186,7 +186,7 @@ func (c *Content) SortContent(contentType string) error {
 			err = json.Unmarshal(j, &post)
 		}
 		if err != nil {
-			c.Log.Errorln("Error decoding json while sorting", contentType, ":", err)
+			c.Log.Errorln("Error decoding json while sorting", contentType, ":", err, string(j))
 			continue
 		}
 

@@ -88,8 +88,8 @@ func (s *Site) MarshalEditor() ([]byte, error) {
 			}),
 		},
 		editor.Field{
-			View: editor.Input("DefaultLanguage", s, map[string]string{
-				"label":       "DefaultLanguage",
+			View: editor.Input("DefaultContentLanguage", s, map[string]string{
+				"label":       "DefaultContentLanguage",
 				"type":        "text",
 				"placeholder": "Enter the DefaultLanguage here",
 			}),
