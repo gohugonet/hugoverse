@@ -145,7 +145,7 @@ func (p *Page) renderResources() error {
 				prefix = p.Site.currentLanguage
 			}
 
-			targetFilenames = append(targetFilenames, path.Join(prefix, o.TargetSubResourceDir(), rs.TargetPath()))
+			targetFilenames = append(targetFilenames, path.Join(prefix, rs.TargetPath()))
 		}
 
 		if err := func() error {
