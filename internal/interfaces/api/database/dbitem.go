@@ -6,9 +6,14 @@ import (
 )
 
 const ItemBucketPrefix = "__"
+const ItemBucketIndexSuffix = "__index"
 
 func bucketNameWithPrefix(name string) string {
 	return ItemBucketPrefix + name
+}
+
+func bucketNameWithIndex(name string) string {
+	return name + ItemBucketIndexSuffix
 }
 
 func newUploadItem(id string, data []byte) *item {

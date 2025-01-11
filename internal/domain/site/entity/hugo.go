@@ -27,3 +27,7 @@ func (s *Site) IsMultilingual() bool {
 func (s *Site) IsMultihost() bool {
 	return false
 }
+
+func (s *Site) Copyright() string {
+	return ""
+}

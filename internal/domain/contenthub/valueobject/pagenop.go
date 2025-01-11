@@ -15,6 +15,16 @@ var (
 // PageNop implements Page, but does nothing.
 type nopPage int
 
+func (p *nopPage) Sections(langIndex int) contenthub.Pages {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (p *nopPage) IsTranslated() bool {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (p *nopPage) PageDate() time.Time {
 	//TODO implement me
 	panic("implement me")

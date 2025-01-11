@@ -110,9 +110,9 @@ func (ch *ContentHub) GetPageSources(page contenthub.Page) ([]contenthub.PageSou
 	return v, nil
 }
 
-func (ch *ContentHub) GlobalPages() contenthub.Pages {
+func (ch *ContentHub) GlobalPages(langIndex int) contenthub.Pages {
 	return ch.PageMap.getPagesInSection(
-		0,
+		langIndex,
 		pageMapQueryPagesInSection{
 			pageMapQueryPagesBelowPath: pageMapQueryPagesBelowPath{
 				Path:    "",

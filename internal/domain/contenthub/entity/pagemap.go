@@ -427,3 +427,42 @@ func (m *PageMap) getTermsForPageInTaxonomy(base, taxonomy string) contenthub.Pa
 
 	return v
 }
+
+func (m *PageMap) getSections(langIndex int, prefix string) contenthub.Pages {
+	var (
+		pages               contenthub.Pages
+		currentBranchPrefix string
+		tree                = m.TreePages.Shape(0, langIndex)
+	)
+
+	w := &doctree.NodeShiftTreeWalker[*PageTreesNode]{
+		Tree:   tree,
+		Prefix: prefix,
+	}
+	w.Handle = func(ss string, n *PageTreesNode, match doctree.DimensionFlag) (bool, error) {
+		p, found := n.getPage()
+		if !found {
+			return false, nil
+		}
+
+		if p.IsPage() {
+			return false, nil
+		}
+		if currentBranchPrefix == "" || !strings.HasPrefix(ss, currentBranchPrefix) {
+			if p.IsSection() && p.ShouldList(false) && p.Parent() == p {
+				pages = append(pages, p)
+			} else {
+				w.SkipPrefix(ss + "/")
+			}
+		}
+		currentBranchPrefix = ss + "/"
+		return false, nil
+	}
+
+	if err := w.Walk(context.Background()); err != nil {
+		panic(err)
+	}
+
+	valueobject.SortByDefault(pages)
+	return pages
+}

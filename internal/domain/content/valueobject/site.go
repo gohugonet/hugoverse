@@ -20,11 +20,11 @@ type Site struct {
 	Theme                  string   `json:"theme"`
 	Params                 string   `json:"params"`
 	Owner                  string   `json:"owner"`
-	WorkingDir             string   `json:"working_dir"`
-	GoogleAnalytics        string   `json:"google_analytics"`
-	DefaultContentLanguage string   `json:"default_content_language"`
-	Languages              []string `json:"languages"`
-	Menus                  []string `json:"menus"`
+	WorkingDir             string   `json:"working_dir,omitempty"`
+	GoogleAnalytics        string   `json:"google_analytics,omitempty"`
+	DefaultContentLanguage string   `json:"default_content_language,omitempty"`
+	Languages              []string `json:"languages,omitempty"`
+	Menus                  []string `json:"menus,omitempty"`
 }
 
 // MarshalEditor writes a buffer of html to edit a Song within the CMS
@@ -217,8 +217,12 @@ description = "{{.Description}}"
 baseURL = "{{.BaseURL}}"
 owner = "{{.Owner}}"
 
+{{ if .DefaultContentLanguage }}
 defaultContentLanguage = "{{.DefaultContentLanguage}}"
+{{ end }}
+{{ if .GoogleAnalytics }}
 googleAnalytics = "{{.GoogleAnalytics}}"
+{{ end }}
 
 [module]
   [[module.imports]]

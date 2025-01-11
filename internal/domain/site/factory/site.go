@@ -23,6 +23,7 @@ func New(services site.Services) *entity.Site {
 		TranslationSvc: services,
 		ResourcesSvc:   services,
 		LanguageSvc:    services,
+		Sitemap:        services,
 
 		GitSvc: git,
 
@@ -54,6 +55,7 @@ func New(services site.Services) *entity.Site {
 
 	s.PrepareLazyLoads()
 	s.Ref.Site = s
+	s.Reserve = entity.NewReserve(s)
 
 	return s
 }

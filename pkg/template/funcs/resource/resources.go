@@ -9,6 +9,7 @@ import (
 	"github.com/gohugonet/hugoverse/pkg/maps"
 	"github.com/gohugonet/hugoverse/pkg/template/funcs/resource/resourcehelpers"
 	"github.com/spf13/cast"
+	"reflect"
 )
 
 // New returns a new instance of the resources-namespaced template functions.
@@ -181,4 +182,29 @@ func (ns *Namespace) ToCSS(args ...any) (resources.Resource, error) {
 	}
 
 	return ns.resourceService.ToCSS(r, m)
+}
+
+// Concat concatenates a slice of Resource objects. These resources must
+// (currently) be of the same Media Type.
+func (ns *Namespace) Concat(targetPathIn any, r any) (resources.Resource, error) {
+	targetPath, err := cast.ToStringE(targetPathIn)
+	if err != nil {
+		return nil, err
+	}
+
+	rv := reflect.ValueOf(r)
+	if rv.Kind() != reflect.Slice {
+		return nil, errors.New("expected slice of Resource objects, received " + rv.Kind().String() + " instead")
+	}
+
+	var rr []resources.Resource
+	for i := 0; i < rv.Len(); i++ {
+		rr = append(rr, rv.Index(i).Interface().(resources.Resource))
+	}
+
+	if len(rr) == 0 {
+		return nil, errors.New("must provide one or more Resource objects to concat")
+	}
+
+	return ns.resourceService.Concat(targetPath, rr)
 }

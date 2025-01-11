@@ -273,8 +273,11 @@ type Page interface {
 
 	Parent() Page
 	Pages(langIndex int) Pages
+	Sections(langIndex int) Pages
 	RegularPages() Pages
 	Terms(langIndex int, taxonomy string) Pages
+
+	IsTranslated() bool
 	Translations() Pages
 }
 
@@ -317,12 +320,18 @@ type PagerManager interface {
 	Paginate(groups PageGroups) (Pager, error)
 }
 
+type Pagers []Pager
+
 type Pager interface {
 	PageNumber() int
 	TotalPages() int
 
 	URL() string
 	Pages() Pages
+
+	Pagers() Pagers
+	First() Pager
+	Last() Pager
 	HasPrev() bool
 	Prev() Pager
 	HasNext() bool

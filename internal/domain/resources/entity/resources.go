@@ -34,6 +34,7 @@ type Resources struct {
 	*TemplateClient
 	*IntegrityClient
 	*SassClient
+	*BundlerClient
 }
 
 func (rs *Resources) SetupTemplateClient(tmpl Template) {

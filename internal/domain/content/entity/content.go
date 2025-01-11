@@ -138,7 +138,7 @@ func (c *Content) UpdateContentObject(ci any) error {
 				GetNamespace(cii.ItemName(), string(cis.ItemStatus())),
 				fmt.Sprintf("%d", cii.ItemID()), b); err != nil {
 
-				log.Println("[search] UpdateIndex Error:", err)
+				c.Log.Errorln("[search] UpdateIndex Error:", err)
 			}
 		}()
 	}
@@ -147,7 +147,7 @@ func (c *Content) UpdateContentObject(ci any) error {
 		go func() {
 			err := c.SortContent(cii.ItemName())
 			if err != nil {
-				log.Println("sort content err: ", err)
+				c.Log.Errorln("sort content err: ", err)
 			}
 		}()
 	}

@@ -17,4 +17,6 @@ type Resource interface {
 	Fingerprint(res resources.Resource, algo string) (resources.Resource, error)
 
 	ToCSS(res resources.Resource, args map[string]any) (resources.Resource, error)
+
+	Concat(targetPath string, r []resources.Resource) (resources.Resource, error)
 }

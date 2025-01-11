@@ -220,6 +220,12 @@ func (cl *ConfigLoader) decodeConfig(p config.Provider, target *entity.Config) e
 	}
 	target.Module.ModuleConfig = m
 
+	sitemap, err := valueobject.DecodeSitemap(valueobject.SitemapConfig{Priority: -1, Filename: "sitemap.xml"}, p.GetStringMap("sitemap"))
+	if err != nil {
+		return err
+	}
+	target.Sitemap.Conf = sitemap
+
 	languages, err := valueobject.DecodeLanguageConfig(p)
 	if err != nil {
 		return err

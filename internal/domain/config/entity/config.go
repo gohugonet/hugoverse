@@ -24,6 +24,7 @@ type Config struct {
 	OutputFormats
 
 	MinifyC
+	Sitemap
 
 	*Taxonomy
 }

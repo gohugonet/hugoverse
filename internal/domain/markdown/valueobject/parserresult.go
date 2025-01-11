@@ -3,6 +3,7 @@ package valueobject
 import (
 	"github.com/gohugonet/hugoverse/internal/domain/markdown"
 	"github.com/yuin/goldmark/ast"
+	"strings"
 )
 
 type ParserResult struct {
@@ -60,4 +61,33 @@ func extractTextFromNode(node ast.Node, src []byte) string {
 		}
 	}
 	return text
+}
+
+func extractAllTextFromNode(node ast.Node, source []byte) string {
+	var textBuilder strings.Builder
+
+	// 定义 Walker 函数
+	walker := func(n ast.Node, entering bool) (ast.WalkStatus, error) {
+		if !entering {
+			return ast.WalkContinue, nil
+		}
+
+		switch n := n.(type) {
+		case *ast.Text:
+			textBuilder.Write(n.Segment.Value(source)) // 提取普通文本
+
+		case *ast.AutoLink:
+			textBuilder.Write(n.Label(source)) // 提取自动链接（如邮箱、URL）
+
+		case *ast.Link:
+			textBuilder.Write(n.Text(source)) // 提取显式链接
+		}
+
+		return ast.WalkContinue, nil
+	}
+
+	// 使用 Walk 遍历整个节点树
+	_ = ast.Walk(node, walker)
+
+	return textBuilder.String()
 }

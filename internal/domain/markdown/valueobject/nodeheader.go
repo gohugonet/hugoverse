@@ -53,3 +53,24 @@ func (h *HeaderNode) Links() []markdown.Link {
 
 	return links
 }
+
+func (h *HeaderNode) Paragraphs() []markdown.Paragraph {
+	var paragraphs []markdown.Paragraph
+
+	for sibling := h.node.NextSibling(); sibling != nil; sibling = sibling.NextSibling() {
+		// 如果遇到下一个 Header，停止收集
+		if heading, ok := sibling.(*ast.Heading); ok {
+			if heading.Level <= h.Level() {
+				break
+			}
+		}
+
+		// 检查段落节点
+		if paragraph, ok := sibling.(*ast.Paragraph); ok {
+			text := extractAllTextFromNode(paragraph, h.src)
+			paragraphs = append(paragraphs, &ParagraphNode{text: text})
+		}
+	}
+
+	return paragraphs
+}

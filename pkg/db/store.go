@@ -38,6 +38,11 @@ func NewStore(dataDir string, contentTypes []string) (*Store, error) {
 			if err != nil {
 				return err
 			}
+
+			_, err = tx.CreateBucketIfNotExists([]byte(t + "__index"))
+			if err != nil {
+				return err
+			}
 		}
 
 		return nil

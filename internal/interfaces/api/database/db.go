@@ -86,6 +86,10 @@ func (d *Database) AllContent(namespace string) [][]byte {
 	return d.getStore(namespace).ContentAll(namespace)
 }
 
+func (d *Database) ContentByPrefix(namespace, prefix string) ([][]byte, error) {
+	return d.getStore(namespace).ContentByPrefix(bucketNameWithIndex(namespace), prefix)
+}
+
 func (d *Database) GetContent(namespace string, id string) ([]byte, error) {
 	return d.getStore(namespace).Get(
 		&item{
@@ -96,6 +100,10 @@ func (d *Database) GetContent(namespace string, id string) ([]byte, error) {
 
 func (d *Database) DeleteContent(namespace string, id string, slug string) error {
 	if err := d.getStore(namespace).Delete(&item{bucket: namespace, key: id}); err != nil {
+		return err
+	}
+
+	if err := d.getStore(namespace).Delete(&item{bucket: bucketNameWithIndex(namespace), key: slug}); err != nil {
 		return err
 	}
 
@@ -132,6 +140,18 @@ func (d *Database) PutContent(ci any, data []byte) error {
 			value:  data,
 		}); err != nil {
 		return err
+	}
+
+	ciSlug, ok := ci.(content.Sluggable)
+	if ok {
+		if err := d.getStore(ns).Set(
+			&item{
+				bucket: bucketNameWithIndex(ns),
+				key:    ciSlug.ItemSlug(),
+				value:  data,
+			}); err != nil {
+			return err
+		}
 	}
 
 	return nil

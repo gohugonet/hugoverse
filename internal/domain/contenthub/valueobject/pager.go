@@ -66,6 +66,14 @@ func (p *Pager) Next() contenthub.Pager {
 	return p.pagers[p.PageNumber()]
 }
 
+func (p *Pager) First() contenthub.Pager {
+	return p.pagers[0]
+}
+
+func (p *Pager) Last() contenthub.Pager {
+	return p.pagers[len(p.pagers)-1]
+}
+
 func (p *Pager) URL() string {
 	pageNumber := p.PageNumber()
 	if pageNumber > 1 {

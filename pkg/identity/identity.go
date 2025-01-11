@@ -52,6 +52,13 @@ type ForEeachIdentityProvider interface {
 	ForEeachIdentity(cb func(id Identity) bool) bool
 }
 
+// ForEeachIdentityProviderFunc is a function that implements the ForEeachIdentityProvider interface.
+type ForEeachIdentityProviderFunc func(func(id Identity) bool) bool
+
+func (f ForEeachIdentityProviderFunc) ForEeachIdentity(cb func(id Identity) bool) bool {
+	return f(cb)
+}
+
 // WalkIdentitiesShallow will not walk into a Manager's Identities.
 // See WalkIdentitiesDeep.
 // cb is called for every Identity found and returns whether to terminate the walk.

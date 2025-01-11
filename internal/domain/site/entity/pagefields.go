@@ -80,20 +80,6 @@ func (p *Page) Translations() []*Page {
 	return p.sitePages(p.Page.Translations())
 }
 
-func (p *Page) sitePages(ps contenthub.Pages) []*Page {
-	var pages []*Page
-	for _, cp := range ps {
-		np, err := p.Site.sitePage(cp)
-		if err != nil {
-			continue
-		}
-
-		pages = append(pages, np)
-	}
-
-	return pages
-}
-
 func (p *Page) Parent() *Page {
 	if p.IsHome() {
 		return nil
@@ -162,12 +148,15 @@ func (p *Page) Title() string {
 func (p *Page) Language() struct {
 	Lang         string
 	LanguageName string
+	LanguageCode string
 } {
 	return struct {
 		Lang         string
 		LanguageName string
+		LanguageCode string
 	}{
 		Lang:         p.PageIdentity().PageLanguage(),
 		LanguageName: p.Site.Language.LangSvc.GetLanguageName(p.PageIdentity().PageLanguage()),
+		LanguageCode: p.PageIdentity().PageLanguage(),
 	}
 }

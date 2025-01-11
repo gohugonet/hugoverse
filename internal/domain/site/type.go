@@ -22,6 +22,12 @@ type Services interface {
 	FsService
 	URLService
 	ConfigService
+	SitemapService
+}
+
+type SitemapService interface {
+	ChangeFreq() string
+	Priority() float64
 }
 
 type ConfigService interface {
@@ -47,7 +53,7 @@ type ContentService interface {
 	WalkPages(langIndex int, walker contenthub.WalkFunc) error
 	GetPageSources(page contenthub.Page) ([]contenthub.PageSource, error)
 	WalkTaxonomies(langIndex int, walker contenthub.WalkTaxonomyFunc) error
-	GlobalPages() contenthub.Pages
+	GlobalPages(langIndex int) contenthub.Pages
 	GlobalRegularPages() contenthub.Pages
 
 	GetPageFromPath(langIndex int, path string) (contenthub.Page, error)

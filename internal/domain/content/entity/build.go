@@ -75,14 +75,13 @@ func (c *Content) BuildTarget(contentType, id, status string) (string, error) {
 
 func (c *Content) writeSitePosts(siteId int, dir string, writerFiles chan *valueobject.File) error {
 	q := fmt.Sprintf(`site%d`, siteId)
-	encodedQ := url.QueryEscape(q)
 
-	sitePosts, err := c.search("SitePost", fmt.Sprintf("slug:%s", encodedQ))
+	sitePosts, err := c.Repo.ContentByPrefix(GetNamespace("SitePost", ""), q)
 	if err != nil {
 		return err
 	}
 
-	c.Log.Printf("sitePosts len: %d", len(sitePosts))
+	c.Log.Debugf("sitePosts len: %d", len(sitePosts))
 
 	for _, data := range sitePosts {
 		var sp valueobject.SitePost
@@ -117,9 +116,8 @@ func (c *Content) writeSitePosts(siteId int, dir string, writerFiles chan *value
 
 func (c *Content) writeSiteResource(siteId int, dir string) error {
 	q := fmt.Sprintf(`site%d`, siteId)
-	encodedQ := url.QueryEscape(q)
 
-	siteResources, err := c.search("SiteResource", fmt.Sprintf("slug:%s", encodedQ))
+	siteResources, err := c.Repo.ContentByPrefix(GetNamespace("SiteResource", ""), q)
 	if err != nil {
 		return err
 	}

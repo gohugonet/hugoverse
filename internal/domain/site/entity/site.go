@@ -17,6 +17,7 @@ type Site struct {
 	TranslationSvc site.TranslationService
 	ResourcesSvc   site.ResourceService
 	LanguageSvc    site.LanguageService
+	Sitemap        site.SitemapService
 
 	GitSvc *valueobject.GitMap
 
@@ -33,6 +34,7 @@ type Site struct {
 	*Ref
 	*Language
 	*Navigation
+	*Reserve
 
 	home *Page
 

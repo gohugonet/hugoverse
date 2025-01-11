@@ -59,6 +59,7 @@ func LoadConfig() (*entity.Config, error) {
 		Language:  &entity.Language{},
 		Imaging:   entity.Imaging{},
 		MediaType: entity.MediaType{},
+		Sitemap:   entity.Sitemap{},
 
 		Taxonomy: &entity.Taxonomy{},
 	}

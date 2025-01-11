@@ -32,9 +32,15 @@ func (p *SitePager) Pages() Pages {
 }
 
 func (p *SitePager) Prev() *SitePager {
+	if !p.Pager.HasPrev() {
+		return nil
+	}
 	return &SitePager{p.page, p.Pager.Prev()}
 }
 
 func (p *SitePager) Next() *SitePager {
+	if !p.Pager.HasNext() {
+		return nil
+	}
 	return &SitePager{p.page, p.Pager.Next()}
 }

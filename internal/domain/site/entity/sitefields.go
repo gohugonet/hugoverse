@@ -10,11 +10,22 @@ import (
 )
 
 func (s *Site) Params() maps.Params {
-	return s.ConfigSvc.ConfigParams()
+	cp := s.ConfigSvc.ConfigParams()
+	ps := s.Reserve.Contact()
+
+	maps.MergeParams(cp, ps)
+
+	return cp
 }
 
 func (s *Site) Home() *Page {
 	return s.home
+}
+
+func (s *Site) Sections() []*Page {
+	pgs := s.home.Page.Sections(s.CurrentLanguageIndex())
+
+	return s.sitePages(pgs)
 }
 
 func (s *Site) IsMultiLingual() bool {
@@ -47,34 +58,15 @@ func (s *Site) GetPage(ref ...string) (*Page, error) {
 }
 
 func (s *Site) Pages() []*Page {
-	cps := s.ContentSvc.GlobalPages()
+	cps := s.ContentSvc.GlobalPages(s.CurrentLanguageIndex())
 
-	var pages []*Page
-
-	for _, cp := range cps {
-		p, err := s.sitePage(cp)
-		if err != nil {
-			continue
-		}
-		pages = append(pages, p)
-	}
-	return pages
+	return s.sitePages(cps)
 }
 
 func (s *Site) RegularPages() []*Page {
 	cps := s.ContentSvc.GlobalRegularPages()
 
-	var pages []*Page
-
-	for _, cp := range cps {
-		p, err := s.sitePage(cp)
-		if err != nil {
-			continue
-		}
-		pages = append(pages, p)
-	}
-	return pages
-
+	return s.sitePages(cps)
 }
 
 func (s *Site) pageOutput(p contenthub.Page) (contenthub.PageOutput, error) {
@@ -88,6 +80,20 @@ func (s *Site) pageOutput(p contenthub.Page) (contenthub.PageOutput, error) {
 	po := pos[0] // TODO, check for multiple outputs
 
 	return po, nil
+}
+
+func (s *Site) sitePages(ps contenthub.Pages) []*Page {
+	var pages []*Page
+	for _, cp := range ps {
+		np, err := s.sitePage(cp)
+		if err != nil {
+			continue
+		}
+
+		pages = append(pages, np)
+	}
+
+	return pages
 }
 
 func (s *Site) sitePage(p contenthub.Page) (*Page, error) {

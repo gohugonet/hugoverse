@@ -116,8 +116,14 @@ func splitPageGroups(pageGroups contenthub.PageGroups, size int) []paginatedElem
 	return split
 }
 
-func (p *Paginator) Pagers() pagers {
-	return p.pagers
+func (p *Paginator) Pagers() contenthub.Pagers {
+	var ps contenthub.Pagers
+
+	for _, pager := range p.pagers {
+		ps = append(ps, pager)
+	}
+
+	return ps
 }
 
 func (p *Paginator) TotalPages() int {

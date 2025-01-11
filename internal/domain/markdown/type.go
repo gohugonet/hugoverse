@@ -199,9 +199,14 @@ type Header interface {
 	Level() int
 
 	Links() []Link
+	Paragraphs() []Paragraph
 }
 
 type Link interface {
 	Text() string
 	URL() string
+}
+
+type Paragraph interface {
+	Text() string
 }

@@ -26,6 +26,19 @@ type MenuEntry struct {
 	Page *MenuEntry
 }
 
+// HasChildren returns whether this menu item has any children.
+func (m *MenuEntry) HasChildren() bool {
+	return m.Children != nil
+}
+
+// KeyName returns the key used to identify this menu entry.
+func (m *MenuEntry) KeyName() string {
+	if m.Identifier != "" {
+		return m.Identifier
+	}
+	return m.Name
+}
+
 // Menu is a collection of menu entries.
 type Menu []*MenuEntry
 

@@ -54,8 +54,8 @@ func (s *Site) PrepareLazyLoads() {
 					for i, l := range h.Links() {
 						menus[valueobject.MenusAfter] = menus[valueobject.MenusAfter].Add(&valueobject.MenuEntry{
 							MenuConfig: valueobject.MenuConfig{
-								Name:   l.Text(), // TODO, relative path
-								URL:    l.URL(),
+								Name:   l.Text(),
+								URL:    s.AbsURL(l.URL()),
 								Weight: valueobject.ReservedLinksWeight + i,
 							},
 							Menu: valueobject.MenusAfter,

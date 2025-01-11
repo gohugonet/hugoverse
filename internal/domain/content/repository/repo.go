@@ -5,6 +5,7 @@ type Repository interface {
 	NewContent(ci any, data []byte) error
 
 	AllContent(namespace string) [][]byte
+	ContentByPrefix(namespace, prefix string) ([][]byte, error)
 	GetContent(namespace string, id string) ([]byte, error)
 	DeleteContent(namespace string, id string, slug string) error
 

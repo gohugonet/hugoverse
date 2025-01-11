@@ -103,6 +103,7 @@ type Resource interface {
 	Data() any
 
 	ResourceType() string
+	MediaType() media.Type
 }
 
 type ResourceCopier interface {

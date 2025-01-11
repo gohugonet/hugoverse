@@ -69,6 +69,8 @@ func NewResources(ws resources.Workspace) (*entity.Resources, error) {
 		SassClient:      ds,
 	}
 
+	rs.BundlerClient = entity.NewBundlerClient(rs)
+
 	return rs, nil
 }
 

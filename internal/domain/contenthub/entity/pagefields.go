@@ -78,8 +78,17 @@ func (p *Page) RegularPages() contenthub.Pages {
 	return nil
 }
 
+func (p *Page) Sections(langIndex int) contenthub.Pages {
+	prefix := paths.AddTrailingSlash(p.Paths().Base())
+	return p.pageMap.getSections(langIndex, prefix)
+}
+
 func (p *Page) Terms(langIndex int, taxonomy string) contenthub.Pages {
 	return p.pageMap.getTermsForPageInTaxonomy(p.Paths().Base(), taxonomy)
+}
+
+func (p *Page) IsTranslated() bool {
+	return len(p.Translations()) > 0
 }
 
 func (p *Page) Translations() contenthub.Pages {

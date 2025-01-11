@@ -97,8 +97,9 @@ func (p Params) merge(ps ParamsMergeStrategy, pp Params) {
 		ms = ps
 	}
 
-	noUpdate := ms == ParamsMergeStrategyNone
-	noUpdate = noUpdate || (ps != "" && ps == ParamsMergeStrategyShallow)
+	if ms == ParamsMergeStrategyNone {
+		return
+	}
 
 	for k, v := range pp {
 
@@ -114,8 +115,10 @@ func (p Params) merge(ps ParamsMergeStrategy, pp Params) {
 					vvv.merge(ms, pv)
 				}
 			}
-		} else if !noUpdate {
-			p[k] = v
+		} else {
+			if ps == ParamsMergeStrategyShallow {
+				p[k] = v
+			}
 		}
 
 	}
