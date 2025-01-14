@@ -423,11 +423,11 @@ func (b *PageBuilder) parseLanguage() error {
 		}
 		b.source.Identity.Lang = l
 		b.source.Identity.LangIdx = idx
-	} else {
-		return fmt.Errorf("unknown lang %q", b.source.File.Root())
+
+		return nil
 	}
 
-	return nil
+	return b.parseLanguageByDefault()
 }
 
 func (b *PageBuilder) parseFrontMatter() error {

@@ -68,6 +68,7 @@ type MediaService interface {
 
 type FsService interface {
 	NewFileMetaInfo(filename string) fs.FileMetaInfo
+	NewFileMetaInfoWithContent(content string) fs.FileMetaInfo
 
 	LayoutFs() afero.Fs
 	ContentFs() afero.Fs

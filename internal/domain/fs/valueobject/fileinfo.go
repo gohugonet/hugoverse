@@ -63,6 +63,21 @@ func NewFileInfoWithName(filename string) *FileInfo {
 	}
 }
 
+func NewFileInfoWithContent(content string) *FileInfo {
+	vf, _ := GetVirtualFileInfoWithContent(content)
+	info, _ := vf.GetFileInfo()
+
+	return &FileInfo{
+		FileInfo: info,
+		FileMeta: &FileMeta{
+			filename:      vf.FullName(),
+			OpenFunc:      vf.Open,
+			ComponentRoot: "content",
+			ComponentDir:  "content",
+		},
+	}
+}
+
 func NewFileInfoWithOpener(fi os.FileInfo, filename string, opener FileOpener) *FileInfo {
 	info := NewFileInfo(fi, filename)
 	info.OpenFunc = opener

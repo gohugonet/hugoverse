@@ -9,6 +9,10 @@ import (
 	"strings"
 )
 
+func (s *Site) Description() string {
+	return "A Hugoverse Site built with love. "
+}
+
 func (s *Site) Params() maps.Params {
 	cp := s.ConfigSvc.ConfigParams()
 	ps := s.Reserve.Contact()

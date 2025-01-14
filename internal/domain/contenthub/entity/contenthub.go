@@ -2,9 +2,12 @@ package entity
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/bep/logg"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
+	"github.com/gohugonet/hugoverse/internal/domain/contenthub/valueobject"
+	"github.com/gohugonet/hugoverse/pkg/helpers"
 	"github.com/gohugonet/hugoverse/pkg/loggers"
 	goTmpl "html/template"
 	"time"
@@ -29,7 +32,56 @@ type ContentHub struct {
 }
 
 func (ch *ContentHub) RenderString(ctx context.Context, args ...any) (goTmpl.HTML, error) {
-	//TODO
+	if len(args) < 1 || len(args) > 2 {
+		return "", errors.New("RenderString want 1 or 2 arguments")
+	}
+
+	sidx := 1
+	if len(args) == 1 {
+		sidx = 0
+	} else {
+		_, ok := args[0].(map[string]any)
+		if !ok {
+			return "", errors.New("first argument must be a map")
+		}
+
+		return "", errors.New("RenderString not implemented yet")
+	}
+
+	contentToRenderv := args[sidx]
+	contentStr := contentToRenderv.(string)
+
+	fmi := ch.Fs.NewFileMetaInfoWithContent(contentStr)
+	file, err := valueobject.NewFileInfo(fmi)
+	if err != nil {
+		return "", err
+	}
+
+	ps, err := ch.Cache.GetOrCreateResource(helpers.MD5String(contentStr), func() (contenthub.PageSource, error) {
+		return newPageSource(file, ch.Cache)
+	})
+	if err != nil {
+		return "", err
+	}
+
+	p, err := ch.PageBuilder.WithSource(ps.(*Source)).Build()
+	if err != nil {
+		return "", err
+	}
+
+	os, err := p.PageOutputs()
+	if err != nil {
+		return "", err
+	}
+
+	for _, o := range os {
+		c, err := o.Content()
+		if err != nil {
+			return "", err
+		}
+		return c.(goTmpl.HTML), nil
+	}
+
 	return "", nil
 }
 
