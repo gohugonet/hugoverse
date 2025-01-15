@@ -160,3 +160,7 @@ func (p *Page) Language() struct {
 		LanguageCode: p.PageIdentity().PageLanguage(),
 	}
 }
+
+func (p *Page) Description() string {
+	return p.Page.Description()
+}
