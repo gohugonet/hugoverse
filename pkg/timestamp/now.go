@@ -7,7 +7,11 @@ import (
 )
 
 func Now() string {
-	return fmt.Sprintf("%d", CurrentTimeMillis())
+	return TimeToString(CurrentTimeMillis())
+}
+
+func TimeToString(time int64) string {
+	return fmt.Sprintf("%d", time)
 }
 
 func CurrentTimeMillis() int64 {

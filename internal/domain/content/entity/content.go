@@ -47,6 +47,15 @@ func (c *Content) GetContent(contentType, id, status string) ([]byte, error) {
 	return c.Repo.GetContent(GetNamespace(contentType, status), id)
 }
 
+func (c *Content) GetContentByHash(contentType, hash, status string) ([]byte, error) {
+	idb, err := c.Repo.GetIdByHash(GetNamespace(contentType, status), hash)
+	if err != nil {
+		return nil, err
+	}
+	id := string(idb)
+	return c.GetContent(contentType, id, status)
+}
+
 func (c *Content) DeleteContent(contentType, id, status string) error {
 	data, err := c.GetContent(contentType, id, status)
 	if err != nil {
@@ -62,10 +71,12 @@ func (c *Content) DeleteContent(contentType, id, status string) error {
 	}
 
 	ns := GetNamespace(contentType, status)
-	if err := c.Repo.DeleteContent(
-		ns,
-		id,
-		cti.(content.Sluggable).ItemSlug()); err != nil {
+
+	hash := ""
+	if ctiHash, ok := cti.(content.Hashable); ok {
+		hash = ctiHash.ItemHash()
+	}
+	if err := c.Repo.DeleteContent(ns, id, cti.(content.Sluggable).ItemSlug(), hash); err != nil {
 		return err
 	}
 

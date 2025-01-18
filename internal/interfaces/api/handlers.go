@@ -8,7 +8,12 @@ import (
 
 func (s *Server) registerContentHandler() {
 	s.mux.HandleFunc("/api/contents", s.wrapContentHandler(s.handler.ApiContentsHandler))
-	s.mux.HandleFunc("/api/content", s.wrapContentHandler(s.content.Handle(s.handler.ContentHandler)))
+	s.mux.HandleFunc("/api/content", s.wrapContentHandler(
+		s.content.Handle(s.handler.ContentHandler)))
+	s.mux.HandleFunc("/api/content/delete", s.wrapContentHandler(
+		s.content.Handle(s.handler.DeleteContentHandler)))
+
+	s.mux.HandleFunc("/api/hash", s.wrapContentHandler(s.handler.HashHandler))
 
 	s.mux.HandleFunc("/api/search", s.wrapContentHandler(s.handler.SearchContentHandler))
 	s.mux.HandleFunc("/api/search2", s.wrapContentHandler(s.handler.SearchContentHandler2))

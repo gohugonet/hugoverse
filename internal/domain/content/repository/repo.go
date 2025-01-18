@@ -7,10 +7,11 @@ type Repository interface {
 	AllContent(namespace string) [][]byte
 	ContentByPrefix(namespace, prefix string) ([][]byte, error)
 	GetContent(namespace string, id string) ([]byte, error)
-	DeleteContent(namespace string, id string, slug string) error
+	DeleteContent(namespace string, id string, slug string, hash string) error
 
 	NextContentId(ns string) (uint64, error)
 	CheckSlugForDuplicate(namespace string, slug string) (string, error)
+	GetIdByHash(namespace string, hash string) ([]byte, error)
 
 	PutSortedContent(namespace string, m map[string][]byte) error
 

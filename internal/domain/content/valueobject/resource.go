@@ -11,6 +11,7 @@ type Resource struct {
 
 	Name  string `json:"name"`
 	Asset string `json:"asset"`
+	Size  string `json:"size"`
 }
 
 // MarshalEditor writes a buffer of html to edit a Song within the CMS
@@ -30,6 +31,12 @@ func (s *Resource) MarshalEditor() ([]byte, error) {
 				"placeholder": "Upload the asset here",
 			}),
 		},
+		editor.Field{
+			View: editor.File("Size", s, map[string]string{
+				"label":       "Size",
+				"placeholder": "Upload the size here",
+			}),
+		},
 	)
 
 	if err != nil {
@@ -41,6 +48,10 @@ func (s *Resource) MarshalEditor() ([]byte, error) {
 
 // String defines the display name of a Song in the CMS list-view
 func (s *Resource) String() string { return s.Name }
+
+func (s *Resource) SetHash() {
+	s.Hash = Hash([]string{s.Name, s.Size})
+}
 
 // Create implements api.Createable, and allows external POST requests from clients
 // to add content as long as the request contains the json tag names of the Song

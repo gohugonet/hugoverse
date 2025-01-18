@@ -56,6 +56,22 @@ func (s *Store) CheckSlugForDuplicate(slug string) (string, error) {
 	return slug, nil
 }
 
+func (s *Store) GetIndex(key string) ([]byte, error) {
+	var value []byte
+	err := s.db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("__contentIndex"))
+		if b == nil {
+			return bolt.ErrBucketNotFound
+		}
+		value = b.Get([]byte(key))
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return value, nil
+}
+
 func (s *Store) SetIndex(item KeyValue) error {
 	var err error
 	err = s.db.Update(func(tx *bolt.Tx) error {

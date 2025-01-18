@@ -98,7 +98,7 @@ func (d *Database) GetContent(namespace string, id string) ([]byte, error) {
 		})
 }
 
-func (d *Database) DeleteContent(namespace string, id string, slug string) error {
+func (d *Database) DeleteContent(namespace string, id string, slug string, hash string) error {
 	if err := d.getStore(namespace).Delete(&item{bucket: namespace, key: id}); err != nil {
 		return err
 	}
@@ -109,6 +109,12 @@ func (d *Database) DeleteContent(namespace string, id string, slug string) error
 
 	if err := d.getStore(namespace).RemoveIndex(slug); err != nil {
 		return err
+	}
+
+	if hash != "" {
+		if err := d.getStore(namespace).RemoveIndex(fmt.Sprintf("%s:%s", namespace, hash)); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -176,6 +182,12 @@ func (d *Database) NewContent(ci any, data []byte) error {
 	if err := d.getStore(ns).SetIndex(newKeyValueItem(ciSlug.ItemSlug(), fmt.Sprintf("%s:%d", ns, id))); err != nil {
 		return err
 	}
+	ciHash, ok := ci.(content.Hashable)
+	if ok {
+		if err := d.getStore(ns).SetIndex(newKeyValueItem(fmt.Sprintf("%s:%s", ns, ciHash.ItemHash()), fmt.Sprintf("%d", id))); err != nil {
+			return err
+		}
+	}
 
 	return nil
 }
@@ -239,6 +251,10 @@ func keyBit8Uint64(sid string) (string, error) {
 
 func (d *Database) CheckSlugForDuplicate(namespace string, slug string) (string, error) {
 	return d.getStore(namespace).CheckSlugForDuplicate(slug)
+}
+
+func (d *Database) GetIdByHash(namespace string, hash string) ([]byte, error) {
+	return d.getStore(namespace).GetIndex(fmt.Sprintf("%s:%s", namespace, hash))
 }
 
 func (d *Database) Query(namespace string, opts db.QueryOptions) (int, [][]byte) {

@@ -68,6 +68,10 @@ func (s *Post) MarshalEditor() ([]byte, error) {
 // String defines the display name of a Song in the CMS list-view
 func (s *Post) String() string { return s.Title }
 
+func (s *Post) SetHash() {
+	s.Hash = Hash([]string{s.Content})
+}
+
 // Create implements api.Createable, and allows external POST requests from clients
 // to add content as long as the request contains the json tag names of the Song
 // struct fields, and is multipart encoded

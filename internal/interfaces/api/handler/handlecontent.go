@@ -224,6 +224,35 @@ func (s *Handler) postContent(res http.ResponseWriter, req *http.Request) {
 
 	post := p()
 
+	cid := req.PostForm.Get("id")
+	isUpdating := cid != "-1"
+	isCreating := !isUpdating
+
+	if isUpdating {
+		ep := p()
+		data, err := s.contentApp.GetContent(t, cid, "")
+		if err != nil {
+			s.log.Errorf("Error getting content: %v with id %s", err, cid)
+			res.WriteHeader(http.StatusNotFound)
+		}
+		err = json.Unmarshal(data, ep)
+		if err != nil {
+			if err := s.res.err500(res); err != nil {
+				s.log.Errorf("Error response err 500: %s", err)
+			}
+			return
+		}
+		if sort, ok := ep.(content.Sortable); ok {
+			req.PostForm.Set("timestamp", timestamp.TimeToString(sort.Time()))
+		}
+		if identifier, ok := ep.(content.Identifiable); ok {
+			req.PostForm.Set("uuid", identifier.UniqueID().String())
+		}
+		if slug, ok := ep.(content.Sluggable); ok {
+			req.PostForm.Set("slug", slug.ItemSlug())
+		}
+	}
+
 	ext, ok := post.(content.Createable)
 	if !ok {
 		s.log.Printf("Attempt to create non-createable type: %s from %s", t, req.RemoteAddr)
@@ -232,7 +261,9 @@ func (s *Handler) postContent(res http.ResponseWriter, req *http.Request) {
 	}
 
 	ts := timestamp.Now()
-	req.PostForm.Set("timestamp", ts)
+	if isCreating {
+		req.PostForm.Set("timestamp", ts)
+	}
 	req.PostForm.Set("updated", ts)
 
 	urlPaths, err := s.StoreFiles(req)
@@ -310,15 +341,24 @@ func (s *Handler) postContent(res http.ResponseWriter, req *http.Request) {
 
 	req.PostForm.Set("namespace", t)
 
-	id, err := s.contentApp.NewContent(t, req.PostForm)
-	if err != nil {
-		s.log.Errorf("Error calling SetContent: %v", err)
-		res.WriteHeader(http.StatusInternalServerError)
-		return
+	if isCreating {
+		id, err := s.contentApp.NewContent(t, req.PostForm)
+		if err != nil {
+			s.log.Errorf("Error calling SetContent: %v", err)
+			res.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		cid = id
+	} else {
+		if err = s.contentApp.UpdateContent(t, req.PostForm); err != nil {
+			s.log.Errorf("Error updating content: %s", err)
+			res.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 	}
 
 	// set the target in the context so user can get saved value from db in hook
-	ctx := context.WithValue(req.Context(), "target", fmt.Sprintf("%s:%s", t, id))
+	ctx := context.WithValue(req.Context(), "target", fmt.Sprintf("%s:%s", t, cid))
 	req = req.WithContext(ctx)
 
 	err = hook.AfterSave(res, req)
@@ -344,7 +384,7 @@ func (s *Handler) postContent(res http.ResponseWriter, req *http.Request) {
 	} else {
 		spec = "public"
 		data = map[string]interface{}{
-			"id":     id,
+			"id":     cid,
 			"status": spec,
 			"type":   t,
 		}
@@ -369,4 +409,107 @@ func (s *Handler) postContent(res http.ResponseWriter, req *http.Request) {
 		s.log.Errorf("Error writing response: %v", err)
 		return
 	}
+}
+
+func (s *Handler) DeleteContentHandler(res http.ResponseWriter, req *http.Request) {
+	if req.Method != http.MethodPost {
+		res.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	id := req.PostForm.Get("id")
+	t := req.PostForm.Get("type")
+	status := req.PostForm.Get("status")
+	ct := t
+
+	if id == "" || t == "" {
+		res.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	p, ok := s.contentApp.AllContentTypes()[ct]
+	if !ok {
+		s.log.Printf("Type %s not supported", t)
+		res.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	post := p()
+	hook, ok := post.(content.Hookable)
+	if !ok {
+		s.log.Printf("Type %s does not implement item.Hookable or embed item.Item.", t)
+		res.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	data, err := s.contentApp.GetContent(t, id, status)
+	if err != nil {
+		res.WriteHeader(http.StatusInternalServerError)
+		s.log.Printf("Error in db.Content %s:%s: %s", t, id, err)
+		return
+	}
+	if data == nil {
+		res.WriteHeader(http.StatusNotFound)
+		s.log.Printf("Content not found: %s %s %s", t, id, status)
+		return
+	}
+
+	err = json.Unmarshal(data, post)
+	if err != nil {
+		log.Println("Error unmarshalling ", t, "=", id, err, " Hooks will be called on a zero-value.")
+	}
+
+	reject := req.URL.Query().Get("reject")
+	if reject == "true" {
+		err = hook.BeforeReject(res, req)
+		if err != nil {
+			log.Println("Error running BeforeReject method in deleteHandler for:", t, err)
+			return
+		}
+	}
+
+	err = hook.BeforeAdminDelete(res, req)
+	if err != nil {
+		log.Println("Error running BeforeAdminDelete method in deleteHandler for:", t, err)
+		return
+	}
+
+	err = hook.BeforeDelete(res, req)
+	if err != nil {
+		log.Println("Error running BeforeDelete method in deleteHandler for:", t, err)
+		return
+	}
+
+	err = s.contentApp.DeleteContent(t, id, status)
+	if err != nil {
+		s.log.Errorf("Error in db.Content %s:%s: %s", t, id, err)
+		res.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if err := s.adminApp.InvalidateCache(); err != nil {
+		s.log.Errorf("Error invalidating cache: %s", err)
+	}
+
+	err = hook.AfterDelete(res, req)
+	if err != nil {
+		s.log.Errorln("Error running AfterDelete method in deleteHandler for:", t, err)
+		return
+	}
+
+	err = hook.AfterAdminDelete(res, req)
+	if err != nil {
+		s.log.Errorln("Error running AfterAdminDelete method in deleteHandler for:", t, err)
+		return
+	}
+
+	if reject == "true" {
+		err = hook.AfterReject(res, req)
+		if err != nil {
+			s.log.Errorln("Error running AfterReject method in deleteHandler for:", t, err)
+			return
+		}
+	}
+
+	res.WriteHeader(http.StatusOK)
 }
