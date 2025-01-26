@@ -200,6 +200,7 @@ type Header interface {
 
 	Links() []Link
 	Paragraphs() []Paragraph
+	ListParagraphs() []Paragraph
 }
 
 type Link interface {

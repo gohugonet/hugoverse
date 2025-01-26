@@ -7,7 +7,6 @@ import (
 	"github.com/gohugonet/hugoverse/pkg/helpers"
 	"github.com/gohugonet/hugoverse/pkg/text"
 	"html/template"
-	"regexp"
 	"strings"
 	"unicode"
 	"unicode/utf8"
@@ -57,31 +56,7 @@ func (ns *Namespace) RuneCount(s any) (int, error) {
 
 // CountWords returns the approximate word count in s.
 func (ns *Namespace) CountWords(s any) (int, error) {
-	ss, err := cast.ToStringE(s)
-	if err != nil {
-		return 0, fmt.Errorf("failed to convert content to string: %w", err)
-	}
-
-	isCJKLanguage, err := regexp.MatchString(`\p{Han}|\p{Hangul}|\p{Hiragana}|\p{Katakana}`, ss)
-	if err != nil {
-		return 0, fmt.Errorf("failed to match regex pattern against string: %w", err)
-	}
-
-	if !isCJKLanguage {
-		return len(strings.Fields(helpers.StripHTML(ss))), nil
-	}
-
-	counter := 0
-	for _, word := range strings.Fields(helpers.StripHTML(ss)) {
-		runeCount := utf8.RuneCountInString(word)
-		if len(word) == runeCount {
-			counter++
-		} else {
-			counter += runeCount
-		}
-	}
-
-	return counter, nil
+	return helpers.CountWords(s)
 }
 
 // Count counts the number of non-overlapping instances of substr in s.

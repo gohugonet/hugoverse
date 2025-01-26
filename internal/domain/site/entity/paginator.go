@@ -4,6 +4,32 @@ import (
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
 )
 
+func (p *Page) PrevInSection() *Page {
+	cp := p.Page.PrevInSection()
+	if cp == nil {
+		return nil
+	}
+	sp, err := p.sitePage(cp)
+	if err != nil {
+		p.Log.Errorf("NextInSection for page %s: %v", p.Path(), err)
+		return nil
+	}
+	return sp
+}
+
+func (p *Page) NextInSection() *Page {
+	cp := p.Page.NextInSection()
+	if cp == nil {
+		return nil
+	}
+	sp, err := p.sitePage(cp)
+	if err != nil {
+		p.Log.Errorf("NextInSection for page %s: %v", p.Path(), err)
+		return nil
+	}
+	return sp
+}
+
 func (p *Page) Paginator() (*SitePager, error) {
 	pager, err := p.Page.Paginator()
 	if err != nil {

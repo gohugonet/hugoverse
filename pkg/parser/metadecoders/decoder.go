@@ -1,6 +1,7 @@
 package metadecoders
 
 import (
+	"encoding/json"
 	"fmt"
 	toml "github.com/pelletier/go-toml/v2"
 	"github.com/spf13/afero"
@@ -59,6 +60,8 @@ func (d Decoder) UnmarshalTo(data []byte, f Format, v any) error {
 	switch f {
 	case TOML:
 		err = toml.Unmarshal(data, v)
+	case JSON:
+		err = json.Unmarshal(data, v)
 	case YAML:
 		err = yaml.Unmarshal(data, v)
 		if err != nil {

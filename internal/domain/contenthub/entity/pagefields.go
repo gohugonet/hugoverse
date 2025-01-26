@@ -183,3 +183,69 @@ func (p *Page) Parent() contenthub.Page {
 		dir = paths.Dir(dir)
 	}
 }
+
+func (p *Page) PrevInSection() contenthub.Page {
+	langIndex := p.PageIdentity().PageLanguageIndex()
+	ps := p.pageMap.getPagesInSection(
+		langIndex,
+		pageMapQueryPagesInSection{
+			Index: langIndex,
+			pageMapQueryPagesBelowPath: pageMapQueryPagesBelowPath{
+				Path:    p.Paths().ContainerDir(),
+				KeyPart: "page-section",
+				Include: pagePredicates.ShouldListLocal.And(
+					pagePredicates.KindPage.Or(pagePredicates.KindSection),
+				),
+			},
+		},
+	)
+
+	if len(ps) == 0 {
+		return nil
+	}
+
+	currentPageId := p.PageIdentity().IdentifierBase()
+	for i := 0; i < len(ps); i++ {
+		if ps[i].PageIdentity().IdentifierBase() == currentPageId {
+			if i > 0 {
+				return ps[i-1]
+			}
+			return nil
+		}
+	}
+
+	return nil
+}
+
+func (p *Page) NextInSection() contenthub.Page {
+	langIndex := p.PageIdentity().PageLanguageIndex()
+	ps := p.pageMap.getPagesInSection(
+		langIndex,
+		pageMapQueryPagesInSection{
+			Index: langIndex,
+			pageMapQueryPagesBelowPath: pageMapQueryPagesBelowPath{
+				Path:    p.Paths().ContainerDir(),
+				KeyPart: "page-section",
+				Include: pagePredicates.ShouldListLocal.And(
+					pagePredicates.KindPage.Or(pagePredicates.KindSection),
+				),
+			},
+		},
+	)
+
+	if len(ps) == 0 {
+		return nil
+	}
+
+	currentPageId := p.PageIdentity().IdentifierBase()
+	for i := 0; i < len(ps); i++ {
+		if ps[i].PageIdentity().IdentifierBase() == currentPageId {
+			if i < len(ps)-1 {
+				return ps[i+1]
+			}
+			return nil
+		}
+	}
+
+	return nil
+}

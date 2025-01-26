@@ -50,9 +50,11 @@ type PageInfo interface {
 }
 
 const (
-	KindPage    = "page"
-	KindHome    = "home"
-	KindSection = "section"
+	KindPage     = "page"
+	KindHome     = "home"
+	KindSection  = "section"
+	KindTerm     = "term"
+	KindTaxonomy = "taxonomy"
 )
 
 type Services interface {
@@ -274,6 +276,8 @@ type Page interface {
 
 	Parent() Page
 	Pages(langIndex int) Pages
+	PrevInSection() Page
+	NextInSection() Page
 	Sections(langIndex int) Pages
 	RegularPages() Pages
 	Terms(langIndex int, taxonomy string) Pages
@@ -311,6 +315,8 @@ type PageOutput interface {
 	Summary() goTmpl.HTML
 	TableOfContents() goTmpl.HTML
 	Result() markdown.Result
+	ReadingTime() int
+	WordCount() int
 }
 
 type PagerManager interface {

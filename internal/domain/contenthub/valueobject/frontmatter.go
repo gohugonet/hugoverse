@@ -32,6 +32,9 @@ func NewFrontMatter() *FrontMatter {
 	return &FrontMatter{
 		Terms:  map[string][]string{},
 		Params: maps.Params{},
+
+		Date:   time.Now(),
+		Weight: 999,
 	}
 }
 

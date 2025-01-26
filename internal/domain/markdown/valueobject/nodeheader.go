@@ -54,6 +54,33 @@ func (h *HeaderNode) Links() []markdown.Link {
 	return links
 }
 
+func (h *HeaderNode) ListParagraphs() []markdown.Paragraph {
+	var paragraphs []markdown.Paragraph
+
+	for sibling := h.node.NextSibling(); sibling != nil; sibling = sibling.NextSibling() {
+		// 遇到下一个 Header，结束收集
+		if heading, ok := sibling.(*ast.Heading); ok {
+			if heading.Level <= h.Level() {
+				break
+			}
+		}
+
+		// 解析链接节点
+		if list, ok := sibling.(*ast.List); ok {
+			for listItem := list.FirstChild(); listItem != nil; listItem = listItem.NextSibling() {
+				if textBlock, ok := listItem.FirstChild().(*ast.TextBlock); ok {
+					text := extractTextFromNode(textBlock, h.src)
+					paragraphs = append(paragraphs, &ParagraphNode{
+						text: text,
+					})
+				}
+			}
+		}
+	}
+
+	return paragraphs
+}
+
 func (h *HeaderNode) Paragraphs() []markdown.Paragraph {
 	var paragraphs []markdown.Paragraph
 

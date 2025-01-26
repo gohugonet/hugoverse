@@ -85,6 +85,24 @@ func (c *ContentProvider) Result() markdown.Result {
 	return cs.MarkdownResult
 }
 
+func (c *ContentProvider) ReadingTime() int {
+	cs, err := c.ContentSummary()
+	if err != nil {
+		c.log.Errorln("ReadingTime", err)
+		return 0
+	}
+	return cs.ReadingTime
+}
+
+func (c *ContentProvider) WordCount() int {
+	cs, err := c.ContentSummary()
+	if err != nil {
+		c.log.Errorln("WordCount", err)
+		return 0
+	}
+	return cs.WordCount
+}
+
 func (c *ContentProvider) ContentSummary() (valueobject.ContentSummary, error) {
 	v, err := c.cache.CacheContentRendered.GetOrCreate(c.cacheKey(), func(string) (*stale.Value[valueobject.ContentSummary], error) {
 		if c.content.IsEmpty() {
@@ -166,6 +184,18 @@ func (c *ContentProvider) ContentSummary() (valueobject.ContentSummary, error) {
 			v.ExtractSummary(b, c.f.MediaType)
 			c.content.summaryTruncated = v.SummaryTruncated
 		}
+
+		count, err := helpers.CountWords(v.Content)
+		if err != nil {
+			c.log.Warnf("Failed to count words in page %q: %s", c.source.File.FileName(), err)
+		}
+		v.WordCount = count
+
+		readingTime, err := helpers.ReadingTime(v.Content)
+		if err != nil {
+			c.log.Warnf("Failed to calculate reading time in page %q: %s", c.source.File.FileName(), err)
+		}
+		v.ReadingTime = readingTime
 
 		return &stale.Value[valueobject.ContentSummary]{
 			Value: v,
@@ -399,7 +429,7 @@ func (c *ContentProvider) doRenderShortcode(sc *valueobject.Shortcode, parent *S
 		bp.PutBuffer(b)
 	}
 
-	return valueobject.NewPrerenderedShortcode(result, hasVariants), nil
+	return valueobject.NewPrerenderedShortcode(result, hasVariants), err
 }
 
 func (c *ContentProvider) renderShortcodeWithPage(tmpl template.Preparer, data *ShortcodeWithPage) (string, error) {

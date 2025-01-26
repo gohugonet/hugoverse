@@ -53,6 +53,20 @@ func (m Menu) Sort() Menu {
 	return m
 }
 
+func (m Menu) Name() string {
+	if len(m) > 0 {
+		return m[0].Name
+	}
+	return ""
+}
+
+func (m Menu) URL() string {
+	if len(m) > 0 {
+		return m[0].URL
+	}
+	return ""
+}
+
 type menuEntryBy func(m1, m2 *MenuEntry) bool
 
 func (by menuEntryBy) Sort(menu Menu) {
@@ -105,6 +119,16 @@ func NewEmptyMenus() Menus {
 		MenusBefore: Menu{},
 		MenusAfter:  Menu{},
 	}
+}
+
+func (m Menus) HasSubMenu(me *MenuEntry) bool {
+	if sm, ok := m[me.Name]; ok {
+		if len(sm) == 1 && sm[0].Name == me.Name {
+			return false
+		}
+		return len(sm) > 1
+	}
+	return false
 }
 
 // MenuConfig holds the configuration for a menu.

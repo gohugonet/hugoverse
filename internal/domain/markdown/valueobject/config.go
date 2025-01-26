@@ -45,7 +45,7 @@ var DefaultGoldMarkConf = GoldMarkConfig{
 		Highlight: DefaultHighlightConfig,
 	},
 	Renderer: Renderer{
-		Unsafe: false,
+		Unsafe: true,
 	},
 	Parser: Parser{
 		AutoHeadingID:                      true,

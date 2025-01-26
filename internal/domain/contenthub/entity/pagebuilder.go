@@ -100,7 +100,7 @@ func (b *PageBuilder) KindBuild() (contenthub.Page, error) {
 		}
 	}
 
-	b.fm = &valueobject.FrontMatter{}
+	b.fm = valueobject.NewFrontMatter()
 	b.c = NewContent([]byte{})
 
 	return b.build()

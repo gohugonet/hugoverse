@@ -11,6 +11,7 @@ import (
 	"github.com/gohugonet/hugoverse/internal/domain/template"
 	bp "github.com/gohugonet/hugoverse/pkg/bufferpool"
 	"github.com/gohugonet/hugoverse/pkg/herrors"
+	"github.com/gohugonet/hugoverse/pkg/maps"
 	"path"
 	"sync"
 )
@@ -35,8 +36,11 @@ type Page struct {
 
 	resources []resources.Resource
 
-	dataInit sync.Once
 	data     Data
+	dataInit sync.Once
+
+	params     maps.Params
+	paramsInit sync.Once
 }
 
 func (p *Page) processResources(pageSources []contenthub.PageSource) error {

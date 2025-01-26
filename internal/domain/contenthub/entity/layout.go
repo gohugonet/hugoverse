@@ -6,6 +6,7 @@ const (
 	LayoutSection = "section.html"
 	LayoutList    = "list.html"
 	LayoutIndex   = "index.html"
+	LayoutSingle  = "single.html"
 
 	InternalFolder = "_internal"
 
@@ -50,10 +51,12 @@ func (l *Layout) section(section string) []string {
 	}
 }
 
-func (l *Layout) page() []string {
+func (l *Layout) page(section string, base string) []string {
 	return []string{
+		fmt.Sprintf("%s/%s.html", section, base),
+		fmt.Sprintf("%s/%s", section, LayoutSingle),
+		fmt.Sprintf("%s/%s.html", DefaultFolder, base),
 		DefaultPage,
-		DefaultBaseof,
 	}
 }
 

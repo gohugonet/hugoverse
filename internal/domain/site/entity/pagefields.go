@@ -11,8 +11,54 @@ func (p *Page) Section() string {
 	return p.Page.Section()
 }
 
-func (p *Page) Params() maps.Params {
-	return p.Page.Params()
+func (p *Page) Params() map[string]any {
+	p.paramsInit.Do(func() {
+		params := maps.Params{}
+
+		cp := p.Page.Params()
+		if len(cp) > 0 {
+			maps.MergeParams(params, cp)
+		}
+
+		ps := p.parseParams()
+		if len(ps) > 0 {
+			maps.MergeParams(params, ps)
+		}
+		p.params = params
+	})
+
+	return p.params
+}
+
+func (p *Page) parseParams() maps.Params {
+	params := maps.Params{}
+
+	if p.Result() != nil {
+		hs := p.Result().Headers()
+		for _, h := range hs {
+			if h.Level() < 5 {
+				continue
+			}
+
+			paragraphs := h.Paragraphs()
+			if len(paragraphs) == 1 {
+				params[h.Name()] = paragraphs[0].Text()
+				continue
+			}
+
+			lps := h.ListParagraphs()
+			if len(lps) > 0 {
+				var list []string
+				for _, lp := range lps {
+					list = append(list, lp.Text())
+				}
+
+				params[h.Name()] = list
+			}
+		}
+	}
+
+	return params
 }
 
 func (p *Page) Resources() PageResources {

@@ -40,6 +40,9 @@ type ContentSummary struct {
 	SummaryTruncated    bool
 	TableOfContentsHTML template.HTML
 
+	WordCount   int
+	ReadingTime int
+
 	MarkdownResult markdown.Result
 }
 

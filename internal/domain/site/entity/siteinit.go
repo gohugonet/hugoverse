@@ -50,8 +50,20 @@ func (s *Site) PrepareLazyLoads() {
 		if lp != nil && err == nil {
 			hs := lp.Result().Headers()
 			for _, h := range hs {
-				if h.Name() == valueobject.ReservedLinksMenuSection {
-					for i, l := range h.Links() {
+				if menus[h.Name()] == nil {
+					menus[h.Name()] = valueobject.Menu{}
+				}
+				for i, l := range h.Links() {
+					menus[h.Name()] = menus[h.Name()].Add(&valueobject.MenuEntry{
+						MenuConfig: valueobject.MenuConfig{
+							Name:   l.Text(),
+							URL:    s.AbsURL(l.URL()),
+							Weight: valueobject.ReservedLinksWeight + i,
+						},
+						Menu: h.Name(),
+					})
+
+					if h.Name() == valueobject.ReservedLinksMenuSection {
 						menus[valueobject.MenusAfter] = menus[valueobject.MenusAfter].Add(&valueobject.MenuEntry{
 							MenuConfig: valueobject.MenuConfig{
 								Name:   l.Text(),
@@ -62,6 +74,20 @@ func (s *Site) PrepareLazyLoads() {
 						})
 					}
 				}
+
+				if len(h.Links()) == 0 {
+					for i, p := range h.ListParagraphs() {
+						menus[h.Name()] = menus[h.Name()].Add(&valueobject.MenuEntry{
+							MenuConfig: valueobject.MenuConfig{
+								Name:   p.Text(),
+								URL:    "#",
+								Weight: valueobject.ReservedLinksWeight + i,
+							},
+							Menu: h.Name(),
+						})
+					}
+				}
+
 			}
 		} else if err != nil {
 			s.Log.Errorf("Reserved links Menus: %v", err)

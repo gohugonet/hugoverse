@@ -3,6 +3,8 @@ package entity
 import (
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub/valueobject"
+	"github.com/gohugonet/hugoverse/pkg/maps"
+	"time"
 )
 
 type Page struct {
@@ -31,7 +33,7 @@ func (p *Page) Layouts() []string {
 	case valueobject.KindHome:
 		return p.Layout.home()
 	case valueobject.KindPage:
-		return p.Layout.page()
+		return p.Layout.page(p.source.File.Section(), p.source.File.BaseFileName())
 	case valueobject.KindSection:
 		return p.Layout.section(p.source.File.Section())
 	case valueobject.KindTaxonomy:
@@ -53,10 +55,22 @@ type TaxonomyPage struct {
 	singular string
 }
 
+func (m *TaxonomyPage) Params() maps.Params {
+	params := m.Page.Meta.Parameters
+	params["Singular"] = m.singular
+	return params
+}
+
 type TermPage struct {
 	*TaxonomyPage
 
 	term string
+}
+
+func (m *TermPage) Params() maps.Params {
+	params := m.TaxonomyPage.Params()
+	params["Term"] = m.term
+	return params
 }
 
 func newPage(source *Source, content *Content) (*Page, error) {
@@ -66,6 +80,7 @@ func newPage(source *Source, content *Content) (*Page, error) {
 		Meta: &Meta{
 			List:       Always,
 			Parameters: map[string]any{},
+			Date:       time.Now(),
 		},
 
 		kind: valueobject.KindPage,
