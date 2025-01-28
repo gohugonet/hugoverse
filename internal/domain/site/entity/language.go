@@ -85,6 +85,10 @@ func (l *Language) LanguageName() string {
 	return l.LangSvc.GetLanguageName(l.currentLanguage)
 }
 
+func (l *Language) DefaultLanguageName() string {
+	return l.LangSvc.GetLanguageName(l.LangSvc.DefaultLanguage())
+}
+
 func (l *Language) LanguageCode() string {
 	return l.currentLanguage
 }

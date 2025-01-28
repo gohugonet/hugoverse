@@ -52,9 +52,18 @@ func (l *Layout) section(section string) []string {
 }
 
 func (l *Layout) page(section string, base string) []string {
+	basePath := base
+	if section != "" {
+		basePath = fmt.Sprintf("%s/%s", section, base)
+	}
+	singlePath := LayoutSingle
+	if section != "" {
+		singlePath = fmt.Sprintf("%s/%s", section, singlePath)
+	}
+
 	return []string{
-		fmt.Sprintf("%s/%s.html", section, base),
-		fmt.Sprintf("%s/%s", section, LayoutSingle),
+		fmt.Sprintf("%s.html", basePath),
+		singlePath,
 		fmt.Sprintf("%s/%s.html", DefaultFolder, base),
 		DefaultPage,
 	}
