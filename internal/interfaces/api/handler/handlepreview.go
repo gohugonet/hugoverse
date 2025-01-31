@@ -80,6 +80,20 @@ func (s *Handler) PreviewContentHandler(res http.ResponseWriter, req *http.Reque
 		return
 	}
 
+	if err := s.contentApp.UpdateContentObject(
+		&valueobject.Preview{
+			Domain:   sd.Domain,
+			SiteID:   sd.SiteID,
+			SiteName: sd.SiteName,
+			SitePath: sd.SitePath,
+			HostName: sd.HostName,
+			Status:   sd.Status,
+		}); err != nil {
+		s.log.Errorf("Error updating deployment: %v", err)
+		res.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	jsonBytes, err := json.Marshal("https://" + d.FullDomain())
 	if err != nil {
 		s.log.Errorf("Error marshalling token: %v", err)

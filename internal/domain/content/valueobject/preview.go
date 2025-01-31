@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-type Deployment struct {
+type Preview struct {
 	Item
 
 	Domain string `json:"domain"`
@@ -25,7 +25,7 @@ type Deployment struct {
 
 // MarshalEditor writes a buffer of html to edit a Song within the CMS
 // and implements editor.Editable
-func (s *Deployment) MarshalEditor() ([]byte, error) {
+func (s *Preview) MarshalEditor() ([]byte, error) {
 	view, err := editor.Form(s,
 		editor.Field{
 			View: editor.RefSelect("Domain", s, map[string]string{
@@ -80,29 +80,29 @@ func (s *Deployment) MarshalEditor() ([]byte, error) {
 	return view, nil
 }
 
-func (s *Deployment) SetSelectData(data map[string][][]byte) {
+func (s *Preview) SetSelectData(data map[string][][]byte) {
 	s.refSelData = data
 }
 
-func (s *Deployment) SelectContentTypes() []string {
+func (s *Preview) SelectContentTypes() []string {
 	return []string{"Domain"}
 }
 
 // String defines the display name of a Song in the CMS list-view
-func (s *Deployment) String() string {
+func (s *Preview) String() string {
 	d, _ := extractTypeAndID(s.Domain)
 
 	return strings.Join([]string{d, s.HostName}, " - ")
 }
 
-func (s *Deployment) SetHash() {
+func (s *Preview) SetHash() {
 	s.Hash = Hash([]string{s.Domain, s.HostName})
 }
 
 // Create implements api.Createable, and allows external POST requests from clients
 // to add content as long as the request contains the json tag names of the Song
 // struct fields, and is multipart encoded
-func (s *Deployment) Create(res http.ResponseWriter, req *http.Request) error {
+func (s *Preview) Create(res http.ResponseWriter, req *http.Request) error {
 	// do form data validation for required fields
 	required := []string{
 		"domain",
@@ -122,7 +122,7 @@ func (s *Deployment) Create(res http.ResponseWriter, req *http.Request) error {
 // BeforeAPICreate is only called if the Song type implements api.Createable
 // It is called before Create, and returning an error will cancel the request
 // causing the system to reject the data sent in the POST
-func (s *Deployment) BeforeAPICreate(res http.ResponseWriter, req *http.Request) error {
+func (s *Preview) BeforeAPICreate(res http.ResponseWriter, req *http.Request) error {
 	// do initial user authentication here on the request, checking for a
 	// token or cookie, or that certain form fields are set and valid
 
@@ -141,7 +141,7 @@ func (s *Deployment) BeforeAPICreate(res http.ResponseWriter, req *http.Request)
 // notifications, etc. after the data is saved to the database, etc.
 // The request has a context containing the databse 'target' affected by the
 // request. Ex. Song__pending:3 or Song:8 depending if Song implements api.Trustable
-func (s *Deployment) AfterAPICreate(res http.ResponseWriter, req *http.Request) error {
+func (s *Preview) AfterAPICreate(res http.ResponseWriter, req *http.Request) error {
 	addr := req.RemoteAddr
 	log.Println("AfterAPICreate: Deployment sent by:", addr, "titled:", req.PostFormValue("title"))
 
@@ -153,7 +153,7 @@ func (s *Deployment) AfterAPICreate(res http.ResponseWriter, req *http.Request) 
 // is approved, it is waiting in the Pending bucket, and can only be approved in
 // the CMS if the Mergeable interface is satisfied. If not, you will not see this
 // content show up in the CMS.
-func (s *Deployment) Approve(res http.ResponseWriter, req *http.Request) error {
+func (s *Preview) Approve(res http.ResponseWriter, req *http.Request) error {
 	return nil
 }
 
@@ -169,7 +169,7 @@ func (s *Deployment) Approve(res http.ResponseWriter, req *http.Request) error {
 // when using AutoApprove, because content will immediately be available through
 // your public content API. If the Trustable interface is satisfied, the AfterApprove
 // method is bypassed. The
-func (s *Deployment) AutoApprove(res http.ResponseWriter, req *http.Request) error {
+func (s *Preview) AutoApprove(res http.ResponseWriter, req *http.Request) error {
 	// Use AutoApprove to check for trust-specific headers or whitelisted IPs,
 	// etc. Remember, you will not be able to Approve or Reject content that
 	// is auto-approved. You could add a field to Song, i.e.
@@ -180,10 +180,6 @@ func (s *Deployment) AutoApprove(res http.ResponseWriter, req *http.Request) err
 	return nil
 }
 
-func (s *Deployment) IndexContent() bool {
+func (s *Preview) IndexContent() bool {
 	return true
-}
-
-func (s *Deployment) IsNewDeployment() bool {
-	return s.SiteID == ""
 }

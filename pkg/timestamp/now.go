@@ -37,3 +37,14 @@ func ConvertInt64ToTime(timestamp int64) (time.Time, error) {
 
 	return tm, nil
 }
+
+func IsOneHourPassed(t time.Time) bool {
+	// 获取当前时间
+	now := time.Now()
+
+	// 计算时间差
+	diff := now.Sub(t)
+
+	// 判断是否超过 1 小时
+	return diff >= time.Hour
+}

@@ -25,7 +25,7 @@ type netlifyConfig struct {
 	LogFormat     string `default:"text"`
 }
 
-func DeployToNetlify(target string, deployment *valueobject.Deployment, domain *valueobject.Domain, token string) error {
+func DeployToNetlifyBK(target string, deployment *valueobject.Deployment, domain *valueobject.Domain, token string) error {
 	c := &netlifyConfig{
 		AuthToken:     token,
 		SiteID:        deployment.SiteID,
