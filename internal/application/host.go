@@ -98,9 +98,7 @@ func recyclePreviewSites(cs *contentEntity.Content, host *hostEntity.Host, token
 				}
 
 				idStr := strconv.Itoa(preview.ItemID())
-				slug := preview.ItemSlug()
-				hash := preview.ItemHash()
-				if err := cs.Repo.DeleteContent(ns, idStr, slug, hash); err != nil {
+				if err := cs.DeleteContent(ns, idStr, ""); err != nil {
 					logger.Println("Error deleting content when recycling ", ns, err)
 				}
 			}
