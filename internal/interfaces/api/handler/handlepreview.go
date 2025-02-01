@@ -67,10 +67,17 @@ func (s *Handler) PreviewContentHandler(res http.ResponseWriter, req *http.Reque
 		Owner: "MDFriday",
 	}
 
+	preview, err := s.contentApp.NewPreview(d)
+	if err != nil {
+		s.log.Errorf("Error new preview: %v", err)
+		res.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	sd := &valueobject.Deployment{
-		SiteName: d.Sub,
-		HostName: "Netlify",
-		Status:   "pending",
+		SiteName: preview.SiteName,
+		HostName: preview.HostName,
+		Status:   preview.Status,
 	}
 
 	err = application.DeployToNetlify(t, sd, d, s.adminApp.Netlify.Token())
@@ -80,16 +87,9 @@ func (s *Handler) PreviewContentHandler(res http.ResponseWriter, req *http.Reque
 		return
 	}
 
-	if err := s.contentApp.UpdateContentObject(
-		&valueobject.Preview{
-			Domain:   sd.Domain,
-			SiteID:   sd.SiteID,
-			SiteName: sd.SiteName,
-			SitePath: sd.SitePath,
-			HostName: sd.HostName,
-			Status:   sd.Status,
-		}); err != nil {
-		s.log.Errorf("Error updating deployment: %v", err)
+	preview.SiteID = sd.SiteID
+	if err := s.contentApp.UpdateContentObject(preview); err != nil {
+		s.log.Errorf("Error updating preview: %v", err)
 		res.WriteHeader(http.StatusInternalServerError)
 		return
 	}

@@ -78,3 +78,25 @@ func (c *Content) sitePreviewConfigFile(site *valueobject.Site, dir string) (*va
 	f, err := c.Hugo.siteConfigFile(site, dir)
 	return f, previewPubDir, err
 }
+
+func (c *Content) NewPreview(domain *valueobject.Domain) (*valueobject.Preview, error) {
+	item, err := valueobject.NewItemWithNamespace("Preview")
+	if err != nil {
+		return nil, err
+	}
+
+	preview := &valueobject.Preview{
+		Item:     *item,
+		Domain:   domain.QueryString(),
+		SiteName: domain.Sub,
+		HostName: "Netlify",
+		Status:   "pending",
+	}
+
+	_, err = c.newContent("Preview", preview)
+	if err != nil {
+		return nil, err
+	}
+
+	return preview, nil
+}

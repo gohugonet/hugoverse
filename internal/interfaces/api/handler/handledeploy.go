@@ -32,9 +32,9 @@ func (s *Handler) DeployContentHandler(res http.ResponseWriter, req *http.Reques
 	root := req.FormValue("domain")
 
 	if hostToken == "" || root == "" {
-		hostName = "Netlify"
-		hostToken = s.adminApp.Netlify.Token()
-		root = "app.mdfriday.com"
+		s.log.Errorf("Both host_token and domain must be set")
+		res.WriteHeader(http.StatusBadRequest)
+		return
 	}
 
 	d, isTaken, err := s.contentApp.ApplyDomain(id, root)

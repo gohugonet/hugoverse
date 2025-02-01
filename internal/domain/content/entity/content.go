@@ -127,6 +127,7 @@ func (c *Content) UpdateContentObject(ci any) error {
 	}
 
 	if err := c.Repo.PutContent(ci, b); err != nil {
+		c.Log.Errorln("[repo] PutContent Error:", err)
 		return err
 	}
 

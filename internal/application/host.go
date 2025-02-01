@@ -7,10 +7,7 @@ import (
 	hostEntity "github.com/gohugonet/hugoverse/internal/domain/host/entity"
 	"github.com/gohugonet/hugoverse/internal/domain/host/factory"
 	"github.com/gohugonet/hugoverse/pkg/timestamp"
-	"os"
-	"os/signal"
 	"strconv"
-	"syscall"
 	"time"
 )
 
@@ -49,21 +46,13 @@ func PreviewSiteRecycle(cs *contentEntity.Content, token string) {
 	ticker := time.NewTicker(1 * time.Hour)
 	defer ticker.Stop() // 确保在程序退出时停止定时器
 
-	// 创建一个通道来接收系统信号
-	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM) // 捕获中断信号
-
-	logger.Println("预览站点回收任务已启动，将每小时执行一次...")
+	logger.Println("The preview site cleanup task has been initiated and will run once every hour...")
 
 	for {
 		select {
 		case t := <-ticker.C:
-			logger.Println("任务执行于:", t)
+			logger.Println("Recycle task triggered:", t)
 			recyclePreviewSites(cs, host, token) // 执行回收逻辑
-		case sig := <-sigChan:
-			logger.Printf("接收到信号: %v，程序即将退出...\n", sig)
-			cleanup() // 执行清理操作
-			return
 		}
 	}
 }
@@ -72,7 +61,7 @@ func PreviewSiteRecycle(cs *contentEntity.Content, token string) {
 func recyclePreviewSites(cs *contentEntity.Content, host *hostEntity.Host, token string) {
 	ns := "Preview"
 	all := cs.Repo.AllContent(ns)
-	p, ok := cs.AllContentTypes()[ns]
+	p, ok := cs.AllAdminTypes()[ns]
 	if !ok {
 		logger.Printf("Type %s not supported", ns)
 		return
@@ -97,16 +86,15 @@ func recyclePreviewSites(cs *contentEntity.Content, host *hostEntity.Host, token
 					continue
 				}
 
+				logger.Println("Preview site deleted: ", preview.SiteID, preview.SiteName)
+
 				idStr := strconv.Itoa(preview.ItemID())
 				if err := cs.DeleteContent(ns, idStr, ""); err != nil {
 					logger.Println("Error deleting content when recycling ", ns, err)
 				}
+
+				logger.Println("Preview content deleted: ", idStr)
 			}
 		}
 	}
-}
-
-// cleanup 执行程序退出前的清理操作
-func cleanup() {
-	logger.Println("执行清理操作...")
 }
