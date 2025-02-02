@@ -16,6 +16,8 @@ type Page struct {
 	*Output
 	contenthub.PagerManager
 
+	store *maps.Scratch
+
 	title   string
 	kind    string
 	pageMap *PageMap

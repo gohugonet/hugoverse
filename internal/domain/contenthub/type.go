@@ -275,7 +275,7 @@ type Page interface {
 	Truncated() bool
 
 	Parent() Page
-	Pages(langIndex int) Pages
+	Pages() Pages
 	PrevInSection() Page
 	NextInSection() Page
 	Sections(langIndex int) Pages
@@ -284,6 +284,9 @@ type Page interface {
 
 	IsTranslated() bool
 	Translations() Pages
+
+	Store() *maps.Scratch
+	Scratch() *maps.Scratch
 }
 
 type OrdinalWeightPage interface {

@@ -66,7 +66,7 @@ func (p *Paginator) Paginator() (contenthub.Pager, error) {
 		case valueobject.KindHome:
 			pages = p.svc.GlobalRegularPages()
 		case valueobject.KindTerm, valueobject.KindTaxonomy:
-			pages = p.page.Pages(p.page.PageIdentity().PageLanguageIndex())
+			pages = p.page.Pages()
 		default:
 			pages = p.page.RegularPages()
 			if pages == nil {

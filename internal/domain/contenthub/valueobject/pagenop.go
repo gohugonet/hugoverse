@@ -15,6 +15,16 @@ var (
 // PageNop implements Page, but does nothing.
 type nopPage int
 
+func (p *nopPage) Store() *maps.Scratch {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (p *nopPage) Scratch() *maps.Scratch {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (p *nopPage) PrevInSection() contenthub.Page {
 	//TODO implement me
 	panic("implement me")
@@ -115,7 +125,7 @@ func (p *nopPage) Translations() contenthub.Pages {
 	panic("implement me")
 }
 
-func (p *nopPage) Pages(langIndex int) contenthub.Pages {
+func (p *nopPage) Pages() contenthub.Pages {
 	//TODO implement me
 	panic("implement me")
 }

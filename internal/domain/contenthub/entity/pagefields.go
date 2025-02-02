@@ -4,11 +4,14 @@ import (
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/doctree"
+	"github.com/gohugonet/hugoverse/pkg/maps"
 	"github.com/gohugonet/hugoverse/pkg/paths"
 	"strings"
 )
 
-func (p *Page) Pages(langIndex int) contenthub.Pages {
+func (p *Page) Pages() contenthub.Pages {
+	langIndex := p.PageIdentity().PageLanguageIndex()
+
 	switch p.Kind() {
 	case valueobject.KindPage:
 	case valueobject.KindSection, valueobject.KindHome:
@@ -248,4 +251,15 @@ func (p *Page) NextInSection() contenthub.Page {
 	}
 
 	return nil
+}
+
+func (p *Page) Store() *maps.Scratch {
+	if p.store == nil {
+		p.store = maps.NewScratch()
+	}
+	return p.store
+}
+
+func (p *Page) Scratch() *maps.Scratch {
+	return p.Store()
 }

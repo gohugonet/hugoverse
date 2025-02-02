@@ -105,7 +105,7 @@ func (p *Page) Data() any {
 }
 
 func (p *Page) Pages() []*Page {
-	ps := p.Page.Pages(p.Site.Language.CurrentLanguageIndex())
+	ps := p.Page.Pages()
 	if ps == nil {
 		return make([]*Page, 0)
 	}
