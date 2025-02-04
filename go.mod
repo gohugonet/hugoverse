@@ -34,6 +34,7 @@ require (
 	github.com/gorilla/schema v1.2.1
 	github.com/jdkato/prose v1.2.1
 	github.com/kyokomi/emoji/v2 v2.2.12
+	github.com/makeworld-the-better-one/dither/v2 v2.4.0
 	github.com/marekm4/color-extractor v1.2.1
 	github.com/mattn/go-isatty v0.0.20
 	github.com/mitchellh/hashstructure v1.1.0
@@ -57,10 +58,10 @@ require (
 	go.etcd.io/bbolt v1.3.9
 	golang.org/x/crypto v0.28.0
 	golang.org/x/exp v0.0.0-20241009180824-f66d83c29e7c
-	golang.org/x/image v0.15.0
+	golang.org/x/image v0.22.0
 	golang.org/x/mod v0.21.0
-	golang.org/x/sync v0.8.0
-	golang.org/x/text v0.19.0
+	golang.org/x/sync v0.9.0
+	golang.org/x/text v0.20.0
 	golang.org/x/tools v0.26.0
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1

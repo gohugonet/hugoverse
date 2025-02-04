@@ -41,6 +41,7 @@ func RegisterExtendedNamespaces(functions template.CustomizedFunctions) {
 	registerUrls(functions, functions)
 	registerStrings(functions)
 	registerResources(functions)
+	registerImages(functions)
 	registerCss(functions)
 	registerOs(functions)
 	registerSite(functions)

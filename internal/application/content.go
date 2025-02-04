@@ -67,6 +67,7 @@ func LoadHugoProject() error {
 		ContentHub: ch,
 		Site:       s,
 		Resources:  resources,
+		Image:      resources.Image,
 		Config:     c,
 		Fs:         sfs,
 	})

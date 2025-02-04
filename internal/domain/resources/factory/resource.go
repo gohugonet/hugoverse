@@ -57,6 +57,7 @@ func NewResources(ws resources.Workspace) (*entity.Resources, error) {
 
 		ImageService: ws,
 		ImageProc:    ip,
+		Image:        entity.NewImage(),
 
 		URLService: ws,
 

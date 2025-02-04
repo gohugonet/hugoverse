@@ -103,6 +103,7 @@ func GenerateStaticSite() error {
 		ContentHub: ch,
 		Site:       s,
 		Resources:  resources,
+		Image:      resources.Image,
 		Config:     c,
 		Fs:         fs,
 	})
@@ -134,6 +135,7 @@ type templateCustomizedFunctionsProvider struct {
 	*chAgr.ContentHub
 	*siteAgr.Site
 	*rsAgr.Resources
+	*rsAgr.Image
 	*configAgr.Config
 	*fsAgr.Fs
 }

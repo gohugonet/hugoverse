@@ -27,6 +27,7 @@ type Resources struct {
 
 	ImageService resources.ImageConfig
 	ImageProc    *valueobject.ImageProcessor
+	Image        *Image
 
 	URLService resources.URLConfig
 
