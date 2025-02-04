@@ -18,6 +18,7 @@ The domain **gohugo.net** and the GitHub organization **gohugonet** are **not** 
 They were created by me as part of this open-source initiative. 
 If this causes any confusion, I am open to relocating the project to a different domain and organization to clarify its independence.
 
+
 ---
 
 ## 🚀 Features
