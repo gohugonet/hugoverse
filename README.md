@@ -2,6 +2,22 @@
 
 **Hugoverse** is a headless CMS designed for Hugo, providing a seamless way to manage your static website content. With its powerful APIs, you can upload articles and resources like images, preview your site in real-time, and deploy it effortlessly to the cloud—all tailored to your selected Hugo theme.
 
+# Hugoverse
+
+Hugoverse is inspired by two great open-source projects:
+
+- [Ponzu CMS](https://github.com/ponzu-cms/ponzu)
+- [Hugo](https://github.com/gohugoio/hugo)
+
+A big thank you to the creators and contributors of these projects! 
+Hugoverse builds upon their ideas while introducing additional modifications and restructuring.
+
+## Disclaimer
+
+The domain **gohugo.net** and the GitHub organization **gohugonet** are **not** affiliated with the official Hugo project. 
+They were created by me as part of this open-source initiative. 
+If this causes any confusion, I am open to relocating the project to a different domain and organization to clarify its independence.
+
 ---
 
 ## 🚀 Features
