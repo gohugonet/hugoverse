@@ -1,11 +1,13 @@
 package valueobject
 
 import (
+	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/config"
 	"github.com/gohugonet/hugoverse/pkg/maps"
 	"github.com/gohugonet/hugoverse/pkg/media"
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/cast"
+	"reflect"
 	"sort"
 	"strings"
 )
@@ -73,9 +75,30 @@ func DecodeMediaTypesConfig(p config.Provider) (MediaTypeConfig, error) {
 		return MediaTypeConfig{}, err
 	}
 
+	setupBuildInTypes(c)
+
 	return MediaTypeConfig{
 		Suffixes:  nil,
 		Delimiter: "",
 		Types:     c,
 	}, nil
+}
+
+func setupBuildInTypes(defaultTypes media.Types) {
+	// Initialize the Builtin types with values from DefaultTypes.
+	v := reflect.ValueOf(&media.Builtin).Elem()
+
+	for i := 0; i < v.NumField(); i++ {
+		f := v.Field(i)
+		fieldName := v.Type().Field(i).Name
+		builtinType := f.Interface().(media.Type)
+		if builtinType.Type == "" {
+			panic(fmt.Errorf("builtin type %q is empty", fieldName))
+		}
+		defaultType, found := defaultTypes.GetByType(builtinType.Type)
+		if !found {
+			panic(fmt.Errorf("missing default type for field builtin type: %q", fieldName))
+		}
+		f.Set(reflect.ValueOf(defaultType))
+	}
 }

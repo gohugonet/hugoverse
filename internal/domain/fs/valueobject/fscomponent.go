@@ -47,13 +47,17 @@ func (cfs *ComponentFs) Stat(name string) (os.FileInfo, error) {
 		ComponentDir: cfs.Component,
 	}
 
+	if info, ok := fi.(*FileInfo); ok {
+		meta.filename = info.Meta().FileName()
+	}
+
 	if fi.IsDir() {
 		meta.OpenFunc = func() (afero.File, error) {
 			return cfs.Open(name)
 		}
 	}
 
-	return NewFileInfoWithNewMeta(fi, meta), nil
+	return NewFileInfoWithMeta(fi, meta), nil
 }
 
 func (cfs *ComponentFs) Open(name string) (afero.File, error) {

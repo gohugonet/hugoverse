@@ -121,19 +121,29 @@ func (c *Cache[K, V]) GetOrCreate(key K, create func(key K) (V, error)) (V, bool
 	c.lru.Add(key, w)
 	c.mu.Unlock()
 
-	// Create the  value with the lock released.
-	v, err := create(key)
-	w.err = err
-	w.value = v
-	w.found = err == nil
+	isPanic := true
 
-	close(w.ready)
+	v, err := func() (v V, err error) {
+		defer func() {
+			w.err = err
+			w.value = v
+			w.found = err == nil && !isPanic
+			close(w.ready)
 
-	if err != nil {
-		c.Delete(key)
-		return c.zerov, false, err
-	}
-	return v, false, nil
+			if err != nil || isPanic {
+				v = c.zerov
+				c.Delete(key)
+			}
+		}()
+
+		// Create the  value with the lock released.
+		v, err = create(key)
+		isPanic = false
+
+		return
+	}()
+
+	return v, false, err
 }
 
 // Resize changes the cache size and returns the number of entries evicted.
@@ -176,9 +186,9 @@ func (c *Cache[K, V]) keys() []K {
 	return c.lru.Keys()
 }
 
-// len returns the number of items in the cache.
+// Len returns the number of items in the cache.
 // note that this wil also include values that are not yet ready.
-func (c *Cache[K, V]) len() int {
+func (c *Cache[K, V]) Len() int {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	return c.lru.Len()

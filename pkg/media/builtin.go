@@ -112,8 +112,12 @@ var Builtin = BuiltinTypes{
 	OpenTypeFontType: Type{Type: "font/otf"},
 
 	// Common document types
-	PDFType:      Type{Type: "application/pdf"},
-	MarkdownType: Type{Type: "text/markdown"},
+	PDFType:              Type{Type: "application/pdf"},
+	MarkdownType:         Type{Type: "text/markdown"},
+	AsciiDocType:         Type{Type: "text/asciidoc"}, // https://github.com/asciidoctor/asciidoctor/issues/2502
+	PandocType:           Type{Type: "text/pandoc"},
+	ReStructuredTextType: Type{Type: "text/rst"}, // https://docutils.sourceforge.io/FAQ.html#what-s-the-official-mime-type-for-restructuredtext-data
+	EmacsOrgModeType:     Type{Type: "text/org"},
 
 	// Common video types
 	AVIType:  Type{Type: "video/x-msvideo"},

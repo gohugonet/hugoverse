@@ -244,6 +244,55 @@ type Pages []Page
 
 func (p Pages) Len() int { return len(p) }
 
+// Document is the interface an indexable document in Hugo must fulfill.
+type Document interface {
+	// RelatedKeywords returns a list of keywords for the given index config.
+	RelatedKeywords(cfg IndexConfig) ([]Keyword, error)
+
+	// When this document was or will be published.
+	PublishDate() time.Time
+
+	// Name is used as an tiebreaker if both Weight and PublishDate are
+	// the same.
+	Name() string
+}
+
+// Keyword is the interface a keyword in the search index must implement.
+type Keyword interface {
+	String() string
+}
+
+// IndicesConfig holds a set of index configurations.
+type IndicesConfig []IndexConfig
+
+// IndexConfig configures an index.
+type IndexConfig interface {
+	Name() string
+	Type() string
+	ApplyFilter() bool
+
+	// Pattern Contextual pattern used to convert the Param value into a string.
+	// Currently only used for dates. Can be used to, say, bump posts in the same
+	// time frame when searching for related documents.
+	// For dates it follows Go's time.Format patterns, i.e.
+	// "2006" for YYYY and "200601" for YYYYMM.
+	Pattern() string
+
+	// Weight This field's weight when doing multi-index searches. Higher is "better".
+	Weight() int
+
+	// CardinalityThreshold A percentage (0-100) used to remove common keywords from the index.
+	// As an example, setting this to 50 will remove all keywords that are
+	// used in more than 50% of the documents in the index.
+	CardinalityThreshold() int
+
+	// ToLower Will lower case all string values in and queries tothis index.
+	// May get better accurate results, but at a slight performance cost.
+	ToLower() bool
+
+	ToKeywords(v any) ([]Keyword, error)
+}
+
 type PageWrapper interface {
 	UnwrapPage() Page
 }
@@ -262,6 +311,7 @@ type Page interface {
 	PageMeta
 	PagerManager
 
+	Name() string
 	Title() string
 	Kind() string
 	IsHome() bool
@@ -280,6 +330,7 @@ type Page interface {
 	NextInSection() Page
 	Sections(langIndex int) Pages
 	RegularPages() Pages
+	RegularPagesRecursive() Pages
 	Terms(langIndex int, taxonomy string) Pages
 
 	IsTranslated() bool
@@ -301,6 +352,8 @@ type PageMeta interface {
 	Params() maps.Params
 	PageWeight() int
 	PageDate() time.Time
+	PublishDate() time.Time
+	RelatedKeywords(cfg IndexConfig) ([]Keyword, error)
 
 	ShouldList(global bool) bool
 	ShouldListAny() bool
@@ -385,4 +438,9 @@ type PageMetaProvider interface {
 
 	Lang() string
 	Path() string
+}
+
+type ResourceParamsProvider interface {
+	// Params set in front matter for this resource.
+	Params() maps.Params
 }

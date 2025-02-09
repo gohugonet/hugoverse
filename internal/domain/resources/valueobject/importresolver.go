@@ -80,7 +80,12 @@ func (t ImportResolver) CanonicalizeURL(url string) (string, error) {
 			if fim, ok := fi.(fs.FileMetaInfo); ok {
 				t.DependencyManager.AddIdentity(identity.CleanStringIdentity(filenameToCheck))
 
-				return "file:///" + filepath.ToSlash(fim.FileName()), nil
+				relativeName, err := fim.RelativeFilename()
+				if err != nil {
+					return "", err
+				}
+
+				return "file:///" + filepath.ToSlash(relativeName), nil
 			}
 		}
 	}

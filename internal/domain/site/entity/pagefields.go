@@ -4,6 +4,8 @@ import (
 	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
 	"github.com/gohugonet/hugoverse/internal/domain/site/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/maps"
+	"github.com/gohugonet/hugoverse/pkg/media"
+	"strings"
 	"time"
 )
 
@@ -70,7 +72,7 @@ func (p *Page) Date() time.Time {
 }
 
 func (p *Page) PublishDate() time.Time {
-	return time.Now()
+	return p.Page.PublishDate()
 }
 
 func (p *Page) Lastmod() time.Time {
@@ -106,6 +108,15 @@ func (p *Page) Data() any {
 
 func (p *Page) Pages() []*Page {
 	ps := p.Page.Pages()
+	if ps == nil {
+		return make([]*Page, 0)
+	}
+
+	return p.sitePages(ps)
+}
+
+func (p *Page) RegularPagesRecursive() []*Page {
+	ps := p.Page.RegularPagesRecursive()
 	if ps == nil {
 		return make([]*Page, 0)
 	}
@@ -209,4 +220,25 @@ func (p *Page) Language() struct {
 
 func (p *Page) Description() string {
 	return p.Page.Description()
+}
+
+func (p *Page) IsMenuCurrent(menuID string, me *valueobject.MenuEntry) bool {
+	ps := p.Paths()
+	container := ps.Container()
+	switch container {
+	case "":
+		if me.URL == "/" {
+			return true
+		}
+	default:
+		if strings.Contains(me.URL, container) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (p *Page) MediaType() media.Type {
+	return p.PageOutput.TargetFormat().MediaType
 }

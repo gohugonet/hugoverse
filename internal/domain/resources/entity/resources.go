@@ -35,6 +35,7 @@ type Resources struct {
 	*TemplateClient
 	*IntegrityClient
 	*SassClient
+	*JsClient
 	*BundlerClient
 }
 

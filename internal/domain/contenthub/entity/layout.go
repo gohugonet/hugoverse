@@ -61,12 +61,22 @@ func (l *Layout) page(section string, base string) []string {
 		singlePath = fmt.Sprintf("%s/%s", section, singlePath)
 	}
 
-	return []string{
-		fmt.Sprintf("%s.html", basePath),
-		singlePath,
-		fmt.Sprintf("%s/%s.html", DefaultFolder, base),
-		DefaultPage,
+	var ls []string
+	if basePath != "index" {
+		ls = append(ls, fmt.Sprintf("%s.html", basePath))
 	}
+
+	ls = append(ls, singlePath)
+
+	if base != "index" {
+		ls = append(ls, fmt.Sprintf("%s/%s.html", DefaultFolder, base))
+	}
+
+	ls = append(ls, DefaultPage)
+	ls = append(ls, LayoutIndex)
+	ls = append(ls, DefaultIndex)
+
+	return ls
 }
 
 func (l *Layout) taxonomy() []string {

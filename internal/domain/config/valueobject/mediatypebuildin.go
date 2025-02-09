@@ -36,6 +36,10 @@ var defaultMediaTypesConfig = map[string]any{
 	// Common document types
 	"application/pdf": map[string]any{"suffixes": []string{"pdf"}},
 	"text/markdown":   map[string]any{"suffixes": []string{"md", "markdown"}},
+	"text/asciidoc":   map[string]any{"suffixes": []string{"adoc", "asciidoc", "ad"}},
+	"text/pandoc":     map[string]any{"suffixes": []string{"pandoc", "pdc"}},
+	"text/rst":        map[string]any{"suffixes": []string{"rst"}},
+	"text/org":        map[string]any{"suffixes": []string{"org"}},
 
 	// Common video types
 	"video/x-msvideo": map[string]any{"suffixes": []string{"avi"}},

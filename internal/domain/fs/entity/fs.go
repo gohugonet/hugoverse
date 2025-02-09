@@ -4,10 +4,13 @@ import (
 	"github.com/gohugonet/hugoverse/internal/domain/fs"
 	"github.com/gohugonet/hugoverse/internal/domain/fs/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/paths"
+	"github.com/gohugonet/hugoverse/pkg/paths/files"
 	"github.com/spf13/afero"
 	"path/filepath"
 	"strings"
 )
+
+var os = &afero.OsFs{}
 
 type Fs struct {
 	*OriginFs
@@ -47,6 +50,10 @@ func (f *Fs) Glob(fs afero.Fs, pattern string, handle func(fi fs.FileMetaInfo) (
 	return valueobject.Glob(fs, pattern, handle)
 }
 
+func (f *Fs) Os() afero.Fs {
+	return os
+}
+
 func (f *Fs) LayoutFs() afero.Fs {
 	return f.Layouts
 }
@@ -71,6 +78,23 @@ func (f *Fs) ReverseLookupContent(filename string, checkExists bool) ([]fs.Compo
 
 func (f *Fs) AssetsFs() afero.Fs {
 	return f.Assets
+}
+
+// ResolveJSConfigFile resolves the JS-related config file to a absolute
+// filename. One example of such would be postcss.config.js.
+func (f *Fs) ResolveJSConfigFile(name string) string {
+	// First look in assets/_jsconfig
+	fi, err := f.Assets.Stat(filepath.Join(files.FolderJSConfig, name))
+	if err == nil {
+		return fi.(fs.FileMetaInfo).FileName()
+	}
+	// Fall back to the work dir.
+	fi, err = f.Work.Stat(name)
+	if err == nil {
+		return fi.(fs.FileMetaInfo).FileName()
+	}
+
+	return ""
 }
 
 func (f *Fs) AssetsFsRealFilename(rel string) string {

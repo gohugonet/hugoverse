@@ -22,6 +22,8 @@ type ContentHub struct {
 	*Cache
 	*Translator
 
+	*Search
+
 	*PageMap
 	*PageFinder
 

@@ -43,6 +43,7 @@ func RegisterExtendedNamespaces(functions template.CustomizedFunctions) {
 	registerResources(functions)
 	registerImages(functions)
 	registerCss(functions)
+	registerJs(functions)
 	registerOs(functions)
 	registerSite(functions)
 	registerHugo(functions)

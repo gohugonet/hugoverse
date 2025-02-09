@@ -40,6 +40,7 @@ func New(services contenthub.Services) (*entity.ContentHub, error) {
 
 	ch := &entity.ContentHub{
 		Cache:            cache,
+		Search:           entity.NewSearch(log),
 		Fs:               services,
 		TemplateExecutor: nil,
 		Translator:       t,

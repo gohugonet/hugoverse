@@ -90,13 +90,6 @@ func isEmptyStmt(stmt js.IStmt) bool {
 		return true
 	} else if _, ok := stmt.(*js.EmptyStmt); ok {
 		return true
-	} else if decl, ok := stmt.(*js.VarDecl); ok && decl.TokenType == js.ErrorToken {
-		for _, item := range decl.List {
-			if item.Default != nil {
-				return false
-			}
-		}
-		return true
 	} else if block, ok := stmt.(*js.BlockStmt); ok {
 		for _, item := range block.List {
 			if ok := isEmptyStmt(item); !ok {
@@ -349,16 +342,18 @@ func exprPrec(i js.IExpr) js.OpPrec {
 func hasSideEffects(i js.IExpr) bool {
 	// assume that variable usage and that the index operator themselves have no side effects
 	switch expr := i.(type) {
-	case *js.Var, *js.LiteralExpr, *js.FuncDecl, *js.ClassDecl, *js.ArrowFunc, *js.NewTargetExpr, *js.ImportMetaExpr:
+	case *js.Var:
+		return true
+	case *js.LiteralExpr, *js.FuncDecl, *js.ClassDecl, *js.ArrowFunc, *js.NewTargetExpr, *js.ImportMetaExpr:
 		return false
 	case *js.NewExpr, *js.CallExpr, *js.YieldExpr:
 		return true
 	case *js.GroupExpr:
 		return hasSideEffects(expr.X)
 	case *js.DotExpr:
-		return hasSideEffects(expr.X)
+		return true
 	case *js.IndexExpr:
-		return hasSideEffects(expr.X) || hasSideEffects(expr.Y)
+		return true
 	case *js.CondExpr:
 		return hasSideEffects(expr.Cond) || hasSideEffects(expr.X) || hasSideEffects(expr.Y)
 	case *js.CommaExpr:
@@ -950,10 +945,10 @@ func minifyString(b []byte, allowTemplate bool) []byte {
 		} else if b[i] == '$' && i+1 < len(b) && b[i+1] == '{' {
 			dollarSigns++
 		} else if b[i] == '\\' && i+1 < len(b) {
-			if b[i+1] == 'n' || b[i+1] == 'r' {
+			if b[i+1] == 'n' {
 				newlines++
 			} else if '1' <= b[i+1] && b[i+1] <= '9' && i+2 < len(b) {
-				if b[i+1] == '1' && (b[i+2] == '2' || b[i+2] == '5') {
+				if b[i+1] == '1' && b[i+2] == '2' {
 					newlines++
 				} else if b[i+1] == '4' && b[i+2] == '2' {
 					doubleQuotes++
@@ -963,7 +958,7 @@ func minifyString(b []byte, allowTemplate bool) []byte {
 					backtickQuotes++
 				}
 			} else if b[i+1] == 'x' && i+3 < len(b) {
-				if b[i+2] == '0' && (b[i+3]|0x20 == 'a' || b[i+3]|0x20 == 'd') {
+				if b[i+2] == '0' && b[i+3]|0x20 == 'a' {
 					newlines++
 				} else if b[i+2] == '2' && b[i+3] == '2' {
 					doubleQuotes++
@@ -973,7 +968,7 @@ func minifyString(b []byte, allowTemplate bool) []byte {
 					backtickQuotes++
 				}
 			} else if b[i+1] == 'u' && i+5 < len(b) && b[i+2] == '0' && b[i+3] == '0' {
-				if b[i+4] == '0' && (b[i+5]|0x20 == 'a' || b[i+5]|0x20 == 'd') {
+				if b[i+4] == '0' && b[i+5]|0x20 == 'a' {
 					newlines++
 				} else if b[i+4] == '2' && b[i+5] == '2' {
 					doubleQuotes++
@@ -987,7 +982,7 @@ func minifyString(b []byte, allowTemplate bool) []byte {
 				for j < len(b) && b[j] == '0' {
 					j++
 				}
-				if j+1 < len(b) && (b[j]|0x20 == 'a' || b[j]|0x20 == 'd') && b[j+1] == '}' {
+				if j+1 < len(b) && b[j]|0x20 == 'a' && b[j+1] == '}' {
 					newlines++
 				} else if j+2 < len(b) && b[j+2] == '}' {
 					if b[j] == '2' && b[j+1] == '2' {
@@ -1026,7 +1021,7 @@ func replaceEscapes(b []byte, quote byte, prefix, suffix int) []byte {
 	for i := prefix; i < len(b)-suffix; i++ {
 		if c := b[i]; c == '\\' {
 			c = b[i+1]
-			if c == quote || c == '\\' || quote != '`' && (c == 'n' || c == 'r') || c == '0' && (len(b)-suffix <= i+2 || b[i+2] < '0' || '7' < b[i+2]) {
+			if c == quote || c == '\\' || c == 'r' || quote != '`' && c == 'n' || c == '0' && (len(b)-suffix <= i+2 || b[i+2] < '0' || '7' < b[i+2]) {
 				// keep escape sequence
 				i++
 				continue
@@ -1047,7 +1042,7 @@ func replaceEscapes(b []byte, quote byte, prefix, suffix int) []byte {
 					// hexadecimal escapes
 					_, _ = hex.Decode(b[i:i+1:i+1], b[i+2:i+4])
 					n = 4
-					if b[i] == '\\' || b[i] == quote || quote != '`' && (b[i] == '\n' || b[i] == '\r') || b[i] == 0 {
+					if b[i] == '\\' || b[i] == quote || b[i] == '\r' || quote != '`' && b[i] == '\n' || b[i] == 0 {
 						if b[i] == '\n' {
 							b[i+1] = 'n'
 						} else if b[i] == '\r' {
@@ -1104,7 +1099,7 @@ func replaceEscapes(b []byte, quote byte, prefix, suffix int) []byte {
 						i += 4
 						n -= 4
 					}
-				} else if quote == '`' || num != 10 && num != 13 {
+				} else if num != 13 && (quote == '`' || num != 10) {
 					// decode unicode character to UTF-8 and put at the end of the escape sequence
 					// then skip the first part of the escape sequence until the decoded character
 					m := utf8.RuneLen(rune(num))
@@ -1141,7 +1136,7 @@ func replaceEscapes(b []byte, quote byte, prefix, suffix int) []byte {
 					}
 				}
 				b[i] = num
-				if num == 0 || num == '\\' || num == quote || quote != '`' && (num == '\n' || num == '\r') {
+				if num == 0 || num == '\\' || num == quote || num == '\r' || quote != '`' && num == '\n' {
 					if num == 0 {
 						b[i+1] = '0'
 					} else if num == '\n' {
@@ -1159,9 +1154,6 @@ func replaceEscapes(b []byte, quote byte, prefix, suffix int) []byte {
 				n--
 			} else if quote == '`' && c == 'n' {
 				b[i] = '\n'
-				i++
-			} else if quote == '`' && c == 'r' {
-				b[i] = '\r'
 				i++
 			} else if c == 't' {
 				b[i] = '\t'

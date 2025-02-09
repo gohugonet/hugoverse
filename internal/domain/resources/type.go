@@ -48,10 +48,16 @@ type SecurityConfig interface {
 }
 
 type Fs interface {
+	Os() afero.Fs
 	SourceFs() afero.Fs
 	AssetsFs() afero.Fs
 	PublishFs() afero.Fs
 	ResourcesCacheFs() afero.Fs
+
+	WorkingDirAbs() string
+	PublishDirAbs() string
+
+	ResolveJSConfigFile(name string) string
 
 	AssetsFsRealFilename(rel string) string
 	AssetsFsRealDirs(from string) []string

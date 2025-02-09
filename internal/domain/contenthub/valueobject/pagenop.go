@@ -15,6 +15,26 @@ var (
 // PageNop implements Page, but does nothing.
 type nopPage int
 
+func (p *nopPage) RegularPagesRecursive() contenthub.Pages {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (p *nopPage) PublishDate() time.Time {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (p *nopPage) RelatedKeywords(cfg contenthub.IndexConfig) ([]contenthub.Keyword, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (p *nopPage) Name() string {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (p *nopPage) Store() *maps.Scratch {
 	//TODO implement me
 	panic("implement me")

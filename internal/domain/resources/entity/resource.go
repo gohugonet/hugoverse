@@ -133,6 +133,7 @@ func (l *Resource) CloneTo(targetPath string) resources.Resource {
 
 func (l *Resource) clone() *Resource {
 	clone := *l
+	clone.PublishOnce = valueobject.PublishOnce{}
 	return &clone
 }
 

@@ -56,6 +56,8 @@ type ContentService interface {
 	GlobalPages(langIndex int) contenthub.Pages
 	GlobalRegularPages() contenthub.Pages
 
+	SearchPage(ctx context.Context, pages contenthub.Pages, page contenthub.Page) (contenthub.Pages, error)
+
 	GetPageFromPath(langIndex int, path string) (contenthub.Page, error)
 	GetPageRef(context contenthub.Page, ref string, home contenthub.Page) (contenthub.Page, error)
 }

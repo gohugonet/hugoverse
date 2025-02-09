@@ -15,6 +15,8 @@ const (
 	GenghisKhan = StringIdentity("__genghiskhan")
 )
 
+var NopManager = new(nopManager)
+
 // StringIdentity is an Identity that wraps a string.
 type StringIdentity string
 
@@ -197,4 +199,27 @@ func CleanString(s string) string {
 	s = strings.ToLower(s)
 	s = strings.Trim(filepath.ToSlash(s), "/")
 	return "/" + path.Clean(s)
+}
+
+type nopManager int
+
+func (m *nopManager) AddIdentity(ids ...Identity) {
+}
+
+func (m *nopManager) AddIdentityForEach(ids ...ForEeachIdentityProvider) {
+}
+
+func (m *nopManager) IdentifierBase() string {
+	return ""
+}
+
+func (m *nopManager) GetIdentity() Identity {
+	return Anonymous
+}
+
+func (m *nopManager) Reset() {
+}
+
+func (m *nopManager) forEeachIdentity(func(id Identity) bool) bool {
+	return false
 }

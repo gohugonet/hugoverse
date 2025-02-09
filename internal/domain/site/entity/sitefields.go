@@ -61,13 +61,13 @@ func (s *Site) GetPage(ref ...string) (*Page, error) {
 	return s.sitePage(p)
 }
 
-func (s *Site) Pages() []*Page {
+func (s *Site) Pages() Pages {
 	cps := s.ContentSvc.GlobalPages(s.CurrentLanguageIndex())
 
 	return s.sitePages(cps)
 }
 
-func (s *Site) RegularPages() []*Page {
+func (s *Site) RegularPages() Pages {
 	cps := s.ContentSvc.GlobalRegularPages()
 
 	return s.sitePages(cps)

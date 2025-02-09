@@ -75,6 +75,7 @@ func (o *Minifier) Minify(m *minify.M, w io.Writer, r io.Reader, _ map[string]st
 	if o.KeepConditionalComments {
 		fmt.Println("DEPRECATED: KeepConditionalComments is replaced by KeepSpecialComments")
 		o.KeepSpecialComments = true
+		o.KeepConditionalComments = false // omit next warning
 	}
 
 	omitSpace := true // if true the next leading space is omitted
@@ -129,7 +130,7 @@ func (o *Minifier) Minify(m *minify.M, w io.Writer, r io.Reader, _ map[string]st
 				}
 			}
 		case html.SvgToken:
-			if err := m.MinifyMimetype(svgMimeBytes, w, buffer.NewReader(t.Data), nil); err != nil {
+			if err := m.MinifyMimetype(svgMimeBytes, w, buffer.NewReader(t.Data), inlineParams); err != nil {
 				if err != minify.ErrNotExist {
 					return minify.UpdateErrorPosition(err, z, t.Offset)
 				}
@@ -147,6 +148,7 @@ func (o *Minifier) Minify(m *minify.M, w io.Writer, r io.Reader, _ map[string]st
 		case html.TextToken:
 			if t.HasTemplate {
 				w.Write(t.Data)
+				omitSpace = parse.IsWhitespace(t.Data[len(t.Data)-1])
 			} else if rawTagHash != 0 {
 				if rawTagHash == Style || rawTagHash == Script || rawTagHash == Iframe {
 					var mimetype []byte
@@ -171,6 +173,7 @@ func (o *Minifier) Minify(m *minify.M, w io.Writer, r io.Reader, _ map[string]st
 				}
 			} else if inPre {
 				w.Write(t.Data)
+				// omitSpace = true after block element
 			} else {
 				t.Data = parse.ReplaceMultipleWhitespaceAndEntities(t.Data, EntitiesMap, TextRevEntitiesMap)
 
@@ -515,7 +518,7 @@ func (o *Minifier) Minify(m *minify.M, w io.Writer, r io.Reader, _ map[string]st
 
 			// skip text in select and optgroup tags
 			if t.Hash == Select || t.Hash == Optgroup {
-				if next := tb.Peek(0); next.TokenType == html.TextToken {
+				if next := tb.Peek(0); next.TokenType == html.TextToken && !next.HasTemplate {
 					tb.Shift()
 				}
 			}

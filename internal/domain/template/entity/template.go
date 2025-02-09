@@ -85,6 +85,8 @@ func (t *Template) LookupLayout(names []string) (template.Preparer, bool, error)
 
 			return ts.Preparer, found, nil
 		}
+
+		t.Log.Errorf("LookupLayout failed: %v", err)
 	}
 
 	return nil, false, nil

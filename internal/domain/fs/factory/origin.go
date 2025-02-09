@@ -54,6 +54,8 @@ func NewOriginFs(dir fs.Dir) *entity.OriginFs {
 		WorkingDirReadOnly: getWorkingDirFsReadOnly(osFs, workingDir),
 		WorkingDirWritable: getWorkingDirFsWritable(osFs, workingDir),
 
+		AbsWorkingDir:   workingDir,
+		AbsPublishDir:   absPublishDir,
 		AbsResourcesDir: absResourcesDir,
 	}
 }

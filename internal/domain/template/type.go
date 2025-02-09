@@ -7,6 +7,7 @@ import (
 	"github.com/gohugonet/hugoverse/pkg/template/funcs/compare"
 	"github.com/gohugonet/hugoverse/pkg/template/funcs/hugo"
 	"github.com/gohugonet/hugoverse/pkg/template/funcs/image"
+	"github.com/gohugonet/hugoverse/pkg/template/funcs/js"
 	"github.com/gohugonet/hugoverse/pkg/template/funcs/lang"
 	"github.com/gohugonet/hugoverse/pkg/template/funcs/os"
 	"github.com/gohugonet/hugoverse/pkg/template/funcs/resource"
@@ -75,6 +76,7 @@ type CustomizedFunctions interface {
 	collections.Language
 	strings.Title
 	resource.Resource
+	js.Client
 	image.Image
 	os.Os
 	site.Service

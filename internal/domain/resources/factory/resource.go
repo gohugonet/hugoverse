@@ -68,6 +68,7 @@ func NewResources(ws resources.Workspace) (*entity.Resources, error) {
 		TemplateClient:  nil,
 		IntegrityClient: &entity.IntegrityClient{},
 		SassClient:      ds,
+		JsClient:        entity.NewJsClient(ws, log),
 	}
 
 	rs.BundlerClient = entity.NewBundlerClient(rs)

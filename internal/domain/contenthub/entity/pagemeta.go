@@ -1,6 +1,8 @@
 package entity
 
 import (
+	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
+	"github.com/gohugonet/hugoverse/internal/domain/contenthub/valueobject"
 	"github.com/gohugonet/hugoverse/pkg/maps"
 	"time"
 )
@@ -28,12 +30,30 @@ func (m *Meta) Params() maps.Params {
 	return m.Parameters
 }
 
+func (m *Meta) Param(key any) (any, error) {
+	return valueobject.Param(m, nil, key)
+}
+
 func (m *Meta) PageWeight() int {
 	return m.Weight
 }
 
 func (m *Meta) PageDate() time.Time {
 	return m.Date
+}
+
+func (m *Meta) PublishDate() time.Time {
+	return m.PageDate()
+}
+
+// RelatedKeywords implements the related.Document interface needed for fast page searches.
+func (m *Meta) RelatedKeywords(cfg contenthub.IndexConfig) ([]contenthub.Keyword, error) {
+	v, err := m.Param(cfg.Name())
+	if err != nil {
+		return nil, err
+	}
+
+	return cfg.ToKeywords(v)
 }
 
 func (m *Meta) ShouldList(global bool) bool {

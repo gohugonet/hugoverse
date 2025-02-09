@@ -193,3 +193,56 @@ func URLEscape(uri string) string {
 	}
 	return u.String()
 }
+
+// From https://github.com/golang/go/blob/e0c76d95abfc1621259864adb3d101cf6f1f90fc/src/cmd/go/internal/web/url.go#L45
+func UrlFromFilename(filename string) (*url.URL, error) {
+	if !filepath.IsAbs(filename) {
+		return nil, fmt.Errorf("filepath must be absolute")
+	}
+
+	// If filename has a Windows volume name, convert the volume to a host and prefix
+	// per https://blogs.msdn.microsoft.com/ie/2006/12/06/file-uris-in-windows/.
+	if vol := filepath.VolumeName(filename); vol != "" {
+		if strings.HasPrefix(vol, `\\`) {
+			filename = filepath.ToSlash(filename[2:])
+			i := strings.IndexByte(filename, '/')
+
+			if i < 0 {
+				// A degenerate case.
+				// \\host.example.com (without a share name)
+				// becomes
+				// file://host.example.com/
+				return &url.URL{
+					Scheme: "file",
+					Host:   filename,
+					Path:   "/",
+				}, nil
+			}
+
+			// \\host.example.com\Share\path\to\file
+			// becomes
+			// file://host.example.com/Share/path/to/file
+			return &url.URL{
+				Scheme: "file",
+				Host:   filename[:i],
+				Path:   filepath.ToSlash(filename[i:]),
+			}, nil
+		}
+
+		// C:\path\to\file
+		// becomes
+		// file:///C:/path/to/file
+		return &url.URL{
+			Scheme: "file",
+			Path:   "/" + filepath.ToSlash(filename),
+		}, nil
+	}
+
+	// /path/to/file
+	// becomes
+	// file:///path/to/file
+	return &url.URL{
+		Scheme: "file",
+		Path:   filepath.ToSlash(filename),
+	}, nil
+}

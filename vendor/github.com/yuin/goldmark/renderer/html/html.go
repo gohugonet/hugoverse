@@ -445,7 +445,7 @@ func (r *Renderer) renderList(w util.BufWriter, source []byte, node ast.Node, en
 		_ = w.WriteByte('<')
 		_, _ = w.WriteString(tag)
 		if n.IsOrdered() && n.Start != 1 {
-			fmt.Fprintf(w, " start=\"%d\"", n.Start)
+			_, _ = fmt.Fprintf(w, " start=\"%d\"", n.Start)
 		}
 		if n.Attributes() != nil {
 			RenderAttributes(w, n, ListAttributeFilter)
@@ -680,7 +680,7 @@ func (r *Renderer) renderImage(w util.BufWriter, source []byte, node ast.Node, e
 		_, _ = w.Write(util.EscapeHTML(util.URLEscape(n.Destination, true)))
 	}
 	_, _ = w.WriteString(`" alt="`)
-	_, _ = w.Write(nodeToHTMLText(n, source))
+	r.renderTexts(w, source, n)
 	_ = w.WriteByte('"')
 	if n.Title != nil {
 		_, _ = w.WriteString(` title="`)
@@ -737,7 +737,7 @@ func (r *Renderer) renderText(w util.BufWriter, source []byte, node ast.Node, en
 			if r.EastAsianLineBreaks != EastAsianLineBreaksNone && len(value) != 0 {
 				sibling := node.NextSibling()
 				if sibling != nil && sibling.Kind() == ast.KindText {
-					if siblingText := sibling.(*ast.Text).Text(source); len(siblingText) != 0 {
+					if siblingText := sibling.(*ast.Text).Value(source); len(siblingText) != 0 {
 						thisLastRune := util.ToRune(value, len(value)-1)
 						siblingFirstRune, _ := utf8.DecodeRune(siblingText)
 						if r.EastAsianLineBreaks.softLineBreak(thisLastRune, siblingFirstRune) {
@@ -770,6 +770,18 @@ func (r *Renderer) renderString(w util.BufWriter, source []byte, node ast.Node, 
 	return ast.WalkContinue, nil
 }
 
+func (r *Renderer) renderTexts(w util.BufWriter, source []byte, n ast.Node) {
+	for c := n.FirstChild(); c != nil; c = c.NextSibling() {
+		if s, ok := c.(*ast.String); ok {
+			_, _ = r.renderString(w, source, s, true)
+		} else if t, ok := c.(*ast.Text); ok {
+			_, _ = r.renderText(w, source, t, true)
+		} else {
+			r.renderTexts(w, source, c)
+		}
+	}
+}
+
 var dataPrefix = []byte("data-")
 
 // RenderAttributes renders given node's attributes.
@@ -786,7 +798,14 @@ func RenderAttributes(w util.BufWriter, node ast.Node, filter util.BytesFilter) 
 		_, _ = w.Write(attr.Name)
 		_, _ = w.WriteString(`="`)
 		// TODO: convert numeric values to strings
-		_, _ = w.Write(util.EscapeHTML(attr.Value.([]byte)))
+		var value []byte
+		switch typed := attr.Value.(type) {
+		case []byte:
+			value = typed
+		case string:
+			value = util.StringToReadOnlyBytes(typed)
+		}
+		_, _ = w.Write(util.EscapeHTML(value))
 		_ = w.WriteByte('"')
 	}
 }
@@ -999,21 +1018,4 @@ func IsDangerousURL(url []byte) bool {
 	}
 	return hasPrefix(url, bJs) || hasPrefix(url, bVb) ||
 		hasPrefix(url, bFile) || hasPrefix(url, bData)
-}
-
-func nodeToHTMLText(n ast.Node, source []byte) []byte {
-	var buf bytes.Buffer
-	for c := n.FirstChild(); c != nil; c = c.NextSibling() {
-		if s, ok := c.(*ast.String); ok && s.IsCode() {
-			buf.Write(s.Text(source))
-		} else if !c.HasChildren() {
-			buf.Write(util.EscapeHTML(c.Text(source)))
-			if t, ok := c.(*ast.Text); ok && t.SoftLineBreak() {
-				buf.WriteByte('\n')
-			}
-		} else {
-			buf.Write(nodeToHTMLText(c, source))
-		}
-	}
-	return buf.Bytes()
 }

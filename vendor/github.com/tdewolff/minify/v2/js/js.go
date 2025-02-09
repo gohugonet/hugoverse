@@ -1010,8 +1010,17 @@ func (m *jsMinifier) minifyExpr(i js.IExpr, prec js.OpPrec) {
 				// <!--  =>  <! --
 				m.writeSpaceBefore('-')
 			} else if expr.Op == js.NotToken {
-				if lit, ok := expr.X.(*js.LiteralExpr); ok && (lit.TokenType == js.StringToken || lit.TokenType == js.RegExpToken) {
-					// !"string"  =>  !1
+				if lit, ok := expr.X.(*js.LiteralExpr); ok && lit.TokenType == js.StringToken {
+					if len(lit.Data) == 2 {
+						// !""  =>  !0
+						m.write(zeroBytes)
+					} else {
+						// !"string"  =>  !1
+						m.write(oneBytes)
+					}
+					break
+				} else if ok && lit.TokenType == js.RegExpToken {
+					// !/regexp/  =>  !1
 					m.write(oneBytes)
 					break
 				} else if ok && (lit.TokenType == js.DecimalToken || lit.TokenType == js.IntegerToken) {
@@ -1030,6 +1039,7 @@ func (m *jsMinifier) minifyExpr(i js.IExpr, prec js.OpPrec) {
 			m.minifyExpr(expr.X, unaryPrecMap[expr.Op])
 		}
 	case *js.DotExpr:
+		optionalLeft := false
 		if group, ok := expr.X.(*js.GroupExpr); ok {
 			if lit, ok := group.X.(*js.LiteralExpr); ok && (lit.TokenType == js.DecimalToken || lit.TokenType == js.IntegerToken) {
 				if lit.TokenType == js.DecimalToken {
@@ -1041,12 +1051,16 @@ func (m *jsMinifier) minifyExpr(i js.IExpr, prec js.OpPrec) {
 				m.write(dotBytes)
 				m.write(expr.Y.Data)
 				break
+			} else if dot, ok := group.X.(*js.DotExpr); ok {
+				optionalLeft = dot.Optional
+			} else if call, ok := group.X.(*js.CallExpr); ok {
+				optionalLeft = call.Optional
 			}
 		}
-		if prec < js.OpMember {
-			m.minifyExpr(expr.X, js.OpCall)
-		} else {
+		if js.OpMember <= prec || optionalLeft {
 			m.minifyExpr(expr.X, js.OpMember)
+		} else {
+			m.minifyExpr(expr.X, js.OpCall)
 		}
 		if expr.Optional {
 			m.write(questionBytes)
@@ -1133,10 +1147,18 @@ func (m *jsMinifier) minifyExpr(i js.IExpr, prec js.OpPrec) {
 		parentInFor := m.inFor
 		m.inFor = false
 		for _, item := range expr.List {
-			m.write(replaceEscapes(item.Value, '`', 1, 2))
+			if expr.Tag == nil {
+				m.write(replaceEscapes(item.Value, '`', 1, 2))
+			} else {
+				m.write(item.Value)
+			}
 			m.minifyExpr(item.Expr, js.OpExpr)
 		}
-		m.write(replaceEscapes(expr.Tail, '`', 1, 1))
+		if expr.Tag == nil {
+			m.write(replaceEscapes(expr.Tail, '`', 1, 1))
+		} else {
+			m.write(expr.Tail)
+		}
 		m.inFor = parentInFor
 	case *js.NewExpr:
 		if expr.Args == nil && js.OpLHS < prec && prec != js.OpNew {

@@ -201,8 +201,8 @@ func WalkFilesystems(afs afero.Fs, fn WalkFn) bool {
 		return true
 	}
 
-	if afs, ok := afs.(fs.FilesystemUnwrapper); ok {
-		if WalkFilesystems(afs.UnwrapFilesystem(), fn) {
+	if dfs, ok := afs.(fs.FilesystemUnwrapper); ok {
+		if WalkFilesystems(dfs.UnwrapFilesystem(), fn) {
 			return true
 		}
 	} else if bfs, ok := afs.(fs.FilesystemsUnwrapper); ok {

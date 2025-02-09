@@ -24,7 +24,8 @@ type OriginFs struct {
 	// restricted to the project working dir.
 	WorkingDirWritable afero.Fs
 
-	// Directories to store Resource related artifacts.
+	AbsWorkingDir   string
+	AbsPublishDir   string
 	AbsResourcesDir string
 }
 
@@ -50,6 +51,18 @@ func (f *OriginFs) Working() afero.Fs {
 
 func (f *OriginFs) PublishDirStatic() afero.Fs {
 	return valueobject.NewHashingFs(f.PublishDir, valueobject.NewFileChangeDetector())
+}
+
+func (f *OriginFs) WorkingDirAbs() string {
+	return f.AbsWorkingDir
+}
+
+func (f *OriginFs) PublishDirAbs() string {
+	return f.AbsPublishDir
+}
+
+func (f *OriginFs) ResourcesDirAbs() string {
+	return f.AbsResourcesDir
 }
 
 func getWorkingDirFsReadOnly(base afero.Fs, workingDir string) afero.Fs {

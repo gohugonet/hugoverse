@@ -1,7 +1,9 @@
 package entity
 
 import (
+	"context"
 	"fmt"
+	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
 	"sort"
 )
 
@@ -15,6 +17,35 @@ func (p Pages) String() string {
 	return fmt.Sprintf("Pages(%d)", len(p))
 }
 
+func (p Pages) originPages() contenthub.Pages {
+	var result contenthub.Pages
+	for _, page := range p {
+		result = append(result, page.Page)
+	}
+	return result
+}
+
+func (p Pages) Related(ctx context.Context, optsv any) (Pages, error) {
+	if len(p) == 0 {
+		return nil, nil
+	}
+
+	siteSvc := p[0]
+	contentSvc := p[0].ContentSvc
+
+	switch v := optsv.(type) {
+	case *Page:
+		originPages := p.originPages()
+		ps, err := contentSvc.SearchPage(ctx, originPages, v.Page)
+		if err != nil {
+			return nil, err
+		}
+		return siteSvc.sitePages(ps), nil
+	default:
+		return nil, fmt.Errorf("invalid argument type %T", optsv)
+	}
+}
+
 func (p Pages) ByLastmod() Pages {
 	const key = "pageSort.ByLastmod"
 
@@ -23,6 +54,18 @@ func (p Pages) ByLastmod() Pages {
 	}
 
 	pages, _ := spc.get(key, pageBy(date).Sort, p)
+
+	return pages
+}
+
+func (p Pages) ByDate() Pages {
+	const key = "pageSort.ByDate"
+
+	lessPageDate := func(p1, p2 *Page) bool {
+		return p1.Date().Unix() < p2.Date().Unix()
+	}
+
+	pages, _ := spc.get(key, pageBy(lessPageDate).Sort, p)
 
 	return pages
 }

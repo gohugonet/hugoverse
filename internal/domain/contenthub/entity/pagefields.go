@@ -54,6 +54,24 @@ func (p *Page) Pages() contenthub.Pages {
 	return nil
 }
 
+func (p *Page) RegularPagesRecursive() contenthub.Pages {
+	switch p.Kind() {
+	case valueobject.KindSection, valueobject.KindHome:
+		return p.pageMap.getPagesInSection(
+			p.PageIdentity().PageLanguageIndex(),
+			pageMapQueryPagesInSection{
+				pageMapQueryPagesBelowPath: pageMapQueryPagesBelowPath{
+					Path:    p.Paths().Base(),
+					Include: pagePredicates.ShouldListLocal.And(pagePredicates.KindPage),
+				},
+				Recursive: true,
+			},
+		)
+	default:
+		return p.RegularPages()
+	}
+}
+
 func (p *Page) RegularPages() contenthub.Pages {
 	switch p.Kind() {
 	case valueobject.KindPage:
@@ -144,6 +162,10 @@ func (p *Page) IsAncestor(other contenthub.Page) bool {
 	}
 
 	return strings.HasPrefix(other.Path(), paths.AddTrailingSlash(p.Path()))
+}
+
+func (p *Page) Name() string {
+	return p.Title()
 }
 
 func (p *Page) Title() string {

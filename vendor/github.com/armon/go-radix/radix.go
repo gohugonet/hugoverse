@@ -40,8 +40,14 @@ func (n *node) isLeaf() bool {
 }
 
 func (n *node) addEdge(e edge) {
-	n.edges = append(n.edges, e)
-	n.edges.Sort()
+	num := len(n.edges)
+	idx := sort.Search(num, func(i int) bool {
+		return n.edges[i].label >= e.label
+	})
+
+	n.edges = append(n.edges, edge{})
+	copy(n.edges[idx+1:], n.edges[idx:])
+	n.edges[idx] = e
 }
 
 func (n *node) updateEdge(label byte, node *node) {
@@ -143,7 +149,7 @@ func longestPrefix(k1, k2 string) int {
 }
 
 // Insert is used to add a newentry or update
-// an existing entry. Returns if updated.
+// an existing entry. Returns true if an existing record is updated.
 func (t *Tree) Insert(s string, v interface{}) (interface{}, bool) {
 	var parent *node
 	n := t.root
@@ -213,7 +219,7 @@ func (t *Tree) Insert(s string, v interface{}) (interface{}, bool) {
 			val: v,
 		}
 
-		// If the new key is a subset, add to to this node
+		// If the new key is a subset, add to this node
 		search = search[commonPrefix:]
 		if len(search) == 0 {
 			child.leaf = leaf
@@ -452,7 +458,7 @@ func (t *Tree) WalkPrefix(prefix string, fn WalkFn) {
 	n := t.root
 	search := prefix
 	for {
-		// Check for key exhaution
+		// Check for key exhaustion
 		if len(search) == 0 {
 			recursiveWalk(n, fn)
 			return
@@ -461,22 +467,20 @@ func (t *Tree) WalkPrefix(prefix string, fn WalkFn) {
 		// Look for an edge
 		n = n.getEdge(search[0])
 		if n == nil {
-			break
+			return
 		}
 
 		// Consume the search prefix
 		if strings.HasPrefix(search, n.prefix) {
 			search = search[len(n.prefix):]
-
-		} else if strings.HasPrefix(n.prefix, search) {
+			continue
+		}
+		if strings.HasPrefix(n.prefix, search) {
 			// Child may be under our search prefix
 			recursiveWalk(n, fn)
-			return
-		} else {
-			break
 		}
+		return
 	}
-
 }
 
 // WalkPath is used to walk the tree, but only visiting nodes
@@ -521,10 +525,27 @@ func recursiveWalk(n *node, fn WalkFn) bool {
 	}
 
 	// Recurse on the children
-	for _, e := range n.edges {
+	i := 0
+	k := len(n.edges) // keeps track of number of edges in previous iteration
+	for i < k {
+		e := n.edges[i]
 		if recursiveWalk(e.node, fn) {
 			return true
 		}
+		// It is a possibility that the WalkFn modified the node we are
+		// iterating on. If there are no more edges, mergeChild happened,
+		// so the last edge became the current node n, on which we'll
+		// iterate one last time.
+		if len(n.edges) == 0 {
+			return recursiveWalk(n, fn)
+		}
+		// If there are now less edges than in the previous iteration,
+		// then do not increment the loop index, since the current index
+		// points to a new edge. Otherwise, get to the next index.
+		if len(n.edges) >= k {
+			i++
+		}
+		k = len(n.edges)
 	}
 	return false
 }

@@ -4,28 +4,29 @@ go 1.23
 
 require (
 	github.com/BurntSushi/locker v0.0.0-20171006230638-a6e239ea1c69
-	github.com/alecthomas/chroma/v2 v2.13.0
-	github.com/armon/go-radix v1.0.0
+	github.com/alecthomas/chroma/v2 v2.15.0
+	github.com/armon/go-radix v1.0.1-0.20221118154546-54df44f2176c
 	github.com/bep/clocks v0.5.0
 	github.com/bep/debounce v1.2.1
 	github.com/bep/gitmap v1.6.0
 	github.com/bep/goat v0.5.0
 	github.com/bep/godartsass v1.2.0
-	github.com/bep/godartsass/v2 v2.0.0
-	github.com/bep/golibsass v1.1.1
+	github.com/bep/godartsass/v2 v2.3.2
+	github.com/bep/golibsass v1.2.0
 	github.com/bep/gowebp v0.3.0
-	github.com/bep/lazycache v0.4.0
+	github.com/bep/lazycache v0.7.0
 	github.com/bep/logg v0.4.0
 	github.com/bep/tmc v0.5.1
 	github.com/blevesearch/bleve v1.0.14
 	github.com/clbanning/mxj/v2 v2.7.0
 	github.com/cli/safeexec v1.0.1
 	github.com/disintegration/gift v1.2.1
-	github.com/fatih/color v1.16.0
+	github.com/evanw/esbuild v0.24.2
+	github.com/fatih/color v1.18.0
 	github.com/frankban/quicktest v1.14.6
 	github.com/go-openapi/runtime v0.28.0
 	github.com/go-openapi/strfmt v0.23.0
-	github.com/gobuffalo/flect v1.0.2
+	github.com/gobuffalo/flect v1.0.3
 	github.com/gobwas/glob v0.2.3
 	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/gohugoio/go-i18n/v2 v2.1.3-0.20230805085216-e63c13218d0e
@@ -33,12 +34,12 @@ require (
 	github.com/gohugoio/localescompressed v1.0.1
 	github.com/gorilla/schema v1.2.1
 	github.com/jdkato/prose v1.2.1
-	github.com/kyokomi/emoji/v2 v2.2.12
+	github.com/kyokomi/emoji/v2 v2.2.13
 	github.com/makeworld-the-better-one/dither/v2 v2.4.0
 	github.com/marekm4/color-extractor v1.2.1
 	github.com/mattn/go-isatty v0.0.20
 	github.com/mitchellh/hashstructure v1.1.0
-	github.com/mitchellh/mapstructure v1.5.0
+	github.com/mitchellh/mapstructure v1.5.1-0.20231216201459-8508981c8b6c
 	github.com/muesli/smartcrop v0.3.0
 	github.com/netlify/open-api/v2 v2.34.0
 	github.com/nilslice/jwt v1.0.0
@@ -47,22 +48,22 @@ require (
 	github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd
 	github.com/sirupsen/logrus v1.6.0
 	github.com/spf13/afero v1.11.0
-	github.com/spf13/cast v1.7.0
+	github.com/spf13/cast v1.7.1
 	github.com/spf13/fsync v0.10.1
-	github.com/tdewolff/minify/v2 v2.20.20
-	github.com/tdewolff/parse/v2 v2.7.13
+	github.com/tdewolff/minify/v2 v2.20.37
+	github.com/tdewolff/parse/v2 v2.7.15
 	github.com/tidwall/gjson v1.17.1
 	github.com/tidwall/sjson v1.2.5
-	github.com/yuin/goldmark v1.7.0
-	github.com/yuin/goldmark-emoji v1.0.2
+	github.com/yuin/goldmark v1.7.8
+	github.com/yuin/goldmark-emoji v1.0.4
 	go.etcd.io/bbolt v1.3.9
-	golang.org/x/crypto v0.28.0
+	golang.org/x/crypto v0.32.0
 	golang.org/x/exp v0.0.0-20241009180824-f66d83c29e7c
 	golang.org/x/image v0.22.0
-	golang.org/x/mod v0.21.0
-	golang.org/x/sync v0.9.0
-	golang.org/x/text v0.20.0
-	golang.org/x/tools v0.26.0
+	golang.org/x/mod v0.22.0
+	golang.org/x/sync v0.10.0
+	golang.org/x/text v0.21.0
+	golang.org/x/tools v0.29.0
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
 )
@@ -88,9 +89,9 @@ require (
 	github.com/couchbase/vellum v1.0.2 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
-	github.com/dlclark/regexp2 v1.11.0 // indirect
+	github.com/dlclark/regexp2 v1.11.4 // indirect
 	github.com/glycerine/go-unsnap-stream v0.0.0-20181221182339-f9677308dec2 // indirect
-	github.com/go-logr/logr v1.4.1 // indirect
+	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-openapi/analysis v0.23.0 // indirect
 	github.com/go-openapi/errors v0.22.0 // indirect
@@ -121,14 +122,15 @@ require (
 	github.com/rogpeppe/go-internal v1.13.1 // indirect
 	github.com/rsc/goversion v1.2.0 // indirect
 	github.com/steveyen/gtreap v0.1.0 // indirect
+	github.com/stretchr/testify v1.10.0 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect
 	github.com/tinylib/msgp v1.1.0 // indirect
 	github.com/willf/bitset v1.1.10 // indirect
 	go.mongodb.org/mongo-driver v1.17.1 // indirect
-	go.opentelemetry.io/otel v1.24.0 // indirect
-	go.opentelemetry.io/otel/metric v1.24.0 // indirect
-	go.opentelemetry.io/otel/trace v1.24.0 // indirect
-	golang.org/x/sys v0.26.0 // indirect
-	google.golang.org/protobuf v1.33.0 // indirect
+	go.opentelemetry.io/otel v1.29.0 // indirect
+	go.opentelemetry.io/otel/metric v1.29.0 // indirect
+	go.opentelemetry.io/otel/trace v1.29.0 // indirect
+	golang.org/x/sys v0.29.0 // indirect
+	google.golang.org/protobuf v1.35.2 // indirect
 )
