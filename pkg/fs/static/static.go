@@ -1,9 +1,9 @@
 package static
 
 import (
-	"github.com/gohugonet/hugoverse/pkg/helpers"
-	"github.com/gohugonet/hugoverse/pkg/herrors"
-	"github.com/gohugonet/hugoverse/pkg/loggers"
+	"github.com/mdfriday/hugoverse/pkg/helpers"
+	"github.com/mdfriday/hugoverse/pkg/herrors"
+	"github.com/mdfriday/hugoverse/pkg/loggers"
 	"github.com/spf13/afero"
 	"github.com/spf13/fsync"
 	"os"

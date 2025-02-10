@@ -1,8 +1,8 @@
 package cors
 
 import (
-	"github.com/gohugonet/hugoverse/internal/interfaces/api/cache"
-	"github.com/gohugonet/hugoverse/pkg/loggers"
+	"github.com/mdfriday/hugoverse/internal/interfaces/api/cache"
+	"github.com/mdfriday/hugoverse/pkg/loggers"
 	"net/http"
 	"net/url"
 )

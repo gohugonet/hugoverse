@@ -2,10 +2,10 @@ package compare
 
 import (
 	"fmt"
-	"github.com/gohugonet/hugoverse/pkg/compare"
-	"github.com/gohugonet/hugoverse/pkg/hreflect"
-	"github.com/gohugonet/hugoverse/pkg/htime"
-	"github.com/gohugonet/hugoverse/pkg/types"
+	"github.com/mdfriday/hugoverse/pkg/compare"
+	"github.com/mdfriday/hugoverse/pkg/hreflect"
+	"github.com/mdfriday/hugoverse/pkg/htime"
+	"github.com/mdfriday/hugoverse/pkg/types"
 	"golang.org/x/text/collate"
 	"math"
 	"reflect"

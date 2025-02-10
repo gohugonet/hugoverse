@@ -2,7 +2,7 @@ package valueobject
 
 import (
 	"github.com/disintegration/gift"
-	pio "github.com/gohugonet/hugoverse/pkg/io"
+	pio "github.com/mdfriday/hugoverse/pkg/io"
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/gofont/goregular"
 	"golang.org/x/image/font/opentype"

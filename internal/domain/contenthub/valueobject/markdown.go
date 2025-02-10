@@ -1,9 +1,9 @@
 package valueobject
 
 import (
-	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
-	"github.com/gohugonet/hugoverse/internal/domain/markdown"
-	"github.com/gohugonet/hugoverse/internal/domain/markdown/factory"
+	"github.com/mdfriday/hugoverse/internal/domain/contenthub"
+	"github.com/mdfriday/hugoverse/internal/domain/markdown"
+	"github.com/mdfriday/hugoverse/internal/domain/markdown/factory"
 )
 
 // MDProvider is the package entry point.

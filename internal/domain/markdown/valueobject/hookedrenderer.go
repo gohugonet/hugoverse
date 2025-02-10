@@ -2,8 +2,8 @@ package valueobject
 
 import (
 	"bytes"
-	"github.com/gohugonet/hugoverse/internal/domain/markdown"
-	"github.com/gohugonet/hugoverse/pkg/types/hstring"
+	"github.com/mdfriday/hugoverse/internal/domain/markdown"
+	"github.com/mdfriday/hugoverse/pkg/types/hstring"
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/renderer"
 	"github.com/yuin/goldmark/renderer/html"

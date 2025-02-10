@@ -3,8 +3,8 @@ package admin
 import (
 	"bytes"
 	"fmt"
-	"github.com/gohugonet/hugoverse/internal/domain/content"
-	"github.com/gohugonet/hugoverse/pkg/editor"
+	"github.com/mdfriday/hugoverse/internal/domain/content"
+	"github.com/mdfriday/hugoverse/pkg/editor"
 	"html/template"
 
 	"github.com/gofrs/uuid"

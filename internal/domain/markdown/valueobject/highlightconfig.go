@@ -15,7 +15,7 @@ package valueobject
 
 import (
 	"fmt"
-	"github.com/gohugonet/hugoverse/internal/domain/markdown"
+	"github.com/mdfriday/hugoverse/internal/domain/markdown"
 	"strconv"
 	"strings"
 

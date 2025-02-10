@@ -2,7 +2,7 @@ package valueobject
 
 import (
 	"context"
-	"github.com/gohugonet/hugoverse/pkg/template/funcs/math"
+	"github.com/mdfriday/hugoverse/pkg/template/funcs/math"
 )
 
 const nsMath = "math"

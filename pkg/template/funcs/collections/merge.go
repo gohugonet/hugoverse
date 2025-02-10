@@ -16,8 +16,8 @@ package collections
 import (
 	"errors"
 	"fmt"
-	"github.com/gohugonet/hugoverse/pkg/hreflect"
-	"github.com/gohugonet/hugoverse/pkg/maps"
+	"github.com/mdfriday/hugoverse/pkg/hreflect"
+	"github.com/mdfriday/hugoverse/pkg/maps"
 	"reflect"
 	"strings"
 )

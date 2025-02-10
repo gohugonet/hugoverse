@@ -22,9 +22,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gohugonet/hugoverse/pkg/htime"
-	"github.com/gohugonet/hugoverse/pkg/maps"
-	"github.com/gohugonet/hugoverse/pkg/types"
+	"github.com/mdfriday/hugoverse/pkg/htime"
+	"github.com/mdfriday/hugoverse/pkg/maps"
+	"github.com/mdfriday/hugoverse/pkg/types"
 )
 
 // TODO(bep) replace the private versions in /tpl with these.

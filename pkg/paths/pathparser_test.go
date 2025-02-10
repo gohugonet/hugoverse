@@ -14,7 +14,7 @@
 package paths
 
 import (
-	"github.com/gohugonet/hugoverse/pkg/paths/files"
+	"github.com/mdfriday/hugoverse/pkg/paths/files"
 	"testing"
 
 	qt "github.com/frankban/quicktest"

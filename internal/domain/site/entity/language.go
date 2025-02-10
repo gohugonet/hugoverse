@@ -2,7 +2,7 @@ package entity
 
 import (
 	"fmt"
-	"github.com/gohugonet/hugoverse/internal/domain/site"
+	"github.com/mdfriday/hugoverse/internal/domain/site"
 	"golang.org/x/text/collate"
 	"golang.org/x/text/language"
 	"time"

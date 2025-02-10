@@ -3,7 +3,7 @@ package cli
 import (
 	"flag"
 	"fmt"
-	"github.com/gohugonet/hugoverse/internal/application"
+	"github.com/mdfriday/hugoverse/internal/application"
 )
 
 type demoCmd struct {

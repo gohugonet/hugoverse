@@ -1,8 +1,8 @@
 package factory
 
 import (
-	"github.com/gohugonet/hugoverse/internal/domain/markdown"
-	"github.com/gohugonet/hugoverse/internal/domain/markdown/valueobject"
+	"github.com/mdfriday/hugoverse/internal/domain/markdown"
+	"github.com/mdfriday/hugoverse/internal/domain/markdown/valueobject"
 	"github.com/yuin/goldmark"
 	emoji "github.com/yuin/goldmark-emoji"
 	"github.com/yuin/goldmark/extension"

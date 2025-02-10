@@ -2,10 +2,10 @@ package factory
 
 import (
 	"fmt"
-	"github.com/gohugonet/hugoverse/internal/domain/resources"
-	"github.com/gohugonet/hugoverse/internal/domain/resources/entity"
-	"github.com/gohugonet/hugoverse/internal/domain/resources/valueobject"
-	"github.com/gohugonet/hugoverse/pkg/hexec"
+	"github.com/mdfriday/hugoverse/internal/domain/resources"
+	"github.com/mdfriday/hugoverse/internal/domain/resources/entity"
+	"github.com/mdfriday/hugoverse/internal/domain/resources/valueobject"
+	"github.com/mdfriday/hugoverse/pkg/hexec"
 )
 
 func newDartSass(exec *hexec.Exec, fs resources.Fs) (*entity.SassClient, error) {

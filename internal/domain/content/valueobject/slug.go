@@ -1,7 +1,7 @@
 package valueobject
 
 import (
-	"github.com/gohugonet/hugoverse/internal/domain/content"
+	"github.com/mdfriday/hugoverse/internal/domain/content"
 	"strings"
 )
 

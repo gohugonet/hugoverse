@@ -2,8 +2,8 @@ package valueobject
 
 import (
 	"errors"
-	"github.com/gohugonet/hugoverse/internal/domain/fs"
-	"github.com/gohugonet/hugoverse/pkg/glob"
+	"github.com/mdfriday/hugoverse/internal/domain/fs"
+	"github.com/mdfriday/hugoverse/pkg/glob"
 	"github.com/spf13/afero"
 	"path/filepath"
 	"strings"

@@ -1,7 +1,7 @@
 package entity
 
 import (
-	"github.com/gohugonet/hugoverse/internal/domain/admin/valueobject"
+	"github.com/mdfriday/hugoverse/internal/domain/admin/valueobject"
 )
 
 type Cache struct {

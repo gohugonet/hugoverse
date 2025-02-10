@@ -2,8 +2,8 @@ package valueobject
 
 import (
 	"context"
-	"github.com/gohugonet/hugoverse/internal/domain/template"
-	"github.com/gohugonet/hugoverse/pkg/template/funcs/collections"
+	"github.com/mdfriday/hugoverse/internal/domain/template"
+	"github.com/mdfriday/hugoverse/pkg/template/funcs/collections"
 )
 
 var TemplateFuncsNamespaceRegistry []func() *TemplateFuncsNamespace

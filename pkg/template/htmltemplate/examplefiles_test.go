@@ -13,7 +13,7 @@ import (
 	"os"
 	"path/filepath"
 
-	template "github.com/gohugonet/hugoverse/pkg/template/texttemplate"
+	template "github.com/mdfriday/hugoverse/pkg/template/texttemplate"
 )
 
 // templateFile defines the contents of a template to be stored in a file, for testing.

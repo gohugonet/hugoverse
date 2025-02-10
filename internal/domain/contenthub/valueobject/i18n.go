@@ -1,7 +1,7 @@
 package valueobject
 
 import (
-	"github.com/gohugonet/hugoverse/pkg/hreflect"
+	"github.com/mdfriday/hugoverse/pkg/hreflect"
 	"github.com/spf13/cast"
 	"reflect"
 	"strings"

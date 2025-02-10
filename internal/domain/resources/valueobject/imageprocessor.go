@@ -2,8 +2,8 @@ package valueobject
 
 import (
 	"github.com/disintegration/gift"
-	"github.com/gohugonet/hugoverse/internal/domain/resources"
-	"github.com/gohugonet/hugoverse/pkg/images/exif"
+	"github.com/mdfriday/hugoverse/internal/domain/resources"
+	"github.com/mdfriday/hugoverse/pkg/images/exif"
 	"github.com/muesli/smartcrop"
 	"image"
 	"image/color"

@@ -1,9 +1,9 @@
 package entity
 
 import (
-	"github.com/gohugonet/hugoverse/internal/domain/resources"
-	"github.com/gohugonet/hugoverse/pkg/glob"
-	"github.com/gohugonet/hugoverse/pkg/paths"
+	"github.com/mdfriday/hugoverse/internal/domain/resources"
+	"github.com/mdfriday/hugoverse/pkg/glob"
+	"github.com/mdfriday/hugoverse/pkg/paths"
 	"github.com/spf13/cast"
 	"strings"
 )

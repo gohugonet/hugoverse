@@ -22,7 +22,7 @@ import (
 
 	"github.com/bep/logg"
 	qt "github.com/frankban/quicktest"
-	"github.com/gohugonet/hugoverse/pkg/loggers"
+	"github.com/mdfriday/hugoverse/pkg/loggers"
 )
 
 func TestLogDistinct(t *testing.T) {

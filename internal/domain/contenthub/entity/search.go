@@ -3,9 +3,9 @@ package entity
 import (
 	"context"
 	"fmt"
-	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
-	"github.com/gohugonet/hugoverse/internal/domain/contenthub/valueobject"
-	"github.com/gohugonet/hugoverse/pkg/loggers"
+	"github.com/mdfriday/hugoverse/internal/domain/contenthub"
+	"github.com/mdfriday/hugoverse/internal/domain/contenthub/valueobject"
+	"github.com/mdfriday/hugoverse/pkg/loggers"
 	"sync"
 )
 

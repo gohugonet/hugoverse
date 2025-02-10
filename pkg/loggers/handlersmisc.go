@@ -17,7 +17,7 @@ package loggers
 
 import (
 	"fmt"
-	"github.com/gohugonet/hugoverse/pkg/identity"
+	"github.com/mdfriday/hugoverse/pkg/identity"
 	"strings"
 	"sync"
 

@@ -17,7 +17,7 @@ package loggers
 
 import (
 	"fmt"
-	"github.com/gohugonet/hugoverse/pkg/terminal"
+	"github.com/mdfriday/hugoverse/pkg/terminal"
 	"io"
 	"os"
 	"strings"

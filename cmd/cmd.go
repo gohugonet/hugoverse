@@ -4,7 +4,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"github.com/gohugonet/hugoverse/internal/interfaces/cli"
+	"github.com/mdfriday/hugoverse/internal/interfaces/cli"
 	"os"
 )
 

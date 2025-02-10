@@ -1,7 +1,7 @@
 package entity
 
 import (
-	"github.com/gohugonet/hugoverse/internal/domain/module"
+	"github.com/mdfriday/hugoverse/internal/domain/module"
 )
 
 type Lang struct {

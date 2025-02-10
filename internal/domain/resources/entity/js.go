@@ -15,10 +15,10 @@ package entity
 
 import (
 	"github.com/evanw/esbuild/pkg/api"
-	"github.com/gohugonet/hugoverse/internal/domain/resources"
-	"github.com/gohugonet/hugoverse/internal/domain/resources/valueobject"
-	"github.com/gohugonet/hugoverse/pkg/loggers"
-	"github.com/gohugonet/hugoverse/pkg/media"
+	"github.com/mdfriday/hugoverse/internal/domain/resources"
+	"github.com/mdfriday/hugoverse/internal/domain/resources/valueobject"
+	"github.com/mdfriday/hugoverse/pkg/loggers"
+	"github.com/mdfriday/hugoverse/pkg/media"
 	"io"
 	"path"
 	"path/filepath"

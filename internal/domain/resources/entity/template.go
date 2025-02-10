@@ -3,10 +3,10 @@ package entity
 import (
 	"context"
 	"fmt"
-	"github.com/gohugonet/hugoverse/internal/domain/resources"
-	"github.com/gohugonet/hugoverse/internal/domain/resources/valueobject"
-	"github.com/gohugonet/hugoverse/pkg/helpers"
-	"github.com/gohugonet/hugoverse/pkg/paths"
+	"github.com/mdfriday/hugoverse/internal/domain/resources"
+	"github.com/mdfriday/hugoverse/internal/domain/resources/valueobject"
+	"github.com/mdfriday/hugoverse/pkg/helpers"
+	"github.com/mdfriday/hugoverse/pkg/paths"
 )
 
 type TemplateClient struct {

@@ -3,7 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"errors"
-	"github.com/gohugonet/hugoverse/pkg/herrors"
+	"github.com/mdfriday/hugoverse/pkg/herrors"
 	"net/http"
 )
 

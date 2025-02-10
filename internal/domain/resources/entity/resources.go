@@ -1,13 +1,13 @@
 package entity
 
 import (
-	"github.com/gohugonet/hugoverse/internal/domain/fs"
-	"github.com/gohugonet/hugoverse/internal/domain/resources"
-	"github.com/gohugonet/hugoverse/internal/domain/resources/valueobject"
-	"github.com/gohugonet/hugoverse/pkg/cache/dynacache"
-	"github.com/gohugonet/hugoverse/pkg/glob"
-	"github.com/gohugonet/hugoverse/pkg/hexec"
-	"github.com/gohugonet/hugoverse/pkg/io"
+	"github.com/mdfriday/hugoverse/internal/domain/fs"
+	"github.com/mdfriday/hugoverse/internal/domain/resources"
+	"github.com/mdfriday/hugoverse/internal/domain/resources/valueobject"
+	"github.com/mdfriday/hugoverse/pkg/cache/dynacache"
+	"github.com/mdfriday/hugoverse/pkg/glob"
+	"github.com/mdfriday/hugoverse/pkg/hexec"
+	"github.com/mdfriday/hugoverse/pkg/io"
 	"os"
 	"path"
 	"path/filepath"

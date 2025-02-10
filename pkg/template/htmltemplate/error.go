@@ -7,7 +7,7 @@ package template
 import (
 	"fmt"
 
-	"github.com/gohugonet/hugoverse/pkg/template/texttemplate/parse"
+	"github.com/mdfriday/hugoverse/pkg/template/texttemplate/parse"
 )
 
 // Error describes a problem encountered during template Escaping.

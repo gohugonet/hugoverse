@@ -2,10 +2,10 @@ package handler
 
 import (
 	"encoding/json"
-	"github.com/gohugonet/hugoverse/internal/application"
-	"github.com/gohugonet/hugoverse/internal/domain/content"
-	"github.com/gohugonet/hugoverse/internal/domain/content/valueobject"
-	"github.com/gohugonet/hugoverse/internal/interfaces/api/form"
+	"github.com/mdfriday/hugoverse/internal/application"
+	"github.com/mdfriday/hugoverse/internal/domain/content"
+	"github.com/mdfriday/hugoverse/internal/domain/content/valueobject"
+	"github.com/mdfriday/hugoverse/internal/interfaces/api/form"
 	"log"
 	"net/http"
 )

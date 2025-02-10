@@ -1,7 +1,7 @@
 package valueobject
 
 import (
-	"github.com/gohugonet/hugoverse/internal/domain/config"
+	"github.com/mdfriday/hugoverse/internal/domain/config"
 	"github.com/mitchellh/mapstructure"
 	"path/filepath"
 )

@@ -3,8 +3,8 @@ package entity
 import (
 	"github.com/bep/gowebp/libwebp/webpoptions"
 	"github.com/disintegration/gift"
-	"github.com/gohugonet/hugoverse/internal/domain/config/valueobject"
-	"github.com/gohugonet/hugoverse/pkg/images/exif"
+	"github.com/mdfriday/hugoverse/internal/domain/config/valueobject"
+	"github.com/mdfriday/hugoverse/pkg/images/exif"
 	"image/color"
 )
 

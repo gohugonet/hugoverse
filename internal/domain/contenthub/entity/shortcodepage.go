@@ -1,10 +1,10 @@
 package entity
 
 import (
-	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
-	bp "github.com/gohugonet/hugoverse/pkg/bufferpool"
-	"github.com/gohugonet/hugoverse/pkg/maps"
-	"github.com/gohugonet/hugoverse/pkg/text"
+	"github.com/mdfriday/hugoverse/internal/domain/contenthub"
+	bp "github.com/mdfriday/hugoverse/pkg/bufferpool"
+	"github.com/mdfriday/hugoverse/pkg/maps"
+	"github.com/mdfriday/hugoverse/pkg/text"
 	"html/template"
 	"reflect"
 	"strings"

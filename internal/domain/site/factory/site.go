@@ -2,10 +2,10 @@ package factory
 
 import (
 	"github.com/bep/gitmap"
-	"github.com/gohugonet/hugoverse/internal/domain/site"
-	"github.com/gohugonet/hugoverse/internal/domain/site/entity"
-	"github.com/gohugonet/hugoverse/internal/domain/site/valueobject"
-	"github.com/gohugonet/hugoverse/pkg/loggers"
+	"github.com/mdfriday/hugoverse/internal/domain/site"
+	"github.com/mdfriday/hugoverse/internal/domain/site/entity"
+	"github.com/mdfriday/hugoverse/internal/domain/site/valueobject"
+	"github.com/mdfriday/hugoverse/pkg/loggers"
 )
 
 func New(services site.Services) *entity.Site {

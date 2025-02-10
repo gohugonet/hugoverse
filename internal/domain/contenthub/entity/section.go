@@ -2,9 +2,9 @@ package entity
 
 import (
 	"context"
-	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
-	"github.com/gohugonet/hugoverse/internal/domain/contenthub/valueobject"
-	"github.com/gohugonet/hugoverse/pkg/doctree"
+	"github.com/mdfriday/hugoverse/internal/domain/contenthub"
+	"github.com/mdfriday/hugoverse/internal/domain/contenthub/valueobject"
+	"github.com/mdfriday/hugoverse/pkg/doctree"
 	"strings"
 )
 

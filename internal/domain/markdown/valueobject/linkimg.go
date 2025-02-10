@@ -1,7 +1,7 @@
 package valueobject
 
 import (
-	"github.com/gohugonet/hugoverse/pkg/types/hstring"
+	"github.com/mdfriday/hugoverse/pkg/types/hstring"
 )
 
 type imageLinkContext struct {

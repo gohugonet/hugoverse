@@ -18,10 +18,10 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
-	"github.com/gohugonet/hugoverse/pkg/maps"
+	"github.com/mdfriday/hugoverse/pkg/maps"
 	"html/template"
 
-	bp "github.com/gohugonet/hugoverse/pkg/bufferpool"
+	bp "github.com/mdfriday/hugoverse/pkg/bufferpool"
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/cast"

@@ -1,8 +1,8 @@
 package valueobject
 
 import (
-	"github.com/gohugonet/hugoverse/internal/domain/resources"
-	"github.com/gohugonet/hugoverse/pkg/cache/filecache"
+	"github.com/mdfriday/hugoverse/internal/domain/resources"
+	"github.com/mdfriday/hugoverse/pkg/cache/filecache"
 	"strings"
 )
 

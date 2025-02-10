@@ -2,7 +2,7 @@ package valueobject
 
 import (
 	"github.com/disintegration/gift"
-	"github.com/gohugonet/hugoverse/pkg/images/exif"
+	"github.com/mdfriday/hugoverse/pkg/images/exif"
 	"image"
 	"image/draw"
 )

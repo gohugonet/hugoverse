@@ -16,7 +16,7 @@ package parser
 import (
 	"encoding/json"
 	"errors"
-	"github.com/gohugonet/hugoverse/pkg/parser/metadecoders"
+	"github.com/mdfriday/hugoverse/pkg/parser/metadecoders"
 	"io"
 
 	toml "github.com/pelletier/go-toml/v2"

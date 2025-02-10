@@ -1,6 +1,6 @@
 package valueobject
 
-import "github.com/gohugonet/hugoverse/internal/domain/template"
+import "github.com/mdfriday/hugoverse/internal/domain/template"
 
 func IdentityOr(a, b template.Identity) template.Identity {
 	return orIdentity{a: a, b: b}

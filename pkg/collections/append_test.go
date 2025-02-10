@@ -55,7 +55,7 @@ func TestAppend(t *testing.T) {
 			[]any{&tstSlicerIn1{"c"}},
 			testSlicerInterfaces{&tstSlicerIn1{"a"}, &tstSlicerIn1{"b"}, &tstSlicerIn1{"c"}},
 		},
-		// https://github.com/gohugonet/hugoverse/pkgissues/5361
+		// https://github.com/mdfriday/hugoverse/pkgissues/5361
 		{
 			[]string{"a", "b"},
 			[]any{tstSlicers{&tstSlicer{"a"}, &tstSlicer{"b"}}},

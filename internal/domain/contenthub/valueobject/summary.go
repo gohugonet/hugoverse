@@ -1,8 +1,8 @@
 package valueobject
 
 import (
-	"github.com/gohugonet/hugoverse/pkg/media"
-	"github.com/gohugonet/hugoverse/pkg/types"
+	"github.com/mdfriday/hugoverse/pkg/media"
+	"github.com/mdfriday/hugoverse/pkg/types"
 	"regexp"
 	"strings"
 )

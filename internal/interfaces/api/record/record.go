@@ -1,7 +1,7 @@
 package record
 
 import (
-	"github.com/gohugonet/hugoverse/internal/interfaces/api/record/analytics"
+	"github.com/mdfriday/hugoverse/internal/interfaces/api/record/analytics"
 	"net/http"
 )
 

@@ -3,8 +3,8 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gohugonet/hugoverse/internal/domain/admin"
-	"github.com/gohugonet/hugoverse/pkg/timestamp"
+	"github.com/mdfriday/hugoverse/internal/domain/admin"
+	"github.com/mdfriday/hugoverse/pkg/timestamp"
 	"io"
 	"mime/multipart"
 	"net/http"

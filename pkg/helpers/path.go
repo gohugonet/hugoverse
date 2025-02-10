@@ -16,9 +16,9 @@ package helpers
 import (
 	"errors"
 	"fmt"
-	"github.com/gohugonet/hugoverse/pkg/herrors"
-	pio "github.com/gohugonet/hugoverse/pkg/io"
-	"github.com/gohugonet/hugoverse/pkg/paths"
+	"github.com/mdfriday/hugoverse/pkg/herrors"
+	pio "github.com/mdfriday/hugoverse/pkg/io"
+	"github.com/mdfriday/hugoverse/pkg/paths"
 	"io"
 	"os"
 	"path"

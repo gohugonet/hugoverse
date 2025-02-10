@@ -1,12 +1,12 @@
 package factory
 
 import (
-	"github.com/gohugonet/hugoverse/internal/domain/template"
-	"github.com/gohugonet/hugoverse/internal/domain/template/entity"
-	"github.com/gohugonet/hugoverse/internal/domain/template/valueobject"
-	"github.com/gohugonet/hugoverse/pkg/loggers"
-	htmltemplate "github.com/gohugonet/hugoverse/pkg/template/htmltemplate"
-	texttemplate "github.com/gohugonet/hugoverse/pkg/template/texttemplate"
+	"github.com/mdfriday/hugoverse/internal/domain/template"
+	"github.com/mdfriday/hugoverse/internal/domain/template/entity"
+	"github.com/mdfriday/hugoverse/internal/domain/template/valueobject"
+	"github.com/mdfriday/hugoverse/pkg/loggers"
+	htmltemplate "github.com/mdfriday/hugoverse/pkg/template/htmltemplate"
+	texttemplate "github.com/mdfriday/hugoverse/pkg/template/texttemplate"
 	"reflect"
 	"sync"
 )

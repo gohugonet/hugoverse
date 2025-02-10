@@ -2,9 +2,9 @@ package entity
 
 import (
 	"context"
-	"github.com/gohugonet/hugoverse/pkg/hreflect"
-	"github.com/gohugonet/hugoverse/pkg/maps"
-	texttemplate "github.com/gohugonet/hugoverse/pkg/template/texttemplate"
+	"github.com/mdfriday/hugoverse/pkg/hreflect"
+	"github.com/mdfriday/hugoverse/pkg/maps"
+	texttemplate "github.com/mdfriday/hugoverse/pkg/template/texttemplate"
 	"reflect"
 	"strings"
 )

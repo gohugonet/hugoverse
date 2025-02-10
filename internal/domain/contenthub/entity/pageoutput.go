@@ -2,11 +2,11 @@ package entity
 
 import (
 	"fmt"
-	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
-	"github.com/gohugonet/hugoverse/internal/domain/contenthub/valueobject"
-	"github.com/gohugonet/hugoverse/internal/domain/markdown"
-	"github.com/gohugonet/hugoverse/pkg/loggers"
-	"github.com/gohugonet/hugoverse/pkg/output"
+	"github.com/mdfriday/hugoverse/internal/domain/contenthub"
+	"github.com/mdfriday/hugoverse/internal/domain/contenthub/valueobject"
+	"github.com/mdfriday/hugoverse/internal/domain/markdown"
+	"github.com/mdfriday/hugoverse/pkg/loggers"
+	"github.com/mdfriday/hugoverse/pkg/output"
 )
 
 type Output struct {

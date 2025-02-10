@@ -15,7 +15,7 @@ package pageparser
 
 import (
 	"bytes"
-	"github.com/gohugonet/hugoverse/pkg/parser/metadecoders"
+	"github.com/mdfriday/hugoverse/pkg/parser/metadecoders"
 	"strings"
 	"testing"
 

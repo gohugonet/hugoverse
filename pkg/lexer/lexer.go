@@ -3,7 +3,7 @@ package lexer
 import (
 	"errors"
 	"fmt"
-	"github.com/gohugonet/hugoverse/pkg/fsm"
+	"github.com/mdfriday/hugoverse/pkg/fsm"
 )
 
 func New(input string, sms FSMState) (Lexer, error) {

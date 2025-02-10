@@ -7,7 +7,7 @@ package template
 import (
 	"fmt"
 
-	"github.com/gohugonet/hugoverse/pkg/template/texttemplate/parse"
+	"github.com/mdfriday/hugoverse/pkg/template/texttemplate/parse"
 )
 
 // context describes the state an HTML parser must be in when it reaches the

@@ -3,8 +3,8 @@ package entity
 import (
 	"errors"
 	"fmt"
-	"github.com/gohugonet/hugoverse/internal/domain/content/valueobject"
-	"github.com/gohugonet/hugoverse/pkg/herrors"
+	"github.com/mdfriday/hugoverse/internal/domain/content/valueobject"
+	"github.com/mdfriday/hugoverse/pkg/herrors"
 )
 
 func (c *Content) PreviewTarget(contentType, id, status string) (string, string, error) {

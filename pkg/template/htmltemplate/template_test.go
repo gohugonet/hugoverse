@@ -13,7 +13,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/gohugonet/hugoverse/pkg/template/texttemplate/parse" // https://golang.org/issue/12996
+	"github.com/mdfriday/hugoverse/pkg/template/texttemplate/parse" // https://golang.org/issue/12996
 )
 
 func TestTemplateClone(t *testing.T) {

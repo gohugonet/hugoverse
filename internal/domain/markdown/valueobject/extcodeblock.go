@@ -16,12 +16,12 @@ package valueobject
 import (
 	"bytes"
 	"errors"
-	"github.com/gohugonet/hugoverse/internal/domain/markdown"
+	"github.com/mdfriday/hugoverse/internal/domain/markdown"
 	"strings"
 	"sync"
 
-	"github.com/gohugonet/hugoverse/pkg/herrors"
-	htext "github.com/gohugonet/hugoverse/pkg/text"
+	"github.com/mdfriday/hugoverse/pkg/herrors"
+	htext "github.com/mdfriday/hugoverse/pkg/text"
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/parser"

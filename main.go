@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/gohugonet/hugoverse/cmd"
+	"github.com/mdfriday/hugoverse/cmd"
 	"log"
 )
 

@@ -1,4 +1,4 @@
-module github.com/gohugonet/hugoverse
+module github.com/mdfriday/hugoverse
 
 go 1.23
 

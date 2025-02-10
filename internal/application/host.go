@@ -2,11 +2,11 @@ package application
 
 import (
 	"encoding/json"
-	contentEntity "github.com/gohugonet/hugoverse/internal/domain/content/entity"
-	"github.com/gohugonet/hugoverse/internal/domain/content/valueobject"
-	hostEntity "github.com/gohugonet/hugoverse/internal/domain/host/entity"
-	"github.com/gohugonet/hugoverse/internal/domain/host/factory"
-	"github.com/gohugonet/hugoverse/pkg/timestamp"
+	contentEntity "github.com/mdfriday/hugoverse/internal/domain/content/entity"
+	"github.com/mdfriday/hugoverse/internal/domain/content/valueobject"
+	hostEntity "github.com/mdfriday/hugoverse/internal/domain/host/entity"
+	"github.com/mdfriday/hugoverse/internal/domain/host/factory"
+	"github.com/mdfriday/hugoverse/pkg/timestamp"
 	"strconv"
 	"time"
 )

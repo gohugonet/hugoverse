@@ -2,7 +2,7 @@ package valueobject
 
 import (
 	"errors"
-	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
+	"github.com/mdfriday/hugoverse/internal/domain/contenthub"
 	"math"
 )
 

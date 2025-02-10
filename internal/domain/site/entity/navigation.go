@@ -2,9 +2,9 @@ package entity
 
 import (
 	"fmt"
-	"github.com/gohugonet/hugoverse/internal/domain/site"
-	"github.com/gohugonet/hugoverse/internal/domain/site/valueobject"
-	"github.com/gohugonet/hugoverse/pkg/compare"
+	"github.com/mdfriday/hugoverse/internal/domain/site"
+	"github.com/mdfriday/hugoverse/internal/domain/site/valueobject"
+	"github.com/mdfriday/hugoverse/pkg/compare"
 	"sort"
 )
 

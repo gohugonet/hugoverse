@@ -2,11 +2,11 @@ package entity
 
 import (
 	"fmt"
-	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
-	"github.com/gohugonet/hugoverse/internal/domain/contenthub/valueobject"
-	"github.com/gohugonet/hugoverse/internal/domain/fs"
-	"github.com/gohugonet/hugoverse/pkg/paths"
-	"github.com/gohugonet/hugoverse/pkg/paths/files"
+	"github.com/mdfriday/hugoverse/internal/domain/contenthub"
+	"github.com/mdfriday/hugoverse/internal/domain/contenthub/valueobject"
+	"github.com/mdfriday/hugoverse/internal/domain/fs"
+	"github.com/mdfriday/hugoverse/pkg/paths"
+	"github.com/mdfriday/hugoverse/pkg/paths/files"
 	"path"
 	"path/filepath"
 	"strings"

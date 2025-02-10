@@ -14,8 +14,8 @@
 package maps
 
 import (
-	"github.com/gohugonet/hugoverse/pkg/collections"
-	"github.com/gohugonet/hugoverse/pkg/math"
+	"github.com/mdfriday/hugoverse/pkg/collections"
+	"github.com/mdfriday/hugoverse/pkg/math"
 	"reflect"
 	"sort"
 	"sync"

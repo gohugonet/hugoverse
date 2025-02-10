@@ -2,8 +2,8 @@ package entity
 
 import (
 	"github.com/bep/logg"
-	"github.com/gohugonet/hugoverse/pkg/env"
-	"github.com/gohugonet/hugoverse/pkg/herrors"
+	"github.com/mdfriday/hugoverse/pkg/env"
+	"github.com/mdfriday/hugoverse/pkg/herrors"
 	"sync"
 )
 

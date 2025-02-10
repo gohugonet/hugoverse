@@ -17,7 +17,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/gohugonet/hugoverse/pkg/parser/metadecoders"
+	"github.com/mdfriday/hugoverse/pkg/parser/metadecoders"
 	"io"
 	"regexp"
 	"strings"

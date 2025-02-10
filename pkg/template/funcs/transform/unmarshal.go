@@ -16,10 +16,10 @@ package transform
 import (
 	"errors"
 	"fmt"
-	"github.com/gohugonet/hugoverse/pkg/cache/stale"
-	"github.com/gohugonet/hugoverse/pkg/helpers"
-	"github.com/gohugonet/hugoverse/pkg/parser/metadecoders"
-	"github.com/gohugonet/hugoverse/pkg/types"
+	"github.com/mdfriday/hugoverse/pkg/cache/stale"
+	"github.com/mdfriday/hugoverse/pkg/helpers"
+	"github.com/mdfriday/hugoverse/pkg/parser/metadecoders"
+	"github.com/mdfriday/hugoverse/pkg/types"
 	"io"
 	"strings"
 

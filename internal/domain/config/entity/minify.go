@@ -1,8 +1,8 @@
 package entity
 
 import (
-	"github.com/gohugonet/hugoverse/internal/domain/config/valueobject"
-	"github.com/gohugonet/hugoverse/pkg/media"
+	"github.com/mdfriday/hugoverse/internal/domain/config/valueobject"
+	"github.com/mdfriday/hugoverse/pkg/media"
 	"github.com/tdewolff/minify/v2"
 	"io"
 )

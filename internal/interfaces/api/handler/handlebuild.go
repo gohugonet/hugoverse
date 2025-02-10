@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"github.com/gohugonet/hugoverse/internal/application"
-	"github.com/gohugonet/hugoverse/internal/domain/content"
+	"github.com/mdfriday/hugoverse/internal/application"
+	"github.com/mdfriday/hugoverse/internal/domain/content"
 	"log"
 	"net/http"
 )

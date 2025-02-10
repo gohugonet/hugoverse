@@ -3,10 +3,10 @@ package valueobject
 import (
 	"bytes"
 	"errors"
-	"github.com/gohugonet/hugoverse/pkg/herrors"
-	"github.com/gohugonet/hugoverse/pkg/parser/metadecoders"
-	"github.com/gohugonet/hugoverse/pkg/parser/pageparser"
-	"github.com/gohugonet/hugoverse/pkg/text"
+	"github.com/mdfriday/hugoverse/pkg/herrors"
+	"github.com/mdfriday/hugoverse/pkg/parser/metadecoders"
+	"github.com/mdfriday/hugoverse/pkg/parser/pageparser"
+	"github.com/mdfriday/hugoverse/pkg/text"
 )
 
 type ItemHandler func(item pageparser.Item) error

@@ -15,7 +15,7 @@ package maps
 
 import (
 	"fmt"
-	"github.com/gohugonet/hugoverse/pkg/types"
+	"github.com/mdfriday/hugoverse/pkg/types"
 	"strings"
 
 	"github.com/gobwas/glob"

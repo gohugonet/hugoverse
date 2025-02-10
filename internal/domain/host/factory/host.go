@@ -1,8 +1,8 @@
 package factory
 
 import (
-	"github.com/gohugonet/hugoverse/internal/domain/host/entity"
-	"github.com/gohugonet/hugoverse/pkg/loggers"
+	"github.com/mdfriday/hugoverse/internal/domain/host/entity"
+	"github.com/mdfriday/hugoverse/pkg/loggers"
 )
 
 func NewHost(log loggers.Logger) (*entity.Host, error) {

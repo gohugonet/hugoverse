@@ -2,9 +2,9 @@ package entity
 
 import (
 	"fmt"
-	"github.com/gohugonet/hugoverse/internal/domain/contenthub/valueobject"
-	"github.com/gohugonet/hugoverse/pkg/cache/stale"
-	"github.com/gohugonet/hugoverse/pkg/text"
+	"github.com/mdfriday/hugoverse/internal/domain/contenthub/valueobject"
+	"github.com/mdfriday/hugoverse/pkg/cache/stale"
+	"github.com/mdfriday/hugoverse/pkg/text"
 	sio "io"
 	"path/filepath"
 	"sync/atomic"

@@ -2,7 +2,7 @@ package valueobject
 
 import (
 	"context"
-	"github.com/gohugonet/hugoverse/pkg/template/funcs/site"
+	"github.com/mdfriday/hugoverse/pkg/template/funcs/site"
 )
 
 const nsSite = "site"

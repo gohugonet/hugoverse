@@ -3,7 +3,7 @@ package valueobject
 import (
 	"errors"
 	"fmt"
-	"github.com/gohugonet/hugoverse/pkg/hreflect"
+	"github.com/mdfriday/hugoverse/pkg/hreflect"
 	"github.com/spf13/afero"
 	"reflect"
 	"strings"

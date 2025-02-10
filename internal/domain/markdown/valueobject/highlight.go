@@ -16,9 +16,9 @@ package valueobject
 import (
 	"context"
 	"fmt"
-	"github.com/gohugonet/hugoverse/internal/domain/markdown"
-	pio "github.com/gohugonet/hugoverse/pkg/io"
-	"github.com/gohugonet/hugoverse/pkg/text"
+	"github.com/mdfriday/hugoverse/internal/domain/markdown"
+	pio "github.com/mdfriday/hugoverse/pkg/io"
+	"github.com/mdfriday/hugoverse/pkg/text"
 	gohtml "html"
 	"html/template"
 	"io"

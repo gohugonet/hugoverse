@@ -2,10 +2,10 @@ package valueobject
 
 import (
 	"fmt"
-	"github.com/gohugonet/hugoverse/internal/domain/config"
-	"github.com/gohugonet/hugoverse/pkg/maps"
-	"github.com/gohugonet/hugoverse/pkg/media"
-	"github.com/gohugonet/hugoverse/pkg/output"
+	"github.com/mdfriday/hugoverse/internal/domain/config"
+	"github.com/mdfriday/hugoverse/pkg/maps"
+	"github.com/mdfriday/hugoverse/pkg/media"
+	"github.com/mdfriday/hugoverse/pkg/output"
 	"github.com/mitchellh/mapstructure"
 	"reflect"
 	"sort"

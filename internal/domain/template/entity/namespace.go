@@ -1,10 +1,10 @@
 package entity
 
 import (
-	"github.com/gohugonet/hugoverse/internal/domain/template"
-	"github.com/gohugonet/hugoverse/internal/domain/template/valueobject"
-	htmltemplate "github.com/gohugonet/hugoverse/pkg/template/htmltemplate"
-	texttemplate "github.com/gohugonet/hugoverse/pkg/template/texttemplate"
+	"github.com/mdfriday/hugoverse/internal/domain/template"
+	"github.com/mdfriday/hugoverse/internal/domain/template/valueobject"
+	htmltemplate "github.com/mdfriday/hugoverse/pkg/template/htmltemplate"
+	texttemplate "github.com/mdfriday/hugoverse/pkg/template/texttemplate"
 	"strings"
 )
 

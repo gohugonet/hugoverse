@@ -1,6 +1,6 @@
 package valueobject
 
-import "github.com/gohugonet/hugoverse/pkg/parser/pageparser"
+import "github.com/mdfriday/hugoverse/pkg/parser/pageparser"
 
 type PageContentReplacement struct {
 	Val []byte

@@ -1,6 +1,6 @@
 package stale
 
-import "github.com/gohugonet/hugoverse/pkg/types"
+import "github.com/mdfriday/hugoverse/pkg/types"
 
 // Staler controls stale state of a Resource. A stale resource should be discarded.
 type Staler interface {

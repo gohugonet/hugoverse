@@ -15,7 +15,7 @@ package identity
 
 import (
 	"fmt"
-	"github.com/gohugonet/hugoverse/pkg/compare"
+	"github.com/mdfriday/hugoverse/pkg/compare"
 	"sync"
 )
 

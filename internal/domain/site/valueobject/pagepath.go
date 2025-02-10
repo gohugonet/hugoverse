@@ -2,8 +2,8 @@ package valueobject
 
 import (
 	"fmt"
-	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
-	"github.com/gohugonet/hugoverse/pkg/output"
+	"github.com/mdfriday/hugoverse/internal/domain/contenthub"
+	"github.com/mdfriday/hugoverse/pkg/output"
 )
 
 func NewPagePaths(ofs output.Formats, page contenthub.PageInfo) (PagePaths, error) {

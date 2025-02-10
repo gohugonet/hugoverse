@@ -14,7 +14,7 @@
 package valueobject
 
 import (
-	"github.com/gohugonet/hugoverse/pkg/collections"
+	"github.com/mdfriday/hugoverse/pkg/collections"
 	"testing"
 
 	qt "github.com/frankban/quicktest"

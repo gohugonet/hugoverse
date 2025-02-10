@@ -1,7 +1,7 @@
 package db
 
 import (
-	"github.com/gohugonet/hugoverse/pkg/loggers"
+	"github.com/mdfriday/hugoverse/pkg/loggers"
 	bolt "go.etcd.io/bbolt"
 	"path/filepath"
 )

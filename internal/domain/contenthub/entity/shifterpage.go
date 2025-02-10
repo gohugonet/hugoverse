@@ -1,7 +1,7 @@
 package entity
 
 import (
-	"github.com/gohugonet/hugoverse/pkg/doctree"
+	"github.com/mdfriday/hugoverse/pkg/doctree"
 )
 
 type PageShifter struct {

@@ -14,9 +14,9 @@
 package paths
 
 import (
-	"github.com/gohugonet/hugoverse/pkg/identity"
-	"github.com/gohugonet/hugoverse/pkg/paths/files"
-	"github.com/gohugonet/hugoverse/pkg/types"
+	"github.com/mdfriday/hugoverse/pkg/identity"
+	"github.com/mdfriday/hugoverse/pkg/paths/files"
+	"github.com/mdfriday/hugoverse/pkg/types"
 	"path"
 	"path/filepath"
 	"runtime"

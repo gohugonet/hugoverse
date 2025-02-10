@@ -13,7 +13,7 @@ import (
 	"os"
 	"strings"
 
-	template "github.com/gohugonet/hugoverse/pkg/template/htmltemplate"
+	template "github.com/mdfriday/hugoverse/pkg/template/htmltemplate"
 )
 
 func Example() {

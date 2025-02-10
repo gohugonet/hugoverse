@@ -1,7 +1,7 @@
 package application
 
 import (
-	"github.com/gohugonet/hugoverse/pkg/loggers"
+	"github.com/mdfriday/hugoverse/pkg/loggers"
 )
 
 var logger = loggers.NewDefault()

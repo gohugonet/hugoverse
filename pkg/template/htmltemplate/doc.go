@@ -34,7 +34,7 @@ provided below.
 
 Example
 
-	import template "github.com/gohugonet/hugoverse/pkg/template/texttemplate"
+	import template "github.com/mdfriday/hugoverse/pkg/template/texttemplate"
 	...
 	t, err := template.New("foo").Parse(`{{define "T"}}Hello, {{.}}!{{end}}`)
 	err = t.ExecuteTemplate(out, "T", "<script>alert('you have been pwned')</script>")
@@ -45,7 +45,7 @@ produces
 
 but the contextual autoescaping in html/template
 
-	import template "github.com/gohugonet/hugoverse/pkg/template/htmltemplate"
+	import template "github.com/mdfriday/hugoverse/pkg/template/htmltemplate"
 	...
 	t, err := template.New("foo").Parse(`{{define "T"}}Hello, {{.}}!{{end}}`)
 	err = t.ExecuteTemplate(out, "T", "<script>alert('you have been pwned')</script>")

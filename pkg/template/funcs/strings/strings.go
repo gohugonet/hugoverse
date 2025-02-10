@@ -4,8 +4,8 @@ package strings
 import (
 	"errors"
 	"fmt"
-	"github.com/gohugonet/hugoverse/pkg/helpers"
-	"github.com/gohugonet/hugoverse/pkg/text"
+	"github.com/mdfriday/hugoverse/pkg/helpers"
+	"github.com/mdfriday/hugoverse/pkg/text"
 	"html/template"
 	"strings"
 	"unicode"

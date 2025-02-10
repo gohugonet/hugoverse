@@ -14,7 +14,7 @@
 package template
 
 import (
-	template "github.com/gohugonet/hugoverse/pkg/template/texttemplate"
+	template "github.com/mdfriday/hugoverse/pkg/template/texttemplate"
 )
 
 /*

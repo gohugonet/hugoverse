@@ -3,8 +3,8 @@ package transform
 import (
 	"bytes"
 	"errors"
-	"github.com/gohugonet/hugoverse/pkg/hexec/parser"
-	"github.com/gohugonet/hugoverse/pkg/parser/metadecoders"
+	"github.com/mdfriday/hugoverse/pkg/hexec/parser"
+	"github.com/mdfriday/hugoverse/pkg/parser/metadecoders"
 	"strings"
 
 	"github.com/spf13/cast"

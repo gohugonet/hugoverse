@@ -1,8 +1,8 @@
 package valueobject
 
 import (
-	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
-	"github.com/gohugonet/hugoverse/pkg/maps"
+	"github.com/mdfriday/hugoverse/internal/domain/contenthub"
+	"github.com/mdfriday/hugoverse/pkg/maps"
 	"github.com/spf13/cast"
 )
 

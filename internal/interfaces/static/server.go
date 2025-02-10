@@ -2,8 +2,8 @@ package static
 
 import (
 	"github.com/gobwas/glob"
-	"github.com/gohugonet/hugoverse/pkg/loggers"
-	"github.com/gohugonet/hugoverse/pkg/types"
+	"github.com/mdfriday/hugoverse/pkg/loggers"
+	"github.com/mdfriday/hugoverse/pkg/types"
 	"github.com/spf13/cast"
 	"sort"
 	"strings"

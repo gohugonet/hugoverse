@@ -1,12 +1,12 @@
 package factory
 
 import (
-	"github.com/gohugonet/hugoverse/internal/domain/fs"
-	"github.com/gohugonet/hugoverse/internal/domain/fs/entity"
-	"github.com/gohugonet/hugoverse/internal/domain/fs/valueobject"
-	"github.com/gohugonet/hugoverse/internal/domain/module"
-	"github.com/gohugonet/hugoverse/pkg/overlayfs"
-	"github.com/gohugonet/hugoverse/pkg/paths/files"
+	"github.com/mdfriday/hugoverse/internal/domain/fs"
+	"github.com/mdfriday/hugoverse/internal/domain/fs/entity"
+	"github.com/mdfriday/hugoverse/internal/domain/fs/valueobject"
+	"github.com/mdfriday/hugoverse/internal/domain/module"
+	"github.com/mdfriday/hugoverse/pkg/overlayfs"
+	"github.com/mdfriday/hugoverse/pkg/paths/files"
 )
 
 func New(dir fs.Dir, mods module.Modules) (*entity.Fs, error) {

@@ -16,8 +16,8 @@ import (
 	"strings"
 	"testing"
 
-	template "github.com/gohugonet/hugoverse/pkg/template/texttemplate"
-	"github.com/gohugonet/hugoverse/pkg/template/texttemplate/parse"
+	template "github.com/mdfriday/hugoverse/pkg/template/texttemplate"
+	"github.com/mdfriday/hugoverse/pkg/template/texttemplate/parse"
 )
 
 type badMarshaler struct{}

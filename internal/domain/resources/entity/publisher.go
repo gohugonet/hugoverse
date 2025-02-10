@@ -1,9 +1,9 @@
 package entity
 
 import (
-	"github.com/gohugonet/hugoverse/internal/domain/resources"
-	"github.com/gohugonet/hugoverse/internal/domain/resources/valueobject"
-	"github.com/gohugonet/hugoverse/pkg/helpers"
+	"github.com/mdfriday/hugoverse/internal/domain/resources"
+	"github.com/mdfriday/hugoverse/internal/domain/resources/valueobject"
+	"github.com/mdfriday/hugoverse/pkg/helpers"
 	"github.com/spf13/afero"
 	"io"
 )

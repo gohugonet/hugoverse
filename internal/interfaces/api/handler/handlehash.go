@@ -2,7 +2,7 @@ package handler
 
 import (
 	"encoding/json"
-	"github.com/gohugonet/hugoverse/internal/domain/content"
+	"github.com/mdfriday/hugoverse/internal/domain/content"
 	"net/http"
 )
 

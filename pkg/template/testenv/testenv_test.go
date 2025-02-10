@@ -11,7 +11,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/gohugonet/hugoverse/pkg/template/testenv"
+	"github.com/mdfriday/hugoverse/pkg/template/testenv"
 )
 
 func TestGoToolLocation(t *testing.T) {

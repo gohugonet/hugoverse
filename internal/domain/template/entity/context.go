@@ -3,12 +3,12 @@ package entity
 import (
 	"errors"
 	"fmt"
-	"github.com/gohugonet/hugoverse/internal/domain/template"
-	"github.com/gohugonet/hugoverse/internal/domain/template/valueobject"
-	"github.com/gohugonet/hugoverse/pkg/maps"
-	htmltemplate "github.com/gohugonet/hugoverse/pkg/template/htmltemplate"
-	texttemplate "github.com/gohugonet/hugoverse/pkg/template/texttemplate"
-	"github.com/gohugonet/hugoverse/pkg/template/texttemplate/parse"
+	"github.com/mdfriday/hugoverse/internal/domain/template"
+	"github.com/mdfriday/hugoverse/internal/domain/template/valueobject"
+	"github.com/mdfriday/hugoverse/pkg/maps"
+	htmltemplate "github.com/mdfriday/hugoverse/pkg/template/htmltemplate"
+	texttemplate "github.com/mdfriday/hugoverse/pkg/template/texttemplate"
+	"github.com/mdfriday/hugoverse/pkg/template/texttemplate/parse"
 	"github.com/mitchellh/mapstructure"
 )
 

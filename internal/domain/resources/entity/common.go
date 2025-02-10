@@ -1,9 +1,9 @@
 package entity
 
 import (
-	"github.com/gohugonet/hugoverse/internal/domain/resources"
-	"github.com/gohugonet/hugoverse/pkg/identity"
-	"github.com/gohugonet/hugoverse/pkg/resource/jsconfig"
+	"github.com/mdfriday/hugoverse/internal/domain/resources"
+	"github.com/mdfriday/hugoverse/pkg/identity"
+	"github.com/mdfriday/hugoverse/pkg/resource/jsconfig"
 	"sync"
 )
 

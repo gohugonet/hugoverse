@@ -2,12 +2,12 @@ package factory
 
 import (
 	"errors"
-	"github.com/gohugonet/hugoverse/internal/domain/module"
-	"github.com/gohugonet/hugoverse/internal/domain/module/entity"
-	"github.com/gohugonet/hugoverse/internal/domain/module/valueobject"
-	"github.com/gohugonet/hugoverse/pkg/env"
-	"github.com/gohugonet/hugoverse/pkg/hexec"
-	"github.com/gohugonet/hugoverse/pkg/loggers"
+	"github.com/mdfriday/hugoverse/internal/domain/module"
+	"github.com/mdfriday/hugoverse/internal/domain/module/entity"
+	"github.com/mdfriday/hugoverse/internal/domain/module/valueobject"
+	"github.com/mdfriday/hugoverse/pkg/env"
+	"github.com/mdfriday/hugoverse/pkg/hexec"
+	"github.com/mdfriday/hugoverse/pkg/loggers"
 	"github.com/spf13/afero"
 	"path/filepath"
 )

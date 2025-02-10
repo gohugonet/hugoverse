@@ -1,7 +1,7 @@
 package valueobject
 
 import (
-	"github.com/gohugonet/hugoverse/pkg/identity"
+	"github.com/mdfriday/hugoverse/pkg/identity"
 	"sync"
 )
 

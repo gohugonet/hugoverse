@@ -1,8 +1,8 @@
 package valueobject
 
 import (
-	"github.com/gohugonet/hugoverse/pkg/output"
-	"github.com/gohugonet/hugoverse/pkg/paths"
+	"github.com/mdfriday/hugoverse/pkg/output"
+	"github.com/mdfriday/hugoverse/pkg/paths"
 	"path"
 	"strings"
 	"sync"

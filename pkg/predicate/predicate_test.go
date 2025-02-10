@@ -14,7 +14,7 @@
 package predicate_test
 
 import (
-	"github.com/gohugonet/hugoverse/pkg/predicate"
+	"github.com/mdfriday/hugoverse/pkg/predicate"
 	"testing"
 
 	qt "github.com/frankban/quicktest"

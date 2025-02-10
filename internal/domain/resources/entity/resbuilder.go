@@ -2,13 +2,13 @@ package entity
 
 import (
 	"errors"
-	"github.com/gohugonet/hugoverse/internal/domain/resources"
-	"github.com/gohugonet/hugoverse/internal/domain/resources/valueobject"
-	"github.com/gohugonet/hugoverse/pkg/cache/stale"
-	"github.com/gohugonet/hugoverse/pkg/identity"
-	"github.com/gohugonet/hugoverse/pkg/io"
-	"github.com/gohugonet/hugoverse/pkg/media"
-	"github.com/gohugonet/hugoverse/pkg/paths"
+	"github.com/mdfriday/hugoverse/internal/domain/resources"
+	"github.com/mdfriday/hugoverse/internal/domain/resources/valueobject"
+	"github.com/mdfriday/hugoverse/pkg/cache/stale"
+	"github.com/mdfriday/hugoverse/pkg/identity"
+	"github.com/mdfriday/hugoverse/pkg/io"
+	"github.com/mdfriday/hugoverse/pkg/media"
+	"github.com/mdfriday/hugoverse/pkg/paths"
 	"mime"
 	"os"
 )

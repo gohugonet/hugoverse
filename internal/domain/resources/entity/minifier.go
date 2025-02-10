@@ -1,10 +1,10 @@
 package entity
 
 import (
-	"github.com/gohugonet/hugoverse/internal/domain/resources"
-	"github.com/gohugonet/hugoverse/internal/domain/resources/valueobject"
-	"github.com/gohugonet/hugoverse/pkg/media"
-	"github.com/gohugonet/hugoverse/pkg/transform"
+	"github.com/mdfriday/hugoverse/internal/domain/resources"
+	"github.com/mdfriday/hugoverse/internal/domain/resources/valueobject"
+	"github.com/mdfriday/hugoverse/pkg/media"
+	"github.com/mdfriday/hugoverse/pkg/transform"
 	"github.com/tdewolff/minify/v2"
 )
 

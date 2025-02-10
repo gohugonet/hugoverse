@@ -1,7 +1,7 @@
 package html
 
 import (
-	"github.com/gohugonet/hugoverse/pkg/lexer"
+	"github.com/mdfriday/hugoverse/pkg/lexer"
 	"strings"
 )
 

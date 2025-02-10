@@ -17,7 +17,7 @@
 package webp
 
 import (
-	"github.com/gohugonet/hugoverse/pkg/herrors"
+	"github.com/mdfriday/hugoverse/pkg/herrors"
 	"image"
 	"io"
 

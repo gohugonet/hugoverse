@@ -1,7 +1,7 @@
 package entity
 
 import (
-	"github.com/gohugonet/hugoverse/internal/domain/config/valueobject"
+	"github.com/mdfriday/hugoverse/internal/domain/config/valueobject"
 	"time"
 )
 

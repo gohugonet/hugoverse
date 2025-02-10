@@ -2,8 +2,8 @@ package valueobject
 
 import (
 	"errors"
-	"github.com/gohugonet/hugoverse/internal/domain/fs"
-	"github.com/gohugonet/hugoverse/pkg/herrors"
+	"github.com/mdfriday/hugoverse/internal/domain/fs"
+	"github.com/mdfriday/hugoverse/pkg/herrors"
 	"github.com/spf13/afero"
 )
 

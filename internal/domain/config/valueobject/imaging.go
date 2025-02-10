@@ -3,10 +3,10 @@ package valueobject
 import (
 	"errors"
 	"fmt"
-	"github.com/gohugonet/hugoverse/internal/domain/config"
-	"github.com/gohugonet/hugoverse/pkg/identity"
-	"github.com/gohugonet/hugoverse/pkg/images"
-	"github.com/gohugonet/hugoverse/pkg/maps"
+	"github.com/mdfriday/hugoverse/internal/domain/config"
+	"github.com/mdfriday/hugoverse/pkg/identity"
+	"github.com/mdfriday/hugoverse/pkg/images"
+	"github.com/mdfriday/hugoverse/pkg/maps"
 	"github.com/mitchellh/mapstructure"
 	"strings"
 )

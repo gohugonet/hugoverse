@@ -1,6 +1,6 @@
 package site
 
-import "github.com/gohugonet/hugoverse/pkg/maps"
+import "github.com/mdfriday/hugoverse/pkg/maps"
 
 type Service interface {
 	Author

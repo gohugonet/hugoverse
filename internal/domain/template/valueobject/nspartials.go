@@ -15,7 +15,7 @@ package valueobject
 
 import (
 	"context"
-	"github.com/gohugonet/hugoverse/pkg/template/funcs/partials"
+	"github.com/mdfriday/hugoverse/pkg/template/funcs/partials"
 )
 
 const nsPartials = "partials"

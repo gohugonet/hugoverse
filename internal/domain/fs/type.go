@@ -1,7 +1,7 @@
 package fs
 
 import (
-	"github.com/gohugonet/hugoverse/pkg/media"
+	"github.com/mdfriday/hugoverse/pkg/media"
 	"github.com/spf13/afero"
 	"io/fs"
 	"path/filepath"

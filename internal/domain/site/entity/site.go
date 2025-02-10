@@ -3,11 +3,11 @@ package entity
 import (
 	"fmt"
 	"github.com/bep/logg"
-	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
-	"github.com/gohugonet/hugoverse/internal/domain/site"
-	"github.com/gohugonet/hugoverse/internal/domain/site/valueobject"
-	"github.com/gohugonet/hugoverse/pkg/herrors"
-	"github.com/gohugonet/hugoverse/pkg/loggers"
+	"github.com/mdfriday/hugoverse/internal/domain/contenthub"
+	"github.com/mdfriday/hugoverse/internal/domain/site"
+	"github.com/mdfriday/hugoverse/internal/domain/site/valueobject"
+	"github.com/mdfriday/hugoverse/pkg/herrors"
+	"github.com/mdfriday/hugoverse/pkg/loggers"
 	"time"
 )
 

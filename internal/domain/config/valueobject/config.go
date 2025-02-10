@@ -2,9 +2,9 @@ package valueobject
 
 import (
 	"fmt"
-	"github.com/gohugonet/hugoverse/internal/domain/config"
-	"github.com/gohugonet/hugoverse/pkg/herrors"
-	"github.com/gohugonet/hugoverse/pkg/parser/metadecoders"
+	"github.com/mdfriday/hugoverse/internal/domain/config"
+	"github.com/mdfriday/hugoverse/pkg/herrors"
+	"github.com/mdfriday/hugoverse/pkg/parser/metadecoders"
 	"github.com/spf13/afero"
 	"path/filepath"
 )

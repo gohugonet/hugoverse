@@ -3,7 +3,7 @@ package valueobject
 import (
 	"encoding/hex"
 	"fmt"
-	"github.com/gohugonet/hugoverse/pkg/hstrings"
+	"github.com/mdfriday/hugoverse/pkg/hstrings"
 	"hash/fnv"
 	"image/color"
 	"math"

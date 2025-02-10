@@ -2,7 +2,7 @@ package valueobject
 
 import (
 	"bytes"
-	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
+	"github.com/mdfriday/hugoverse/internal/domain/contenthub"
 )
 
 type pageInfo struct {

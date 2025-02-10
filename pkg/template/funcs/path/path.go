@@ -15,7 +15,7 @@
 package path
 
 import (
-	"github.com/gohugonet/hugoverse/pkg/paths"
+	"github.com/mdfriday/hugoverse/pkg/paths"
 	_path "path"
 	"path/filepath"
 	"strings"

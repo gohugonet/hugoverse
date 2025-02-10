@@ -1,8 +1,8 @@
 package application
 
 import (
-	fsVO "github.com/gohugonet/hugoverse/internal/domain/fs/valueobject"
-	"github.com/gohugonet/hugoverse/pkg/fs/static"
+	fsVO "github.com/mdfriday/hugoverse/internal/domain/fs/valueobject"
+	"github.com/mdfriday/hugoverse/pkg/fs/static"
 	"github.com/spf13/afero"
 )
 

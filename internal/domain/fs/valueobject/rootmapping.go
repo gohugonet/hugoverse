@@ -1,8 +1,8 @@
 package valueobject
 
 import (
-	"github.com/gohugonet/hugoverse/pkg/paths"
-	"github.com/gohugonet/hugoverse/pkg/radixtree"
+	"github.com/mdfriday/hugoverse/pkg/paths"
+	"github.com/mdfriday/hugoverse/pkg/radixtree"
 	"path/filepath"
 	"strings"
 )

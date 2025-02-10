@@ -1,8 +1,8 @@
 package entity
 
 import (
-	"github.com/gohugonet/hugoverse/internal/domain/template"
-	"github.com/gohugonet/hugoverse/internal/domain/template/valueobject"
+	"github.com/mdfriday/hugoverse/internal/domain/template"
+	"github.com/mdfriday/hugoverse/internal/domain/template/valueobject"
 	"strings"
 )
 

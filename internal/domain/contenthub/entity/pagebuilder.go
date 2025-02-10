@@ -2,12 +2,12 @@ package entity
 
 import (
 	"fmt"
-	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
-	"github.com/gohugonet/hugoverse/internal/domain/contenthub/valueobject"
-	"github.com/gohugonet/hugoverse/pkg/loggers"
-	"github.com/gohugonet/hugoverse/pkg/maps"
-	"github.com/gohugonet/hugoverse/pkg/parser/metadecoders"
-	"github.com/gohugonet/hugoverse/pkg/parser/pageparser"
+	"github.com/mdfriday/hugoverse/internal/domain/contenthub"
+	"github.com/mdfriday/hugoverse/internal/domain/contenthub/valueobject"
+	"github.com/mdfriday/hugoverse/pkg/loggers"
+	"github.com/mdfriday/hugoverse/pkg/maps"
+	"github.com/mdfriday/hugoverse/pkg/parser/metadecoders"
+	"github.com/mdfriday/hugoverse/pkg/parser/pageparser"
 )
 
 type PageBuilder struct {

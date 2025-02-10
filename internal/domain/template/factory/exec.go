@@ -1,9 +1,9 @@
 package factory
 
 import (
-	"github.com/gohugonet/hugoverse/internal/domain/template"
-	"github.com/gohugonet/hugoverse/internal/domain/template/entity"
-	"github.com/gohugonet/hugoverse/internal/domain/template/valueobject"
+	"github.com/mdfriday/hugoverse/internal/domain/template"
+	"github.com/mdfriday/hugoverse/internal/domain/template/entity"
+	"github.com/mdfriday/hugoverse/internal/domain/template/valueobject"
 	"reflect"
 )
 

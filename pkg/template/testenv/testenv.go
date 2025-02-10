@@ -24,7 +24,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/gohugonet/hugoverse/pkg/template/cfg"
+	"github.com/mdfriday/hugoverse/pkg/template/cfg"
 )
 
 // Save the original environment during init for use in checks. A test

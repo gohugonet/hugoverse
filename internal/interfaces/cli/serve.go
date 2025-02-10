@@ -3,8 +3,8 @@ package cli
 import (
 	"flag"
 	"fmt"
-	"github.com/gohugonet/hugoverse/internal/interfaces/api"
-	"github.com/gohugonet/hugoverse/pkg/loggers"
+	"github.com/mdfriday/hugoverse/internal/interfaces/api"
+	"github.com/mdfriday/hugoverse/pkg/loggers"
 	"strconv"
 )
 

@@ -10,9 +10,9 @@ import (
 	"github.com/blevesearch/bleve"
 	"github.com/blevesearch/bleve/mapping"
 	"github.com/blevesearch/bleve/search/query"
-	"github.com/gohugonet/hugoverse/internal/domain/content"
-	"github.com/gohugonet/hugoverse/internal/domain/content/valueobject"
-	"github.com/gohugonet/hugoverse/pkg/editor"
+	"github.com/mdfriday/hugoverse/internal/domain/content"
+	"github.com/mdfriday/hugoverse/internal/domain/content/valueobject"
+	"github.com/mdfriday/hugoverse/pkg/editor"
 	"net/http"
 	"net/url"
 	"os"
@@ -40,7 +40,7 @@ func ExampleNew() {
 	//// 将文档映射添加到索引映射
 	//indexMapping.AddDocumentMapping("document", docMapping)
 
-	exampleIndex, err = bleve.New("/Users/sunwei/github/gohugonet/hugoverse/tmp", indexMapping)
+	exampleIndex, err = bleve.New("/Users/sunwei/github/mdfriday/hugoverse/tmp", indexMapping)
 	if err != nil {
 		panic(err)
 	}
@@ -101,7 +101,7 @@ func ExampleIndex_indexing() {
 }
 
 func (s *Handler) SearchContentHandler2(res http.ResponseWriter, req *http.Request) {
-	err = os.RemoveAll("/Users/sunwei/github/gohugonet/hugoverse/tmp")
+	err = os.RemoveAll("/Users/sunwei/github/mdfriday/hugoverse/tmp")
 	if err != nil {
 		panic(err)
 	}

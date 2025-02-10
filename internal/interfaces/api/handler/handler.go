@@ -1,13 +1,13 @@
 package handler
 
 import (
-	"github.com/gohugonet/hugoverse/internal/application"
-	adminEntity "github.com/gohugonet/hugoverse/internal/domain/admin/entity"
-	contentEntity "github.com/gohugonet/hugoverse/internal/domain/content/entity"
-	"github.com/gohugonet/hugoverse/internal/interfaces/api/admin"
-	"github.com/gohugonet/hugoverse/internal/interfaces/api/auth"
-	"github.com/gohugonet/hugoverse/internal/interfaces/api/database"
-	"github.com/gohugonet/hugoverse/pkg/loggers"
+	"github.com/mdfriday/hugoverse/internal/application"
+	adminEntity "github.com/mdfriday/hugoverse/internal/domain/admin/entity"
+	contentEntity "github.com/mdfriday/hugoverse/internal/domain/content/entity"
+	"github.com/mdfriday/hugoverse/internal/interfaces/api/admin"
+	"github.com/mdfriday/hugoverse/internal/interfaces/api/auth"
+	"github.com/mdfriday/hugoverse/internal/interfaces/api/database"
+	"github.com/mdfriday/hugoverse/pkg/loggers"
 )
 
 type Handler struct {

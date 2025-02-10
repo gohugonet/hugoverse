@@ -3,7 +3,7 @@ package valueobject
 import (
 	"bytes"
 	"fmt"
-	"github.com/gohugonet/hugoverse/pkg/editor"
+	"github.com/mdfriday/hugoverse/pkg/editor"
 	"net/http"
 	"text/template"
 )

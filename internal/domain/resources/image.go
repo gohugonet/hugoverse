@@ -1,8 +1,8 @@
 package resources
 
 import (
-	"github.com/gohugonet/hugoverse/pkg/images/exif"
-	"github.com/gohugonet/hugoverse/pkg/media"
+	"github.com/mdfriday/hugoverse/pkg/images/exif"
+	"github.com/mdfriday/hugoverse/pkg/media"
 	"image"
 	"image/gif"
 )

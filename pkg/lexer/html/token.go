@@ -1,6 +1,6 @@
 package html
 
-import "github.com/gohugonet/hugoverse/pkg/lexer"
+import "github.com/mdfriday/hugoverse/pkg/lexer"
 
 type Token struct {
 	lexer.BaseToken

@@ -1,9 +1,9 @@
 package entity
 
 import (
-	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
-	"github.com/gohugonet/hugoverse/internal/domain/site/valueobject"
-	"github.com/gohugonet/hugoverse/pkg/lazy"
+	"github.com/mdfriday/hugoverse/internal/domain/contenthub"
+	"github.com/mdfriday/hugoverse/internal/domain/site/valueobject"
+	"github.com/mdfriday/hugoverse/pkg/lazy"
 )
 
 // Lazily loaded site dependencies.

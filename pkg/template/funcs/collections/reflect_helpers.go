@@ -16,7 +16,7 @@ package collections
 import (
 	"errors"
 	"fmt"
-	"github.com/gohugonet/hugoverse/pkg/types"
+	"github.com/mdfriday/hugoverse/pkg/types"
 	"reflect"
 
 	"github.com/mitchellh/hashstructure"

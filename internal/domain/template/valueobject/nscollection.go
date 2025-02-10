@@ -2,8 +2,8 @@ package valueobject
 
 import (
 	"context"
-	"github.com/gohugonet/hugoverse/pkg/template/funcs/collections"
-	"github.com/gohugonet/hugoverse/pkg/template/funcs/compare"
+	"github.com/mdfriday/hugoverse/pkg/template/funcs/collections"
+	"github.com/mdfriday/hugoverse/pkg/template/funcs/compare"
 )
 
 const nsCollections = "collections"

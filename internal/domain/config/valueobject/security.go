@@ -1,10 +1,10 @@
 package valueobject
 
 import (
-	"github.com/gohugonet/hugoverse/internal/domain/config"
-	"github.com/gohugonet/hugoverse/pkg/hexec"
-	"github.com/gohugonet/hugoverse/pkg/hexec/security"
-	"github.com/gohugonet/hugoverse/pkg/types"
+	"github.com/mdfriday/hugoverse/internal/domain/config"
+	"github.com/mdfriday/hugoverse/pkg/hexec"
+	"github.com/mdfriday/hugoverse/pkg/hexec/security"
+	"github.com/mdfriday/hugoverse/pkg/types"
 	"github.com/mitchellh/mapstructure"
 	"reflect"
 )

@@ -15,7 +15,7 @@ package collections
 
 import (
 	"errors"
-	"github.com/gohugonet/hugoverse/pkg/collections"
+	"github.com/mdfriday/hugoverse/pkg/collections"
 )
 
 // Append appends args up to the last one to the slice in the last argument.

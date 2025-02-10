@@ -2,7 +2,7 @@ package resource
 
 import (
 	"context"
-	"github.com/gohugonet/hugoverse/internal/domain/resources"
+	"github.com/mdfriday/hugoverse/internal/domain/resources"
 )
 
 type Resource interface {

@@ -1,7 +1,7 @@
 package auth
 
 import (
-	"github.com/gohugonet/hugoverse/internal/interfaces/api/token"
+	"github.com/mdfriday/hugoverse/internal/interfaces/api/token"
 	"net/http"
 )
 

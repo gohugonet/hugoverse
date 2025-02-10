@@ -1,9 +1,9 @@
 package entity
 
 import (
-	"github.com/gohugonet/hugoverse/internal/domain/site/valueobject"
-	"github.com/gohugonet/hugoverse/pkg/paths"
-	"github.com/gohugonet/hugoverse/pkg/text"
+	"github.com/mdfriday/hugoverse/internal/domain/site/valueobject"
+	"github.com/mdfriday/hugoverse/pkg/paths"
+	"github.com/mdfriday/hugoverse/pkg/text"
 	"net/url"
 	"path"
 	"strings"

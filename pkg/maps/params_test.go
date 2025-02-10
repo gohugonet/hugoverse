@@ -49,7 +49,7 @@ func TestGetNestedParam(t *testing.T) {
 	c.Assert(must("nested.foo", ".", m), qt.IsNil)
 }
 
-// https://github.com/gohugonet/hugoverse/pkgissues/7903
+// https://github.com/mdfriday/hugoverse/pkgissues/7903
 func TestGetNestedParamFnNestedNewKey(t *testing.T) {
 	c := qt.New(t)
 

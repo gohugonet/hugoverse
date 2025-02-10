@@ -3,9 +3,9 @@ package valueobject
 import (
 	"errors"
 	"fmt"
-	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
-	"github.com/gohugonet/hugoverse/internal/domain/template"
-	"github.com/gohugonet/hugoverse/pkg/parser/pageparser"
+	"github.com/mdfriday/hugoverse/internal/domain/contenthub"
+	"github.com/mdfriday/hugoverse/internal/domain/template"
+	"github.com/mdfriday/hugoverse/pkg/parser/pageparser"
 	"strconv"
 	"sync"
 )

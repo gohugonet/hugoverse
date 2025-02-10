@@ -2,7 +2,7 @@ package admin
 
 import (
 	"bytes"
-	"github.com/gohugonet/hugoverse/internal/interfaces/api/record/analytics"
+	"github.com/mdfriday/hugoverse/internal/interfaces/api/record/analytics"
 	"html/template"
 )
 

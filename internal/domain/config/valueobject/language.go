@@ -2,8 +2,8 @@ package valueobject
 
 import (
 	"errors"
-	"github.com/gohugonet/hugoverse/internal/domain/config"
-	"github.com/gohugonet/hugoverse/pkg/maps"
+	"github.com/mdfriday/hugoverse/internal/domain/config"
+	"github.com/mdfriday/hugoverse/pkg/maps"
 	"github.com/mitchellh/mapstructure"
 )
 

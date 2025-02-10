@@ -16,9 +16,9 @@ package valueobject
 import (
 	"errors"
 	"fmt"
-	"github.com/gohugonet/hugoverse/internal/domain/resources"
-	"github.com/gohugonet/hugoverse/pkg/images/webp"
-	pio "github.com/gohugonet/hugoverse/pkg/io"
+	"github.com/mdfriday/hugoverse/internal/domain/resources"
+	"github.com/mdfriday/hugoverse/pkg/images/webp"
+	pio "github.com/mdfriday/hugoverse/pkg/io"
 	"golang.org/x/image/bmp"
 	"golang.org/x/image/tiff"
 	"image"

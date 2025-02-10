@@ -2,9 +2,9 @@ package entity
 
 import (
 	"encoding/json"
-	"github.com/gohugonet/hugoverse/internal/domain/admin/repository"
-	"github.com/gohugonet/hugoverse/internal/domain/admin/valueobject"
-	"github.com/gohugonet/hugoverse/pkg/loggers"
+	"github.com/mdfriday/hugoverse/internal/domain/admin/repository"
+	"github.com/mdfriday/hugoverse/internal/domain/admin/valueobject"
+	"github.com/mdfriday/hugoverse/pkg/loggers"
 	"net/url"
 )
 

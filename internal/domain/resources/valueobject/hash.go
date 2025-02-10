@@ -2,8 +2,8 @@ package valueobject
 
 import (
 	"fmt"
-	"github.com/gohugonet/hugoverse/pkg/helpers"
-	"github.com/gohugonet/hugoverse/pkg/io"
+	"github.com/mdfriday/hugoverse/pkg/helpers"
+	"github.com/mdfriday/hugoverse/pkg/io"
 	"sync"
 )
 

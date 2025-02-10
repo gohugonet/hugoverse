@@ -1,6 +1,6 @@
 package entity
 
-import "github.com/gohugonet/hugoverse/internal/domain/admin/valueobject"
+import "github.com/mdfriday/hugoverse/internal/domain/admin/valueobject"
 
 type Client struct {
 	Conf *valueobject.Config

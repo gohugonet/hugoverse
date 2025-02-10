@@ -1,6 +1,6 @@
 package valueobject
 
-import "github.com/gohugonet/hugoverse/internal/domain/markdown"
+import "github.com/mdfriday/hugoverse/internal/domain/markdown"
 
 type Context struct {
 	*BufWriter

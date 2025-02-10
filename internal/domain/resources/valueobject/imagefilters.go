@@ -3,10 +3,10 @@ package valueobject
 import (
 	"fmt"
 	"github.com/disintegration/gift"
-	"github.com/gohugonet/hugoverse/internal/domain/resources"
-	pio "github.com/gohugonet/hugoverse/pkg/io"
-	"github.com/gohugonet/hugoverse/pkg/maps"
 	"github.com/makeworld-the-better-one/dither/v2"
+	"github.com/mdfriday/hugoverse/internal/domain/resources"
+	pio "github.com/mdfriday/hugoverse/pkg/io"
+	"github.com/mdfriday/hugoverse/pkg/maps"
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/cast"
 	"image/color"

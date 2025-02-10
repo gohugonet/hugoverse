@@ -2,8 +2,8 @@ package valueobject
 
 import (
 	"bytes"
-	bp "github.com/gohugonet/hugoverse/pkg/bufferpool"
-	"github.com/gohugonet/hugoverse/pkg/text"
+	bp "github.com/mdfriday/hugoverse/pkg/bufferpool"
+	"github.com/mdfriday/hugoverse/pkg/text"
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/util"

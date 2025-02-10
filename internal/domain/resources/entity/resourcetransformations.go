@@ -1,7 +1,7 @@
 package entity
 
 import (
-	"github.com/gohugonet/hugoverse/pkg/constants"
+	"github.com/mdfriday/hugoverse/pkg/constants"
 )
 
 type resourceTransformations struct {

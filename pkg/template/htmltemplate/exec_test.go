@@ -21,7 +21,7 @@ import (
 	"sync"
 	"testing"
 
-	template "github.com/gohugonet/hugoverse/pkg/template/texttemplate"
+	template "github.com/mdfriday/hugoverse/pkg/template/texttemplate"
 )
 
 var debug = flag.Bool("debug", false, "show the errors produced by the tests")

@@ -31,7 +31,7 @@ import (
 
 	"github.com/jdkato/prose/transform"
 
-	bp "github.com/gohugonet/hugoverse/pkg/bufferpool"
+	bp "github.com/mdfriday/hugoverse/pkg/bufferpool"
 )
 
 // FilePathSeparator as defined by os.Separator.

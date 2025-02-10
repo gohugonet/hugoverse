@@ -16,16 +16,16 @@ package valueobject
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gohugonet/hugoverse/internal/domain/fs"
-	"github.com/gohugonet/hugoverse/pkg/paths"
-	"github.com/gohugonet/hugoverse/pkg/paths/files"
+	"github.com/mdfriday/hugoverse/internal/domain/fs"
+	"github.com/mdfriday/hugoverse/pkg/paths"
+	"github.com/mdfriday/hugoverse/pkg/paths/files"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/evanw/esbuild/pkg/api"
-	"github.com/gohugonet/hugoverse/pkg/identity"
-	"github.com/gohugonet/hugoverse/pkg/maps"
+	"github.com/mdfriday/hugoverse/pkg/identity"
+	"github.com/mdfriday/hugoverse/pkg/maps"
 	"github.com/spf13/afero"
 )
 

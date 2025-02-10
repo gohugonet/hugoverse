@@ -2,7 +2,7 @@ package fmt
 
 import (
 	_fmt "fmt"
-	"github.com/gohugonet/hugoverse/pkg/loggers"
+	"github.com/mdfriday/hugoverse/pkg/loggers"
 	"sort"
 
 	"github.com/bep/logg"

@@ -3,10 +3,10 @@ package entity
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gohugonet/hugoverse/internal/domain/admin/repository"
-	"github.com/gohugonet/hugoverse/internal/domain/admin/valueobject"
-	"github.com/gohugonet/hugoverse/internal/domain/content/factory"
 	"github.com/gorilla/schema"
+	"github.com/mdfriday/hugoverse/internal/domain/admin/repository"
+	"github.com/mdfriday/hugoverse/internal/domain/admin/valueobject"
+	"github.com/mdfriday/hugoverse/internal/domain/content/factory"
 	"net/url"
 )
 

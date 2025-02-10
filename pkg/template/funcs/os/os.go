@@ -18,8 +18,8 @@ package os
 import (
 	"errors"
 	"fmt"
-	"github.com/gohugonet/hugoverse/pkg/herrors"
-	"github.com/gohugonet/hugoverse/pkg/overlayfs"
+	"github.com/mdfriday/hugoverse/pkg/herrors"
+	"github.com/mdfriday/hugoverse/pkg/overlayfs"
 	_os "os"
 	"path/filepath"
 

@@ -14,8 +14,8 @@
 package valueobject
 
 import (
-	"github.com/gohugonet/hugoverse/internal/domain/resources"
-	"github.com/gohugonet/hugoverse/pkg/paths"
+	"github.com/mdfriday/hugoverse/internal/domain/resources"
+	"github.com/mdfriday/hugoverse/pkg/paths"
 	"path"
 	"path/filepath"
 	"strings"

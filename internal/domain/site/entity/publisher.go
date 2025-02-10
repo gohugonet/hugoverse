@@ -3,8 +3,8 @@ package entity
 import (
 	"bytes"
 	"errors"
-	"github.com/gohugonet/hugoverse/internal/domain/site"
-	"github.com/gohugonet/hugoverse/pkg/helpers"
+	"github.com/mdfriday/hugoverse/internal/domain/site"
+	"github.com/mdfriday/hugoverse/pkg/helpers"
 	"github.com/spf13/afero"
 	"io"
 	"os"

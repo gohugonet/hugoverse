@@ -18,7 +18,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/gohugonet/hugoverse/pkg/hreflect"
+	"github.com/mdfriday/hugoverse/pkg/hreflect"
 	"math"
 	"strconv"
 	"strings"

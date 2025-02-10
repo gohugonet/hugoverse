@@ -1,11 +1,11 @@
 package factory
 
 import (
-	"github.com/gohugonet/hugoverse/internal/domain/content"
-	"github.com/gohugonet/hugoverse/internal/domain/content/entity"
-	"github.com/gohugonet/hugoverse/internal/domain/content/repository"
-	"github.com/gohugonet/hugoverse/internal/domain/content/valueobject"
-	"github.com/gohugonet/hugoverse/pkg/loggers"
+	"github.com/mdfriday/hugoverse/internal/domain/content"
+	"github.com/mdfriday/hugoverse/internal/domain/content/entity"
+	"github.com/mdfriday/hugoverse/internal/domain/content/repository"
+	"github.com/mdfriday/hugoverse/internal/domain/content/valueobject"
+	"github.com/mdfriday/hugoverse/pkg/loggers"
 	"github.com/spf13/afero"
 )
 

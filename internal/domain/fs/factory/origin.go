@@ -2,12 +2,12 @@ package factory
 
 import (
 	"fmt"
-	"github.com/gohugonet/hugoverse/internal/domain/fs"
-	"github.com/gohugonet/hugoverse/internal/domain/fs/entity"
-	"github.com/gohugonet/hugoverse/internal/domain/fs/valueobject"
-	"github.com/gohugonet/hugoverse/internal/domain/resources"
-	"github.com/gohugonet/hugoverse/pkg/media"
-	"github.com/gohugonet/hugoverse/pkg/paths"
+	"github.com/mdfriday/hugoverse/internal/domain/fs"
+	"github.com/mdfriday/hugoverse/internal/domain/fs/entity"
+	"github.com/mdfriday/hugoverse/internal/domain/fs/valueobject"
+	"github.com/mdfriday/hugoverse/internal/domain/resources"
+	"github.com/mdfriday/hugoverse/pkg/media"
+	"github.com/mdfriday/hugoverse/pkg/paths"
 	"github.com/spf13/afero"
 	"path/filepath"
 	"strings"

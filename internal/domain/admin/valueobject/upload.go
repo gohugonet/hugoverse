@@ -2,8 +2,8 @@ package valueobject
 
 import (
 	"fmt"
-	contentVO "github.com/gohugonet/hugoverse/internal/domain/content/valueobject"
-	"github.com/gohugonet/hugoverse/pkg/editor"
+	contentVO "github.com/mdfriday/hugoverse/internal/domain/content/valueobject"
+	"github.com/mdfriday/hugoverse/pkg/editor"
 	"time"
 )
 

@@ -16,7 +16,7 @@ package doctree
 import (
 	"context"
 	"fmt"
-	"github.com/gohugonet/hugoverse/pkg/cache/stale"
+	"github.com/mdfriday/hugoverse/pkg/cache/stale"
 	"path"
 	"strings"
 	"sync"

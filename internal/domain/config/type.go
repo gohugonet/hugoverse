@@ -1,8 +1,8 @@
 package config
 
 import (
-	"github.com/gohugonet/hugoverse/pkg/loggers"
-	"github.com/gohugonet/hugoverse/pkg/maps"
+	"github.com/mdfriday/hugoverse/pkg/loggers"
+	"github.com/mdfriday/hugoverse/pkg/maps"
 	"github.com/spf13/afero"
 )
 

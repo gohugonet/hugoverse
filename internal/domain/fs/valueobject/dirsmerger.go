@@ -1,7 +1,7 @@
 package valueobject
 
 import (
-	"github.com/gohugonet/hugoverse/pkg/overlayfs"
+	"github.com/mdfriday/hugoverse/pkg/overlayfs"
 	iofs "io/fs"
 )
 

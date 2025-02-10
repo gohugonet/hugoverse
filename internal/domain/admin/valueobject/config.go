@@ -3,10 +3,10 @@ package valueobject
 import (
 	"encoding/json"
 	"fmt"
-	contentVO "github.com/gohugonet/hugoverse/internal/domain/content/valueobject"
-	"github.com/gohugonet/hugoverse/pkg/editor"
-	"github.com/gohugonet/hugoverse/pkg/form"
 	"github.com/gorilla/schema"
+	contentVO "github.com/mdfriday/hugoverse/internal/domain/content/valueobject"
+	"github.com/mdfriday/hugoverse/pkg/editor"
+	"github.com/mdfriday/hugoverse/pkg/form"
 	"net/url"
 )
 

@@ -1,8 +1,8 @@
 package js
 
 import (
-	"github.com/gohugonet/hugoverse/internal/domain/resources"
-	"github.com/gohugonet/hugoverse/pkg/template/funcs/resource/resourcehelpers"
+	"github.com/mdfriday/hugoverse/internal/domain/resources"
+	"github.com/mdfriday/hugoverse/pkg/template/funcs/resource/resourcehelpers"
 )
 
 func New(client Client) (*Namespace, error) {

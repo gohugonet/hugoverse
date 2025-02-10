@@ -22,7 +22,7 @@ import (
 	"reflect"
 	"sync/atomic"
 
-	_math "github.com/gohugonet/hugoverse/pkg/math"
+	_math "github.com/mdfriday/hugoverse/pkg/math"
 	"github.com/spf13/cast"
 )
 

@@ -16,8 +16,8 @@ package collections
 import (
 	"context"
 	"errors"
-	"github.com/gohugonet/hugoverse/pkg/maps"
-	"github.com/gohugonet/hugoverse/pkg/template/funcs/compare"
+	"github.com/mdfriday/hugoverse/pkg/maps"
+	"github.com/mdfriday/hugoverse/pkg/template/funcs/compare"
 	"golang.org/x/text/collate"
 	"reflect"
 	"sort"

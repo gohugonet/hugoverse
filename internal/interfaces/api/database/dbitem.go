@@ -2,7 +2,7 @@ package database
 
 import (
 	"fmt"
-	"github.com/gohugonet/hugoverse/pkg/db"
+	"github.com/mdfriday/hugoverse/pkg/db"
 )
 
 const ItemBucketPrefix = "__"

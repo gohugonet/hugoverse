@@ -3,9 +3,9 @@ package filecache
 import (
 	"bytes"
 	"errors"
-	"github.com/gohugonet/hugoverse/pkg/cache"
-	"github.com/gohugonet/hugoverse/pkg/helpers"
-	pio "github.com/gohugonet/hugoverse/pkg/io"
+	"github.com/mdfriday/hugoverse/pkg/cache"
+	"github.com/mdfriday/hugoverse/pkg/helpers"
+	pio "github.com/mdfriday/hugoverse/pkg/io"
 	"io"
 	"os"
 	"path/filepath"

@@ -2,7 +2,7 @@ package admin
 
 import (
 	"bytes"
-	"github.com/gohugonet/hugoverse/internal/domain/content"
+	"github.com/mdfriday/hugoverse/internal/domain/content"
 	"html/template"
 )
 

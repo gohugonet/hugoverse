@@ -2,9 +2,9 @@ package markdown
 
 import (
 	"context"
-	pio "github.com/gohugonet/hugoverse/pkg/io"
-	"github.com/gohugonet/hugoverse/pkg/text"
-	"github.com/gohugonet/hugoverse/pkg/types/hstring"
+	pio "github.com/mdfriday/hugoverse/pkg/io"
+	"github.com/mdfriday/hugoverse/pkg/text"
+	"github.com/mdfriday/hugoverse/pkg/types/hstring"
 	"html/template"
 	"io"
 )

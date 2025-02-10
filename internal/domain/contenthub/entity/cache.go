@@ -1,10 +1,10 @@
 package entity
 
 import (
-	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
-	"github.com/gohugonet/hugoverse/internal/domain/contenthub/valueobject"
-	"github.com/gohugonet/hugoverse/pkg/cache/dynacache"
-	"github.com/gohugonet/hugoverse/pkg/cache/stale"
+	"github.com/mdfriday/hugoverse/internal/domain/contenthub"
+	"github.com/mdfriday/hugoverse/internal/domain/contenthub/valueobject"
+	"github.com/mdfriday/hugoverse/pkg/cache/dynacache"
+	"github.com/mdfriday/hugoverse/pkg/cache/stale"
 )
 
 type Cache struct {

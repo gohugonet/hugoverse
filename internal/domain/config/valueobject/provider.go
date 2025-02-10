@@ -2,8 +2,8 @@ package valueobject
 
 import (
 	"fmt"
-	"github.com/gohugonet/hugoverse/internal/domain/config"
-	"github.com/gohugonet/hugoverse/pkg/maps"
+	"github.com/mdfriday/hugoverse/internal/domain/config"
+	"github.com/mdfriday/hugoverse/pkg/maps"
 	"github.com/spf13/cast"
 	xmaps "golang.org/x/exp/maps"
 	"strings"

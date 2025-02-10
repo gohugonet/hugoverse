@@ -2,9 +2,9 @@ package valueobject
 
 import (
 	"fmt"
-	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
-	"github.com/gohugonet/hugoverse/pkg/glob"
-	"github.com/gohugonet/hugoverse/pkg/maps"
+	"github.com/mdfriday/hugoverse/internal/domain/contenthub"
+	"github.com/mdfriday/hugoverse/pkg/glob"
+	"github.com/mdfriday/hugoverse/pkg/maps"
 	"github.com/mitchellh/mapstructure"
 	"path/filepath"
 	"strings"

@@ -2,7 +2,7 @@ package html
 
 import (
 	"errors"
-	"github.com/gohugonet/hugoverse/pkg/lexer"
+	"github.com/mdfriday/hugoverse/pkg/lexer"
 )
 
 const (

@@ -5,7 +5,7 @@
 package template
 
 import (
-	"github.com/gohugonet/hugoverse/pkg/template/texttemplate/parse"
+	"github.com/mdfriday/hugoverse/pkg/template/texttemplate/parse"
 	"reflect"
 	"sync"
 )

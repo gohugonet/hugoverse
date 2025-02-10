@@ -2,8 +2,8 @@ package cli
 
 import (
 	"flag"
-	"github.com/gohugonet/hugoverse/internal/application"
-	"github.com/gohugonet/hugoverse/pkg/log"
+	"github.com/mdfriday/hugoverse/internal/application"
+	"github.com/mdfriday/hugoverse/pkg/log"
 )
 
 type buildCmd struct {

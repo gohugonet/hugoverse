@@ -3,7 +3,7 @@ package valueobject
 import (
 	"context"
 	"fmt"
-	"github.com/gohugonet/hugoverse/pkg/template/funcs/path"
+	"github.com/mdfriday/hugoverse/pkg/template/funcs/path"
 	"path/filepath"
 )
 

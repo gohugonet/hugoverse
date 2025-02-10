@@ -11,8 +11,8 @@ import (
 	"io"
 	"regexp"
 
-	template "github.com/gohugonet/hugoverse/pkg/template/texttemplate"
-	"github.com/gohugonet/hugoverse/pkg/template/texttemplate/parse"
+	template "github.com/mdfriday/hugoverse/pkg/template/texttemplate"
+	"github.com/mdfriday/hugoverse/pkg/template/texttemplate/parse"
 )
 
 // escapeTemplate rewrites the named template, which must be

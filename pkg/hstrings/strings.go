@@ -15,7 +15,7 @@ package hstrings
 
 import (
 	"fmt"
-	"github.com/gohugonet/hugoverse/pkg/compare"
+	"github.com/mdfriday/hugoverse/pkg/compare"
 	"regexp"
 	"strings"
 	"sync"

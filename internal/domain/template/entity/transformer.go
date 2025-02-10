@@ -1,6 +1,6 @@
 package entity
 
-import "github.com/gohugonet/hugoverse/internal/domain/template/valueobject"
+import "github.com/mdfriday/hugoverse/internal/domain/template/valueobject"
 
 type templateLookupFunc func(in *valueobject.State) func(name string) *valueobject.State
 

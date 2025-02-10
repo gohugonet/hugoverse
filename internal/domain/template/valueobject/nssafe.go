@@ -2,7 +2,7 @@ package valueobject
 
 import (
 	"context"
-	"github.com/gohugonet/hugoverse/pkg/template/funcs/safe"
+	"github.com/mdfriday/hugoverse/pkg/template/funcs/safe"
 )
 
 const nsSafe = "safe"

@@ -2,7 +2,7 @@ package valueobject
 
 import (
 	"fmt"
-	"github.com/gohugonet/hugoverse/pkg/editor"
+	"github.com/mdfriday/hugoverse/pkg/editor"
 	"net/http"
 	"strings"
 )

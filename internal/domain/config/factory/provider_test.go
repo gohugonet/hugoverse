@@ -1,7 +1,7 @@
 package factory
 
 import (
-	"github.com/gohugonet/hugoverse/pkg/testkit"
+	"github.com/mdfriday/hugoverse/pkg/testkit"
 	"os"
 	"testing"
 )

@@ -1,11 +1,11 @@
 package entity
 
 import (
-	"github.com/gohugonet/hugoverse/internal/domain/resources"
-	"github.com/gohugonet/hugoverse/internal/domain/resources/valueobject"
-	"github.com/gohugonet/hugoverse/pkg/cache/dynacache"
-	"github.com/gohugonet/hugoverse/pkg/cache/filecache"
-	pio "github.com/gohugonet/hugoverse/pkg/io"
+	"github.com/mdfriday/hugoverse/internal/domain/resources"
+	"github.com/mdfriday/hugoverse/internal/domain/resources/valueobject"
+	"github.com/mdfriday/hugoverse/pkg/cache/dynacache"
+	"github.com/mdfriday/hugoverse/pkg/cache/filecache"
+	pio "github.com/mdfriday/hugoverse/pkg/io"
 	"image"
 	"io"
 	"path"

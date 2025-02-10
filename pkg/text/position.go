@@ -18,7 +18,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/gohugonet/hugoverse/pkg/terminal"
+	"github.com/mdfriday/hugoverse/pkg/terminal"
 )
 
 // Positioner represents a thing that knows its position in a text file or stream,

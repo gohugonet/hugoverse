@@ -2,8 +2,8 @@ package handler
 
 import (
 	"encoding/base64"
-	"github.com/gohugonet/hugoverse/internal/interfaces/api/admin"
-	"github.com/gohugonet/hugoverse/internal/interfaces/api/token"
+	"github.com/mdfriday/hugoverse/internal/interfaces/api/admin"
+	"github.com/mdfriday/hugoverse/internal/interfaces/api/token"
 	"log"
 	"net/http"
 	"strings"

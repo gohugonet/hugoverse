@@ -3,8 +3,8 @@ package entity
 import (
 	"context"
 	"fmt"
-	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
-	"github.com/gohugonet/hugoverse/pkg/maps"
+	"github.com/mdfriday/hugoverse/internal/domain/contenthub"
+	"github.com/mdfriday/hugoverse/pkg/maps"
 	"path/filepath"
 	"strings"
 )

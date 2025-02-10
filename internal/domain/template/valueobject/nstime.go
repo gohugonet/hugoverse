@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	translators "github.com/gohugoio/localescompressed"
-	"github.com/gohugonet/hugoverse/pkg/htime"
-	"github.com/gohugonet/hugoverse/pkg/template/funcs/time"
+	"github.com/mdfriday/hugoverse/pkg/htime"
+	"github.com/mdfriday/hugoverse/pkg/template/funcs/time"
 	sysTime "time"
 )
 

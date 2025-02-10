@@ -1,9 +1,9 @@
 package factory
 
 import (
-	"github.com/gohugonet/hugoverse/internal/domain/markdown"
-	"github.com/gohugonet/hugoverse/internal/domain/markdown/entity"
-	"github.com/gohugonet/hugoverse/internal/domain/markdown/valueobject"
+	"github.com/mdfriday/hugoverse/internal/domain/markdown"
+	"github.com/mdfriday/hugoverse/internal/domain/markdown/entity"
+	"github.com/mdfriday/hugoverse/internal/domain/markdown/valueobject"
 	"sync"
 )
 

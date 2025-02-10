@@ -14,7 +14,7 @@
 package strings
 
 import (
-	"github.com/gohugonet/hugoverse/pkg/hstrings"
+	"github.com/mdfriday/hugoverse/pkg/hstrings"
 	"github.com/spf13/cast"
 )
 

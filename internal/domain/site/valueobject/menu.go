@@ -1,8 +1,8 @@
 package valueobject
 
 import (
-	"github.com/gohugonet/hugoverse/pkg/compare"
-	"github.com/gohugonet/hugoverse/pkg/maps"
+	"github.com/mdfriday/hugoverse/pkg/compare"
+	"github.com/mdfriday/hugoverse/pkg/maps"
 	"html/template"
 	"sort"
 )

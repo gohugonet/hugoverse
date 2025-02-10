@@ -1,8 +1,8 @@
 package entity
 
 import (
-	"github.com/gohugonet/hugoverse/internal/domain/fs"
-	"github.com/gohugonet/hugoverse/internal/domain/fs/valueobject"
+	"github.com/mdfriday/hugoverse/internal/domain/fs"
+	"github.com/mdfriday/hugoverse/internal/domain/fs/valueobject"
 )
 
 type Service struct {

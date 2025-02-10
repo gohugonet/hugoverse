@@ -1,6 +1,6 @@
 package template
 
-import "github.com/gohugonet/hugoverse/pkg/output"
+import "github.com/mdfriday/hugoverse/pkg/output"
 
 // Variants describes the possible variants of a template.
 // All of these may be empty.

@@ -9,7 +9,7 @@ package template_test
 
 import (
 	"bytes"
-	"github.com/gohugonet/hugoverse/pkg/template/testenv"
+	"github.com/mdfriday/hugoverse/pkg/template/testenv"
 	"os"
 	"os/exec"
 	"path/filepath"

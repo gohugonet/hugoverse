@@ -2,7 +2,7 @@ package api
 
 import (
 	"fmt"
-	"github.com/gohugonet/hugoverse/internal/application"
+	"github.com/mdfriday/hugoverse/internal/application"
 	"net/http"
 )
 

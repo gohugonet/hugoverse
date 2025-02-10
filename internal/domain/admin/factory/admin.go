@@ -1,9 +1,9 @@
 package factory
 
 import (
-	"github.com/gohugonet/hugoverse/internal/domain/admin/entity"
-	"github.com/gohugonet/hugoverse/internal/domain/admin/repository"
-	"github.com/gohugonet/hugoverse/pkg/loggers"
+	"github.com/mdfriday/hugoverse/internal/domain/admin/entity"
+	"github.com/mdfriday/hugoverse/internal/domain/admin/repository"
+	"github.com/mdfriday/hugoverse/pkg/loggers"
 	"github.com/nilslice/jwt"
 )
 

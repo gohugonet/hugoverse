@@ -6,7 +6,7 @@ import (
 	"fmt"
 	oapiclient "github.com/go-openapi/runtime/client"
 	"github.com/go-openapi/strfmt"
-	"github.com/gohugonet/hugoverse/internal/domain/content/valueobject"
+	"github.com/mdfriday/hugoverse/internal/domain/content/valueobject"
 	"github.com/netlify/open-api/v2/go/models"
 	netlify "github.com/netlify/open-api/v2/go/porcelain"
 	ooapicontext "github.com/netlify/open-api/v2/go/porcelain/context"

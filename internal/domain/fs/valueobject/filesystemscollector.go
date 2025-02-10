@@ -1,10 +1,10 @@
 package valueobject
 
 import (
-	"github.com/gohugonet/hugoverse/internal/domain/module"
-	"github.com/gohugonet/hugoverse/pkg/overlayfs"
-	"github.com/gohugonet/hugoverse/pkg/paths"
-	"github.com/gohugonet/hugoverse/pkg/paths/files"
+	"github.com/mdfriday/hugoverse/internal/domain/module"
+	"github.com/mdfriday/hugoverse/pkg/overlayfs"
+	"github.com/mdfriday/hugoverse/pkg/paths"
+	"github.com/mdfriday/hugoverse/pkg/paths/files"
 	"github.com/spf13/afero"
 	"path/filepath"
 	"strings"

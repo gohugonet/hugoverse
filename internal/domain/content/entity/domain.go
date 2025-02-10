@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/gohugonet/hugoverse/internal/domain/content/valueobject"
+	"github.com/mdfriday/hugoverse/internal/domain/content/valueobject"
 )
 
 func (c *Content) ApplyDomain(siteId string, domain string) (*valueobject.Domain, bool, error) {

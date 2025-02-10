@@ -1,6 +1,6 @@
 package valueobject
 
-import "github.com/gohugonet/hugoverse/internal/domain/contenthub"
+import "github.com/mdfriday/hugoverse/internal/domain/contenthub"
 
 type PageGroup struct {
 	key   string

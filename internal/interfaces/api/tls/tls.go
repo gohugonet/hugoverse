@@ -1,7 +1,7 @@
 package tls
 
 import (
-	"github.com/gohugonet/hugoverse/internal/domain/admin"
+	"github.com/mdfriday/hugoverse/internal/domain/admin"
 	"net/http"
 )
 

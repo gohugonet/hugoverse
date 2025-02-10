@@ -17,9 +17,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/gohugonet/hugoverse/pkg/hreflect"
-	"github.com/gohugonet/hugoverse/pkg/hstrings"
-	"github.com/gohugonet/hugoverse/pkg/maps"
+	"github.com/mdfriday/hugoverse/pkg/hreflect"
+	"github.com/mdfriday/hugoverse/pkg/hstrings"
+	"github.com/mdfriday/hugoverse/pkg/maps"
 	"reflect"
 	"strings"
 )

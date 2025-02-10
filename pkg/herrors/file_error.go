@@ -25,8 +25,8 @@ import (
 
 	"github.com/bep/godartsass/v2"
 	"github.com/bep/golibsass/libsass/libsasserrors"
-	"github.com/gohugonet/hugoverse/pkg/paths"
-	"github.com/gohugonet/hugoverse/pkg/text"
+	"github.com/mdfriday/hugoverse/pkg/paths"
+	"github.com/mdfriday/hugoverse/pkg/text"
 	"github.com/pelletier/go-toml/v2"
 	"github.com/spf13/afero"
 )

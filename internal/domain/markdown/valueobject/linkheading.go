@@ -1,6 +1,6 @@
 package valueobject
 
-import "github.com/gohugonet/hugoverse/pkg/types/hstring"
+import "github.com/mdfriday/hugoverse/pkg/types/hstring"
 
 type headingContext struct {
 	page      any

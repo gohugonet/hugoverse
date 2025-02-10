@@ -3,8 +3,8 @@ package database
 import (
 	"crypto/md5"
 	"encoding/hex"
-	"github.com/gohugonet/hugoverse/internal/interfaces/api/token"
-	"github.com/gohugonet/hugoverse/pkg/db"
+	"github.com/mdfriday/hugoverse/internal/interfaces/api/token"
+	"github.com/mdfriday/hugoverse/pkg/db"
 	"net/http"
 )
 

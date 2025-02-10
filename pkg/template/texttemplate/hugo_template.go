@@ -18,9 +18,9 @@ import (
 	"io"
 	"reflect"
 
-	"github.com/gohugonet/hugoverse/pkg/hreflect"
+	"github.com/mdfriday/hugoverse/pkg/hreflect"
 
-	"github.com/gohugonet/hugoverse/pkg/template/texttemplate/parse"
+	"github.com/mdfriday/hugoverse/pkg/template/texttemplate/parse"
 )
 
 /*

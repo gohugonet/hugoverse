@@ -1,6 +1,6 @@
 package entity
 
-import "github.com/gohugonet/hugoverse/internal/domain/config/valueobject"
+import "github.com/mdfriday/hugoverse/internal/domain/config/valueobject"
 
 type Sitemap struct {
 	Conf valueobject.SitemapConfig

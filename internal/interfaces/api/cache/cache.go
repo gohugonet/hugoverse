@@ -2,7 +2,7 @@ package cache
 
 import (
 	"fmt"
-	"github.com/gohugonet/hugoverse/pkg/loggers"
+	"github.com/mdfriday/hugoverse/pkg/loggers"
 	"net/http"
 	"strings"
 )

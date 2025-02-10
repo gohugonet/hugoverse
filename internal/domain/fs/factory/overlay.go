@@ -1,10 +1,10 @@
 package factory
 
 import (
-	"github.com/gohugonet/hugoverse/internal/domain/fs/entity"
-	"github.com/gohugonet/hugoverse/internal/domain/fs/valueobject"
-	"github.com/gohugonet/hugoverse/internal/domain/module"
-	"github.com/gohugonet/hugoverse/pkg/overlayfs"
+	"github.com/mdfriday/hugoverse/internal/domain/fs/entity"
+	"github.com/mdfriday/hugoverse/internal/domain/fs/valueobject"
+	"github.com/mdfriday/hugoverse/internal/domain/module"
+	"github.com/mdfriday/hugoverse/pkg/overlayfs"
 )
 
 func CreateMainOverlayFs(ofs *entity.OriginFs, mods module.Modules) (*valueobject.FilesystemsCollector, error) {

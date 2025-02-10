@@ -1,6 +1,6 @@
 package lexer
 
-import "github.com/gohugonet/hugoverse/pkg/fsm"
+import "github.com/mdfriday/hugoverse/pkg/fsm"
 
 type Delim string
 type TokenType int

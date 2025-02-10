@@ -3,10 +3,10 @@ package hexec
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/gohugonet/hugoverse/pkg/herrors"
-	"github.com/gohugonet/hugoverse/pkg/hexec/parser"
-	"github.com/gohugonet/hugoverse/pkg/hexec/security"
-	"github.com/gohugonet/hugoverse/pkg/parser/metadecoders"
+	"github.com/mdfriday/hugoverse/pkg/herrors"
+	"github.com/mdfriday/hugoverse/pkg/hexec/parser"
+	"github.com/mdfriday/hugoverse/pkg/hexec/security"
+	"github.com/mdfriday/hugoverse/pkg/parser/metadecoders"
 	"strings"
 )
 

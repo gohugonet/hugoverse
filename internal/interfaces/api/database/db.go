@@ -4,9 +4,9 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"github.com/gohugonet/hugoverse/internal/domain/content"
-	"github.com/gohugonet/hugoverse/pkg/db"
-	"github.com/gohugonet/hugoverse/pkg/loggers"
+	"github.com/mdfriday/hugoverse/internal/domain/content"
+	"github.com/mdfriday/hugoverse/pkg/db"
+	"github.com/mdfriday/hugoverse/pkg/loggers"
 	"path"
 	"strconv"
 )

@@ -1,7 +1,7 @@
 package entity
 
 import (
-	"github.com/gohugonet/hugoverse/internal/domain/fs/valueobject"
+	"github.com/mdfriday/hugoverse/internal/domain/fs/valueobject"
 	"github.com/spf13/afero"
 )
 

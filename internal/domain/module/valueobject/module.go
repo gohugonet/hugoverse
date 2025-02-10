@@ -1,7 +1,7 @@
 package valueobject
 
 import (
-	"github.com/gohugonet/hugoverse/internal/domain/module"
+	"github.com/mdfriday/hugoverse/internal/domain/module"
 	"github.com/spf13/afero"
 	"path/filepath"
 )

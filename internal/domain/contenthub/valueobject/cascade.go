@@ -2,7 +2,7 @@ package valueobject
 
 import (
 	"fmt"
-	"github.com/gohugonet/hugoverse/pkg/maps"
+	"github.com/mdfriday/hugoverse/pkg/maps"
 	"strings"
 )
 

@@ -1,8 +1,8 @@
 package entity
 
 import (
-	"github.com/gohugonet/hugoverse/internal/domain/config/valueobject"
-	"github.com/gohugonet/hugoverse/pkg/hexec"
+	"github.com/mdfriday/hugoverse/internal/domain/config/valueobject"
+	"github.com/mdfriday/hugoverse/pkg/hexec"
 )
 
 type Security struct {

@@ -14,8 +14,8 @@
 package valueobject
 
 import (
-	"github.com/gohugonet/hugoverse/internal/domain/fs"
-	"github.com/gohugonet/hugoverse/pkg/io"
+	"github.com/mdfriday/hugoverse/internal/domain/fs"
+	"github.com/mdfriday/hugoverse/pkg/io"
 	"os"
 
 	"github.com/spf13/afero"

@@ -1,6 +1,6 @@
 package valueobject
 
-import "github.com/gohugonet/hugoverse/pkg/media"
+import "github.com/mdfriday/hugoverse/pkg/media"
 
 func ClassifyType(t string) string {
 	for _, it := range media.BuiltinImages {

@@ -1,6 +1,6 @@
 package entity
 
-import "github.com/gohugonet/hugoverse/internal/domain/resources/valueobject"
+import "github.com/mdfriday/hugoverse/internal/domain/resources/valueobject"
 
 type Image struct {
 	*valueobject.Filters

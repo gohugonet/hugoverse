@@ -16,7 +16,7 @@ package collections
 import (
 	"errors"
 	"fmt"
-	"github.com/gohugonet/hugoverse/pkg/maps"
+	"github.com/mdfriday/hugoverse/pkg/maps"
 	"reflect"
 
 	"github.com/spf13/cast"

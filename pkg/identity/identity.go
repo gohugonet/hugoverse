@@ -1,7 +1,7 @@
 package identity
 
 import (
-	"github.com/gohugonet/hugoverse/pkg/types"
+	"github.com/mdfriday/hugoverse/pkg/types"
 	"path"
 	"path/filepath"
 	"strings"

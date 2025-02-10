@@ -1,8 +1,8 @@
 package transform
 
 import (
-	"github.com/gohugonet/hugoverse/pkg/io"
-	"github.com/gohugonet/hugoverse/pkg/media"
+	"github.com/mdfriday/hugoverse/pkg/io"
+	"github.com/mdfriday/hugoverse/pkg/media"
 )
 
 // UnmarshableResource represents a Resource that can be unmarshaled to some other format.

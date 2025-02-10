@@ -6,7 +6,7 @@ package fmtsort_test
 
 import (
 	"fmt"
-	"github.com/gohugonet/hugoverse/pkg/template/fmtsort"
+	"github.com/mdfriday/hugoverse/pkg/template/fmtsort"
 	"math"
 	"reflect"
 	"runtime"

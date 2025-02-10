@@ -17,7 +17,7 @@ package output
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gohugonet/hugoverse/pkg/media"
+	"github.com/mdfriday/hugoverse/pkg/media"
 	"sort"
 	"strings"
 )

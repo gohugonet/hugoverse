@@ -3,7 +3,7 @@ package entity
 import (
 	"errors"
 	"fmt"
-	"github.com/gohugonet/hugoverse/internal/domain/config/valueobject"
+	"github.com/mdfriday/hugoverse/internal/domain/config/valueobject"
 	"golang.org/x/exp/maps"
 )
 

@@ -13,8 +13,8 @@ import (
 	"path/filepath"
 	"sync"
 
-	template "github.com/gohugonet/hugoverse/pkg/template/texttemplate"
-	"github.com/gohugonet/hugoverse/pkg/template/texttemplate/parse"
+	template "github.com/mdfriday/hugoverse/pkg/template/texttemplate"
+	"github.com/mdfriday/hugoverse/pkg/template/texttemplate/parse"
 )
 
 // Template is a specialized Template from "text/template" that produces a safe

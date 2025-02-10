@@ -1,8 +1,8 @@
 package valueobject
 
 import (
-	"github.com/gohugonet/hugoverse/internal/domain/template"
-	texttemplate "github.com/gohugonet/hugoverse/pkg/template/texttemplate"
+	"github.com/mdfriday/hugoverse/internal/domain/template"
+	texttemplate "github.com/mdfriday/hugoverse/pkg/template/texttemplate"
 	"sync"
 )
 

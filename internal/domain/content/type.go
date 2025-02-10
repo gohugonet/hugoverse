@@ -4,7 +4,7 @@ import (
 	"errors"
 	"github.com/blevesearch/bleve/mapping"
 	"github.com/gofrs/uuid"
-	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
+	"github.com/mdfriday/hugoverse/internal/domain/contenthub"
 	"net/http"
 )
 

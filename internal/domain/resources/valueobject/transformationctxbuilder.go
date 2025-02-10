@@ -2,10 +2,10 @@ package valueobject
 
 import (
 	"context"
-	"github.com/gohugonet/hugoverse/internal/domain/resources"
-	bp "github.com/gohugonet/hugoverse/pkg/bufferpool"
-	pio "github.com/gohugonet/hugoverse/pkg/io"
-	"github.com/gohugonet/hugoverse/pkg/media"
+	"github.com/mdfriday/hugoverse/internal/domain/resources"
+	bp "github.com/mdfriday/hugoverse/pkg/bufferpool"
+	pio "github.com/mdfriday/hugoverse/pkg/io"
+	"github.com/mdfriday/hugoverse/pkg/media"
 )
 
 type ResTransCtxBuilder struct {

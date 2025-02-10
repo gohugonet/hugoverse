@@ -3,9 +3,9 @@ package entity
 import (
 	"context"
 	"fmt"
-	"github.com/gohugonet/hugoverse/internal/domain/template"
-	bp "github.com/gohugonet/hugoverse/pkg/bufferpool"
-	texttemplate "github.com/gohugonet/hugoverse/pkg/template/texttemplate"
+	"github.com/mdfriday/hugoverse/internal/domain/template"
+	bp "github.com/mdfriday/hugoverse/pkg/bufferpool"
+	texttemplate "github.com/mdfriday/hugoverse/pkg/template/texttemplate"
 	htemplate "html/template"
 	"io"
 )

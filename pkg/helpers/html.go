@@ -1,8 +1,8 @@
 package helpers
 
 import (
-	bp "github.com/gohugonet/hugoverse/pkg/bufferpool"
-	htmltemplate "github.com/gohugonet/hugoverse/pkg/template/htmltemplate"
+	bp "github.com/mdfriday/hugoverse/pkg/bufferpool"
+	htmltemplate "github.com/mdfriday/hugoverse/pkg/template/htmltemplate"
 	"html/template"
 	"strings"
 	"unicode"

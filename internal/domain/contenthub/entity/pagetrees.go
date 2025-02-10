@@ -1,9 +1,9 @@
 package entity
 
 import (
-	"github.com/gohugonet/hugoverse/internal/domain/contenthub"
-	"github.com/gohugonet/hugoverse/pkg/cache/stale"
-	"github.com/gohugonet/hugoverse/pkg/doctree"
+	"github.com/mdfriday/hugoverse/internal/domain/contenthub"
+	"github.com/mdfriday/hugoverse/pkg/cache/stale"
+	"github.com/mdfriday/hugoverse/pkg/doctree"
 )
 
 // PageTrees holds pages and resources in a tree structure for all sites/languages.

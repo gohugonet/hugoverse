@@ -3,8 +3,8 @@ package action
 import (
 	"errors"
 	"fmt"
-	"github.com/gohugonet/hugoverse/pkg/fsm"
-	"github.com/gohugonet/hugoverse/pkg/lexer"
+	"github.com/mdfriday/hugoverse/pkg/fsm"
+	"github.com/mdfriday/hugoverse/pkg/lexer"
 	"strings"
 )
 

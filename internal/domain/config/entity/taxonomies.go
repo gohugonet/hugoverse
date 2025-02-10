@@ -1,8 +1,8 @@
 package entity
 
 import (
-	"github.com/gohugonet/hugoverse/internal/domain/config/valueobject"
-	"github.com/gohugonet/hugoverse/pkg/paths"
+	"github.com/mdfriday/hugoverse/internal/domain/config/valueobject"
+	"github.com/mdfriday/hugoverse/pkg/paths"
 	"path"
 	"path/filepath"
 	"sort"

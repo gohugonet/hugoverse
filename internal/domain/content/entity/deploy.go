@@ -3,7 +3,7 @@ package entity
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gohugonet/hugoverse/internal/domain/content/valueobject"
+	"github.com/mdfriday/hugoverse/internal/domain/content/valueobject"
 	"time"
 )
 

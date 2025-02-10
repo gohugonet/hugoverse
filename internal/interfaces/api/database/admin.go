@@ -1,6 +1,6 @@
 package database
 
-import "github.com/gohugonet/hugoverse/pkg/db"
+import "github.com/mdfriday/hugoverse/pkg/db"
 
 func (d *Database) StartAdminDatabase(adminTypeNames []string) error {
 	var buckets []string

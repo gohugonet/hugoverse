@@ -3,7 +3,7 @@ package entity
 import (
 	"encoding/json"
 	"errors"
-	"github.com/gohugonet/hugoverse/internal/domain/content"
+	"github.com/mdfriday/hugoverse/internal/domain/content"
 )
 
 func (c *Content) search(contentType string, query string) ([][]byte, error) {

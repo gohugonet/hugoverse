@@ -1,15 +1,15 @@
 package factory
 
 import (
-	"github.com/gohugonet/hugoverse/internal/domain/resources"
-	"github.com/gohugonet/hugoverse/internal/domain/resources/entity"
-	"github.com/gohugonet/hugoverse/internal/domain/resources/valueobject"
-	"github.com/gohugonet/hugoverse/pkg/cache/dynacache"
-	"github.com/gohugonet/hugoverse/pkg/cache/filecache"
-	"github.com/gohugonet/hugoverse/pkg/hexec"
-	"github.com/gohugonet/hugoverse/pkg/identity"
-	"github.com/gohugonet/hugoverse/pkg/loggers"
-	"github.com/gohugonet/hugoverse/pkg/resource/jsconfig"
+	"github.com/mdfriday/hugoverse/internal/domain/resources"
+	"github.com/mdfriday/hugoverse/internal/domain/resources/entity"
+	"github.com/mdfriday/hugoverse/internal/domain/resources/valueobject"
+	"github.com/mdfriday/hugoverse/pkg/cache/dynacache"
+	"github.com/mdfriday/hugoverse/pkg/cache/filecache"
+	"github.com/mdfriday/hugoverse/pkg/hexec"
+	"github.com/mdfriday/hugoverse/pkg/identity"
+	"github.com/mdfriday/hugoverse/pkg/loggers"
+	"github.com/mdfriday/hugoverse/pkg/resource/jsconfig"
 	"github.com/spf13/afero"
 	"time"
 )

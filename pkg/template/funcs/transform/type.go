@@ -2,7 +2,7 @@ package transform
 
 import (
 	"context"
-	"github.com/gohugonet/hugoverse/internal/domain/markdown"
+	"github.com/mdfriday/hugoverse/internal/domain/markdown"
 	goTemplate "html/template"
 )
 

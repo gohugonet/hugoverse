@@ -12,8 +12,8 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/gohugonet/hugoverse/pkg/template/fmtsort"
-	"github.com/gohugonet/hugoverse/pkg/template/texttemplate/parse"
+	"github.com/mdfriday/hugoverse/pkg/template/fmtsort"
+	"github.com/mdfriday/hugoverse/pkg/template/texttemplate/parse"
 )
 
 // maxExecDepth specifies the maximum stack depth of templates within

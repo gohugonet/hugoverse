@@ -1,8 +1,8 @@
 package valueobject
 
 import (
-	"github.com/gohugonet/hugoverse/pkg/hexec"
-	"github.com/gohugonet/hugoverse/pkg/paths"
+	"github.com/mdfriday/hugoverse/pkg/hexec"
+	"github.com/mdfriday/hugoverse/pkg/paths"
 	"github.com/mitchellh/mapstructure"
 	"os"
 	"strings"
