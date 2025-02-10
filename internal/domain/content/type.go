@@ -98,6 +98,10 @@ type Createable interface {
 	Create(http.ResponseWriter, *http.Request) error
 }
 
+type Updateable interface {
+	Update(http.ResponseWriter, *http.Request) error
+}
+
 // Trustable allows external content to be auto-approved, meaning content sent
 // as an Createable will be stored in the public content bucket
 type Trustable interface {

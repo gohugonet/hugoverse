@@ -251,6 +251,14 @@ func (s *Handler) postContent(res http.ResponseWriter, req *http.Request) {
 		if slug, ok := ep.(content.Sluggable); ok {
 			req.PostForm.Set("slug", slug.ItemSlug())
 		}
+		if update, ok := ep.(content.Updateable); ok {
+			err = update.Update(res, req)
+			if err != nil {
+				s.log.Errorf("Error updating content: %v", err)
+				res.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+		}
 	}
 
 	ext, ok := post.(content.Createable)

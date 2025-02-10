@@ -5,7 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gohugonet/hugoverse/internal/domain/content/valueobject"
+	"github.com/gohugonet/hugoverse/pkg/fs/static"
 	"github.com/gohugonet/hugoverse/pkg/herrors"
+	"github.com/spf13/afero"
 	"io"
 	"net/url"
 	"os"
@@ -65,6 +67,29 @@ func (c *Content) BuildTarget(contentType, id, status string) (string, error) {
 		err = <-writer.errs
 		if err != nil {
 			return "", fmt.Errorf("failed to render pages: %w", herrors.ImproveIfNilPointer(err))
+		}
+
+		if site.WorkingDir != "" {
+			info, err := os.Stat(site.WorkingDir)
+			if err == nil && info.IsDir() {
+				info, err := os.Stat(path.Join(site.WorkingDir, "resources"))
+				if err == nil && info.IsDir() {
+					_, err := os.Stat(path.Join(dir, "resources"))
+					if os.IsNotExist(err) {
+						from := afero.NewBasePathFs(c.Hugo.Fs, path.Join(site.WorkingDir, "resources"))
+						to := afero.NewBasePathFs(c.Hugo.Fs, path.Join(dir, "resources"))
+						err := static.Copy([]afero.Fs{from}, to)
+						if err != nil {
+							c.Log.Errorf("failed to reuse resources: %v", err)
+						}
+					}
+				}
+			}
+		}
+
+		site.WorkingDir = dir
+		if err := c.UpdateContentObject(site); err != nil {
+			c.Log.Errorf("Error updating site preview working dir: %v", err)
 		}
 
 		return dir, nil

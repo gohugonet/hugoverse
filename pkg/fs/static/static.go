@@ -27,7 +27,7 @@ func Copy(fs []afero.Fs, publish afero.Fs) error {
 
 	m, err := s.doWithPublishDirs(s.copyStaticTo)
 	if err == nil || herrors.IsNotExist(err) {
-		s.logger.Infoln("Copied", m, "static files")
+		s.logger.Infoln("Copied", m, "static files", "from", s.source[0].Name(), "to", s.target.Name())
 	}
 
 	if err != nil {

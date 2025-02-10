@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/gohugonet/hugoverse/internal/application"
 	"github.com/gohugonet/hugoverse/internal/domain/content"
+	"github.com/gohugonet/hugoverse/internal/domain/content/valueobject"
 	"github.com/gohugonet/hugoverse/internal/interfaces/api/form"
 	"log"
 	"net/http"
@@ -62,18 +63,33 @@ func (s *Handler) DeployContentHandler(res http.ResponseWriter, req *http.Reques
 		return
 	}
 
-	t, err = s.contentApp.BuildTarget(t, id, status)
+	var target string
+
+	sc, err := s.contentApp.GetContentObject(t, id)
 	if err != nil {
-		s.log.Errorf("Error building: %v", err)
+		s.log.Errorf("Error getting deploy content: %v", err)
 		res.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	err = application.GenerateStaticSiteWithTarget(t)
-	if err != nil {
-		s.log.Errorf("Error building site %s for deployment with error : %v", id, err)
-		res.WriteHeader(http.StatusInternalServerError)
-		return
+	if site, ok := sc.(*valueobject.Site); ok {
+		target = site.WorkingDir
+	}
+
+	if target == "" {
+		target, err = s.contentApp.BuildTarget(t, id, status)
+		if err != nil {
+			s.log.Errorf("Error building: %v", err)
+			res.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		err = application.GenerateStaticSiteWithTarget(target)
+		if err != nil {
+			s.log.Errorf("Error building site %s for deployment with error : %v", id, err)
+			res.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 	}
 
 	sd, err := s.contentApp.GetDeployment(d, hostName)
@@ -88,7 +104,7 @@ func (s *Handler) DeployContentHandler(res http.ResponseWriter, req *http.Reques
 		res.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	err = application.DeployToNetlify(t, sd, d, hostToken)
+	err = application.DeployToNetlify(target, sd, d, hostToken)
 	if err != nil {
 		s.log.Errorf("Error building: %v", err)
 		res.WriteHeader(http.StatusInternalServerError)

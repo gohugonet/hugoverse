@@ -141,6 +141,14 @@ func (s *Site) Create(res http.ResponseWriter, req *http.Request) error {
 	return nil
 }
 
+func (s *Site) Update(res http.ResponseWriter, req *http.Request) error {
+	if req.PostFormValue("working_dir") == "" && s.WorkingDir != "" {
+		req.PostForm.Set("working_dir", s.WorkingDir)
+	}
+
+	return nil
+}
+
 // BeforeAPICreate is only called if the Song type implements api.Createable
 // It is called before Create, and returning an error will cancel the request
 // causing the system to reject the data sent in the POST

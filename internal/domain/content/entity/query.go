@@ -71,6 +71,10 @@ func (c *Content) termSearch(contentType string, keyValue map[string]string) ([]
 	return bb, nil
 }
 
+func (c *Content) GetContentObject(contentType, id string) (any, error) {
+	return c.getContent(contentType, id)
+}
+
 func (c *Content) getContent(contentType, id string) (any, error) {
 	bs, err := c.GetContent(contentType, id, "")
 	if err != nil {

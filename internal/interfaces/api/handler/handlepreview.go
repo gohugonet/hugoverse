@@ -56,8 +56,8 @@ func (s *Handler) PreviewContentHandler(res http.ResponseWriter, req *http.Reque
 
 	err = application.GenerateStaticSiteWithTarget(t)
 	if err != nil {
-		s.log.Errorf("Error building site %s for deployment with error : %v", id, err)
-		res.WriteHeader(http.StatusInternalServerError)
+		s.log.Errorf("Error preview site %s for deployment with error : %v", id, err)
+		s.handlerError(res, req, err)
 		return
 	}
 

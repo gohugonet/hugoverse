@@ -70,8 +70,9 @@ func GenerateStaticSite() error {
 
 	publishDirFs = fs.PublishDirStatic()
 
-	staticSvc := newStatic(fs.Static, fs.PublishDirStatic())
-	go staticSvc.copyStatic()
+	go func() {
+		_ = staticCopy(fs.Static, fs.PublishDirStatic())
+	}()
 
 	ch, err := contentHubFact.New(&chServices{
 		Config: c,

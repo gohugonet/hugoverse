@@ -431,8 +431,9 @@ func TestSitePublish(t *testing.T) {
 		t.Fatalf("New returned an error: %v", err)
 	}
 
-	staticSvc := newStatic(fsInstance.Static, fsInstance.PublishDirStatic())
-	go staticSvc.copyStatic()
+	go func() {
+		_ = staticCopy(fsInstance.Static, fsInstance.PublishDirStatic())
+	}()
 
 	ch, err := contentHubFact.New(&chServices{
 		Config: config,
