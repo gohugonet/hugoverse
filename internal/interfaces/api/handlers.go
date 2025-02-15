@@ -47,6 +47,7 @@ func (s *Server) registerAdminHandler() {
 	s.mux.HandleFunc("/admin/logout", s.handler.LogoutHandler)
 
 	s.mux.HandleFunc("/admin/configure", s.wrapAdminHandler(s.handler.ConfigHandler))
+	s.mux.HandleFunc("/admin/configure/users", s.wrapAdminHandler(s.handler.UserConfigHandler))
 
 	s.mux.HandleFunc("/admin/contents", s.wrapAdminHandler(s.handler.ContentsHandler))
 	s.mux.HandleFunc("/admin/contents/search", s.wrapAdminHandler(s.handler.SearchHandler))

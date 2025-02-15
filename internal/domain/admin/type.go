@@ -27,6 +27,7 @@ type Editor interface {
 
 type User interface {
 	Name() string
+	ID() uint64
 }
 
 type UserService interface {

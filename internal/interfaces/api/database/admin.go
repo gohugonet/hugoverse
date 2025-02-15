@@ -28,6 +28,10 @@ func (d *Database) User(email string) ([]byte, error) {
 	return d.adminStore.Get(newUserItem(email, nil))
 }
 
+func (d *Database) Users() [][]byte {
+	return d.adminStore.ContentAll(bucketNameWithPrefix("users"))
+}
+
 func (d *Database) PutUser(email string, data []byte) error {
 	return d.adminStore.Set(newUserItem(email, data))
 }

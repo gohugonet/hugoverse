@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"github.com/mdfriday/hugoverse/internal/interfaces/api/token"
+	"log"
 	"net/http"
 	"strings"
 )
@@ -110,6 +111,87 @@ func (s *Handler) UserLoginHandler(res http.ResponseWriter, req *http.Request) {
 
 	default:
 		s.log.Errorf("Method not allowed: %s", req.Method)
+		res.WriteHeader(http.StatusMethodNotAllowed)
+	}
+}
+
+func (s *Handler) UserConfigHandler(res http.ResponseWriter, req *http.Request) {
+	switch req.Method {
+	case http.MethodGet:
+		email, err := token.GetEmail(req)
+		if err != nil {
+			s.log.Errorf("Error getting email: %v", err)
+			res.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		currentUser, err := s.adminApp.GetUser(email)
+		if err != nil {
+			res.WriteHeader(http.StatusInternalServerError)
+			errView, err := s.adminView.Error500()
+			if err != nil {
+				return
+			}
+
+			res.Write(errView)
+			return
+		}
+
+		allUsers, err := s.adminApp.AllUsersExcept(currentUser)
+		data := map[string]interface{}{
+			"User":  currentUser,
+			"Users": allUsers,
+		}
+
+		s.refreshAdminFlag(req)
+		adminView, err := s.adminView.UserManagementView(data)
+		if err != nil {
+			log.Println(err)
+			res.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		res.Header().Set("Content-Type", "text/html")
+		res.Write(adminView)
+
+	case http.MethodPost:
+		// create new user
+		err := req.ParseMultipartForm(1024 * 1024 * 4) // maxMemory 4MB
+		if err != nil {
+			log.Println(err)
+			res.WriteHeader(http.StatusInternalServerError)
+			errView, err := s.adminView.Error500()
+			if err != nil {
+				return
+			}
+
+			res.Write(errView)
+			return
+		}
+
+		email := strings.ToLower(req.FormValue("email"))
+		password := req.PostFormValue("password")
+
+		if email == "" || password == "" {
+			res.WriteHeader(http.StatusInternalServerError)
+			errView, err := s.adminView.Error500()
+			if err != nil {
+				return
+			}
+
+			res.Write(errView)
+			return
+		}
+
+		_, err = s.adminApp.NewUser(email, password)
+		if err != nil {
+			s.log.Errorf("Error creating new user: %v", err)
+			res.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		http.Redirect(res, req, req.URL.String(), http.StatusFound)
+
+	default:
 		res.WriteHeader(http.StatusMethodNotAllowed)
 	}
 }

@@ -83,6 +83,46 @@ func (a *Administrator) NewUser(email, password string) (admin.User, error) {
 	return user, nil
 }
 
+func (a *Administrator) GetUser(email string) (admin.User, error) {
+	return getUser(email, a.Repo)
+}
+
+func (a *Administrator) AllUsersExcept(one admin.User) ([]admin.User, error) {
+	users, err := a.AllUsers()
+	if err != nil {
+		return nil, err
+	}
+
+	var result []admin.User
+	for _, user := range users {
+		if user.Name() != one.Name() {
+			result = append(result, user)
+		}
+	}
+	return result, nil
+}
+
+func (a *Administrator) AllUsers() ([]admin.User, error) {
+	users := make([]admin.User, 0)
+
+	userBytes := a.Repo.Users()
+	for _, userByte := range userBytes {
+		if userByte == nil {
+			return nil, nil
+		}
+
+		user := &valueobject.User{}
+		err := json.Unmarshal(userByte, user)
+		if err != nil {
+			return nil, err
+		}
+
+		users = append(users, user)
+	}
+
+	return users, nil
+}
+
 // IsUser checks for consistency in email/pass combination
 func isUser(usr *valueobject.User, password string) error {
 	salt, err := base64.StdEncoding.DecodeString(usr.Salt)

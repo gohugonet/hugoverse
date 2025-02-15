@@ -18,6 +18,9 @@ type User struct {
 func (u *User) Name() string {
 	return u.Email
 }
+func (u *User) ID() uint64 {
+	return u.Id
+}
 
 var (
 	r = mrand.New(mrand.NewSource(time.Now().Unix()))

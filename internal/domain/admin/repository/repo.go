@@ -5,6 +5,7 @@ type Repository interface {
 	LoadConfig() ([]byte, error)
 
 	User(email string) ([]byte, error)
+	Users() [][]byte
 	PutUser(email string, data []byte) error
 	NextUserId(email string) (uint64, error)
 
