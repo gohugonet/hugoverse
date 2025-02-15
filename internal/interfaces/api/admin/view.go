@@ -25,9 +25,12 @@ func SetupView(name string) ([]byte, error) {
 }
 
 type View struct {
-	Logo    string
-	Types   map[string]content.Creator
-	Subview template.HTML
+	Logo       string
+	Types      map[string]content.Creator
+	AdminTypes map[string]content.Creator
+	AdminEmail string
+	IsAdmin    bool
+	Subview    template.HTML
 }
 
 func NewView(name string, ts map[string]content.Creator) *View {
@@ -38,13 +41,18 @@ func NewView(name string, ts map[string]content.Creator) *View {
 	}
 }
 
+func (v *View) RefreshAdmin(email string) {
+	v.IsAdmin = email == v.AdminEmail
+}
+
 // SubView ...
 func (v *View) SubView(view []byte) (_ []byte, err error) {
-	//TODO， clean SubView view
 	a := View{
-		Logo:    v.Logo,
-		Types:   v.Types,
-		Subview: template.HTML(view),
+		Logo:       v.Logo,
+		Types:      v.Types,
+		AdminTypes: v.AdminTypes,
+		IsAdmin:    v.IsAdmin,
+		Subview:    template.HTML(view),
 	}
 
 	buf := &bytes.Buffer{}

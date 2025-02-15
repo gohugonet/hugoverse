@@ -10,7 +10,19 @@ import (
 	"time"
 )
 
+func (s *Handler) refreshAdminFlag(req *http.Request) {
+	email, err := token.GetEmail(req)
+	if err != nil {
+		s.log.Errorf("Error getting email: %v", err)
+	}
+
+	if email != "" {
+		s.adminView.RefreshAdmin(email)
+	}
+}
+
 func (s *Handler) AdminHandler(res http.ResponseWriter, req *http.Request) {
+	s.refreshAdminFlag(req)
 	view, err := s.adminView.Dashboard()
 	if err != nil {
 		s.log.Errorf("Error rendering admin view: %v", err)
@@ -182,6 +194,7 @@ func (s *Handler) LogoutHandler(res http.ResponseWriter, req *http.Request) {
 func (s *Handler) ConfigHandler(res http.ResponseWriter, req *http.Request) {
 	switch req.Method {
 	case http.MethodGet:
+		s.refreshAdminFlag(req)
 		cfg, err := s.adminApp.ConfigEditor()
 		if err != nil {
 			log.Println(err)

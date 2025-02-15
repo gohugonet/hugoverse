@@ -14,9 +14,17 @@ func (c *Content) ApplyDomain(siteId string, domain string) (*valueobject.Domain
 	}
 
 	if site, ok := site.(*valueobject.Site); ok {
-		slug, err := valueobject.Slug(site)
-		if err != nil {
-			return nil, false, err
+		var slug string
+		if site.SubDomain == "" {
+			slug, err = valueobject.Slug(site) // Title
+			if err != nil {
+				return nil, false, err
+			}
+		} else {
+			slug, err = valueobject.StringToSlug(site.SubDomain)
+			if err != nil {
+				return nil, false, err
+			}
 		}
 
 		sd, err := c.searchDomain(domain, slug)

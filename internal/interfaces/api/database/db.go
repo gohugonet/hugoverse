@@ -9,6 +9,7 @@ import (
 	"github.com/mdfriday/hugoverse/pkg/loggers"
 	"path"
 	"strconv"
+	"strings"
 )
 
 var (
@@ -70,7 +71,7 @@ func (d *Database) Close() {
 
 func (d *Database) getStore(ns string) *db.Store {
 	for _, bucket := range d.adminBuckets {
-		if bucket == ns {
+		if strings.HasPrefix(ns, bucket) {
 			return d.adminStore
 		}
 	}

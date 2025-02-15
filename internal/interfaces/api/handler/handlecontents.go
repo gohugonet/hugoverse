@@ -24,12 +24,14 @@ func (s *Handler) ContentsHandler(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	s.refreshAdminFlag(req)
+
 	order := strings.ToLower(q.Get("order"))
 	if order != "asc" {
 		order = "desc"
 	}
 
-	contentType, ok := s.contentApp.AllContentTypes()[t]
+	contentType, ok := s.contentApp.AllTypes()[t]
 	if !ok {
 		if err := s.res.err400(res); err != nil {
 			s.log.Errorf("Error response err 400: %s", err)

@@ -1,6 +1,8 @@
 package db
 
-import bolt "go.etcd.io/bbolt"
+import (
+	bolt "go.etcd.io/bbolt"
+)
 
 // QueryOptions holds options for a query
 type QueryOptions struct {

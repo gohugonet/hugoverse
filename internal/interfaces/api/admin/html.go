@@ -47,6 +47,13 @@ var mainAdminHTML = `
                     </div>
                     {{ end }}
 
+                    {{ if .IsAdmin }}
+                    {{ range $t, $f := .AdminTypes }}
+                    <div class="row collection-item">
+                        <li><a class="col s12" href="/admin/contents?type={{ $t }}"><i class="tiny left material-icons">playlist_add</i>{{ $t }}</a></li>
+                    </div>
+                    {{ end }}
+
                     <div class="card-title">System</div>                                
                     <div class="row collection-item">
                         <li><a class="col s12" href="/admin/configure"><i class="tiny left material-icons">settings</i>Configuration</a></li>
@@ -54,6 +61,8 @@ var mainAdminHTML = `
                         <li><a class="col s12" href="/admin/uploads"><i class="tiny left material-icons">swap_vert</i>Uploads</a></li>
                         <!-- <li><a class="col s12" href="/admin/addons"><i class="tiny left material-icons">settings_input_svideo</i>Addons</a></li> -->
                     </div>
+                    {{ end }}
+
                 </ul>
                 </div>
             </div>

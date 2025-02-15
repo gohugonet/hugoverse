@@ -43,13 +43,13 @@ func NewContent(repo repository.Repository, dir content.DirService) *entity.Cont
 }
 
 func prepareUserTypes(c *entity.Content) {
-	c.UserTypes["Author"] = func() interface{} { return new(valueobject.Author) }
-	c.UserTypes["Language"] = func() interface{} { return new(valueobject.Language) }
-	c.UserTypes["Theme"] = func() interface{} { return new(valueobject.Theme) }
+	//c.UserTypes["Author"] = func() interface{} { return new(valueobject.Author) }
+	//c.UserTypes["Language"] = func() interface{} { return new(valueobject.Language) }
+	//c.UserTypes["Theme"] = func() interface{} { return new(valueobject.Theme) }
 	c.UserTypes["Post"] = func() interface{} { return new(valueobject.Post) }
 	c.UserTypes["Resource"] = func() interface{} { return new(valueobject.Resource) }
 	c.UserTypes["Site"] = func() interface{} { return new(valueobject.Site) }
-	c.UserTypes["SiteLanguage"] = func() interface{} { return new(valueobject.SiteLanguage) }
+	//c.UserTypes["SiteLanguage"] = func() interface{} { return new(valueobject.SiteLanguage) }
 	c.UserTypes["SitePost"] = func() interface{} { return new(valueobject.SitePost) }
 	c.UserTypes["SiteResource"] = func() interface{} { return new(valueobject.SiteResource) }
 	c.UserTypes["Deployment"] = func() interface{} { return new(valueobject.Deployment) }

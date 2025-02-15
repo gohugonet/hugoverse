@@ -20,6 +20,7 @@ type Site struct {
 	Theme                  string   `json:"theme"`
 	Params                 string   `json:"params"`
 	Owner                  string   `json:"owner"`
+	SubDomain              string   `json:"sub_domain,omitempty"`
 	WorkingDir             string   `json:"working_dir,omitempty"`
 	GoogleAnalytics        string   `json:"google_analytics,omitempty"`
 	DefaultContentLanguage string   `json:"default_content_language,omitempty"`
@@ -71,6 +72,13 @@ func (s *Site) MarshalEditor() ([]byte, error) {
 				"label":       "Owner",
 				"type":        "text",
 				"placeholder": "Enter the owner user email here",
+			}),
+		},
+		editor.Field{
+			View: editor.Input("SubDomain", s, map[string]string{
+				"label":       "SubDomain",
+				"type":        "text",
+				"placeholder": "Enter the sub domain here",
 			}),
 		},
 		editor.Field{

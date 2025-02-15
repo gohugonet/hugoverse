@@ -8,6 +8,7 @@ import (
 	"github.com/mdfriday/hugoverse/internal/interfaces/api/auth"
 	"github.com/mdfriday/hugoverse/internal/interfaces/api/database"
 	"github.com/mdfriday/hugoverse/pkg/loggers"
+	"html/template"
 )
 
 type Handler struct {
@@ -27,7 +28,13 @@ type Handler struct {
 func New(log loggers.Logger, db *database.Database,
 	contentApp *contentEntity.Content, adminApp *adminEntity.Admin) *Handler {
 
-	adminView := admin.NewView(adminApp.Name(), contentApp.AllContentTypes())
+	adminView := &admin.View{
+		Logo:       adminApp.Name(),
+		Types:      contentApp.AllContentTypes(),
+		AdminTypes: contentApp.AllAdminTypes(),
+		AdminEmail: adminApp.Conf.AdminEmail,
+		Subview:    template.HTML(""),
+	}
 
 	return &Handler{
 		res: NewResponse(adminView),

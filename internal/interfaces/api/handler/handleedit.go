@@ -22,7 +22,7 @@ func (s *Handler) EditHandler(res http.ResponseWriter, req *http.Request) {
 		t := q.Get("type")
 		status := q.Get("status")
 
-		contentType, ok := s.contentApp.AllContentTypes()[t]
+		contentType, ok := s.contentApp.AllTypes()[t]
 		if !ok {
 			fmt.Fprintf(res, content.ErrTypeNotRegistered.Error(), t)
 			return
@@ -87,6 +87,7 @@ func (s *Handler) EditHandler(res http.ResponseWriter, req *http.Request) {
 			return
 		}
 
+		s.refreshAdminFlag(req)
 		adminView, err := s.adminView.SubView(m)
 		if err != nil {
 			s.log.Errorf("Error rendering admin view: %v", err)
@@ -125,7 +126,6 @@ func (s *Handler) EditHandler(res http.ResponseWriter, req *http.Request) {
 		}
 
 		urlPaths, err := s.StoreFiles(req)
-		fmt.Printf("=== 111 post form: %v\n", urlPaths)
 		if err != nil {
 			if err := s.res.err500(res); err != nil {
 				s.log.Errorf("Error response err 500: %s", err)
@@ -137,7 +137,7 @@ func (s *Handler) EditHandler(res http.ResponseWriter, req *http.Request) {
 			req.PostForm.Set(name, urlPath)
 		}
 
-		p, ok := s.contentApp.AllContentTypes()[pt]
+		p, ok := s.contentApp.AllTypes()[pt]
 		if !ok {
 			if err := s.res.err400(res); err != nil {
 				s.log.Errorf("Error response err 400: %s", err)
@@ -282,7 +282,7 @@ func (s *Handler) DeleteHandler(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	p, ok := s.contentApp.AllContentTypes()[ct]
+	p, ok := s.contentApp.AllTypes()[ct]
 	if !ok {
 		s.log.Printf("Type %s does not implement item.Hookable or embed item.Item.", t)
 		res.WriteHeader(http.StatusBadRequest)
