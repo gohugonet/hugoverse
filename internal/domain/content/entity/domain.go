@@ -10,30 +10,29 @@ import (
 func (c *Content) ApplyDomain(siteId string, domain string) (*valueobject.Domain, bool, error) {
 	site, err := c.getContent("Site", siteId)
 	if err != nil {
-		c.Log.Println("Applying domain 000 : ", err)
+		c.Log.Errorf("Applying domain get content error : %v, site id: %s, domain : %s", err, siteId, domain)
 		return nil, false, err
 	}
 
-	c.Log.Println("Applying domain 111 : ", domain)
 	if site, ok := site.(*valueobject.Site); ok {
 		var slug string
 		if site.SubDomain == "" {
 			slug, err = valueobject.Slug(site) // Title
 			if err != nil {
-				c.Log.Println("Applying domain 222 : ", slug, site.String())
+				c.Log.Println("Applying empty domain slug : ", slug, site.String())
 				return nil, false, err
 			}
 		} else {
 			slug, err = valueobject.StringToSlug(site.SubDomain)
 			if err != nil {
-				c.Log.Println("Applying domain 333 : ", slug, site.SubDomain)
+				c.Log.Errorf("Applying with sub domain : %v, slug : %s, sub domain : %s ", err, slug, site.SubDomain)
 				return nil, false, err
 			}
 		}
 
 		sd, err := c.searchDomain(domain, slug)
 		if err != nil {
-			c.Log.Println("Applying domain 444 : ", err, domain, slug)
+			c.Log.Errorf("Applying domain search domain error : %v, domain : %s, slug : %s", err, domain, slug)
 			return nil, false, err
 		}
 
@@ -85,10 +84,14 @@ func (c *Content) searchDomain(root string, sub string) (*valueobject.Domain, er
 
 	// 遍历查询结果并解析
 	for _, data := range domains {
+		if string(data) == "[]" {
+			c.Log.Println("Empty array received for domain search")
+			continue
+		}
 		var domain valueobject.Domain
-		c.Log.Println("Applying domain 555 : ", data)
 		if err := json.Unmarshal(data, &domain); err != nil {
-			return nil, err
+			c.Log.Println("search domain result:", string(data))
+			continue
 		}
 
 		// 返回匹配的域名对象
