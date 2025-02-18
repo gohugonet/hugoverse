@@ -86,6 +86,7 @@ func (c *Content) searchDomain(root string, sub string) (*valueobject.Domain, er
 	// 遍历查询结果并解析
 	for _, data := range domains {
 		var domain valueobject.Domain
+		c.Log.Println("Applying domain 555 : ", data)
 		if err := json.Unmarshal(data, &domain); err != nil {
 			return nil, err
 		}
