@@ -10,25 +10,30 @@ import (
 func (c *Content) ApplyDomain(siteId string, domain string) (*valueobject.Domain, bool, error) {
 	site, err := c.getContent("Site", siteId)
 	if err != nil {
+		c.Log.Println("Applying domain 000 : ", err)
 		return nil, false, err
 	}
 
+	c.Log.Println("Applying domain 111 : ", domain)
 	if site, ok := site.(*valueobject.Site); ok {
 		var slug string
 		if site.SubDomain == "" {
 			slug, err = valueobject.Slug(site) // Title
 			if err != nil {
+				c.Log.Println("Applying domain 222 : ", slug, site.String())
 				return nil, false, err
 			}
 		} else {
 			slug, err = valueobject.StringToSlug(site.SubDomain)
 			if err != nil {
+				c.Log.Println("Applying domain 333 : ", slug, site.SubDomain)
 				return nil, false, err
 			}
 		}
 
 		sd, err := c.searchDomain(domain, slug)
 		if err != nil {
+			c.Log.Println("Applying domain 444 : ", err, domain, slug)
 			return nil, false, err
 		}
 
